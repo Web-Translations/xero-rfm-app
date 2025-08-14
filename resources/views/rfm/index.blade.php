@@ -170,7 +170,7 @@
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format($r->monetary_sum, 2) }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ \Carbon\Carbon::parse($r->last_txn_date)->format('M Y') }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
-                                    {{ \Carbon\Carbon::parse($r->period_end)->format('M Y') }}
+                                    {{ \Carbon\Carbon::parse($r->snapshot_date)->format('M Y') }}
                                 </td>
                             </tr>
                         @empty

@@ -55,7 +55,6 @@ class RfmCalculator
             ->keyBy('contact_id');
 
         // Compute and store RFM scores
-        $now = Carbon::now();
         $computedCount = 0;
 
         DB::transaction(function () use (
@@ -63,9 +62,7 @@ class RfmCalculator
             $aggregates,
             $monetaries,
             $snapshotDate,
-            $windowStart,
             $userId,
-            $now,
             &$computedCount
         ) {
             foreach ($aggregates as $contactId => $row) {
@@ -96,17 +93,14 @@ class RfmCalculator
 
 
 
-                // Store the snapshot
+                // Store the snapshot using new structure
                 $insertData = [
+                    'user_id' => $userId,
                     'client_id' => $client->id,
-                    'period_granularity' => 'month',
-                    'period_start' => $windowStart->toDateString(),
-                    'period_end' => $snapshotDate->toDateString(),
+                    'snapshot_date' => $snapshotDate->toDateString(),
                 ];
                 
                 $updateData = [
-                    'user_id' => $userId,
-                    'window_months' => 12, // Always 12 months
                     'txn_count' => (int) $row->txn_count,
                     'monetary_sum' => (float) $row->monetary_sum,
                     'last_txn_date' => Carbon::parse($row->last_txn_date)->toDateString(),
@@ -115,9 +109,6 @@ class RfmCalculator
                     'f_score' => $fScore,
                     'm_score' => $mScore,
                     'rfm_score' => $rfmScore,
-                    'methodology' => 'B2B_rolling_12m_v1',
-                    'created_at' => $now,
-                    'updated_at' => $now,
                 ];
 
                 DB::table('rfm_reports')->updateOrInsert($insertData, $updateData);
