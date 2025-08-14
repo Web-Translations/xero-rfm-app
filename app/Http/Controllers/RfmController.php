@@ -15,16 +15,15 @@ class RfmController extends Controller
     {
         $user = $request->user();
         $search = trim((string) $request->get('q', ''));
-        $viewMode = $request->get('view', 'current'); // 'current' or 'historical'
-        $snapshotDate = $request->get('snapshot_date', '');
+        $viewMode = $request->get('view', 'current'); // 'current' or a specific date
 
         // Get RFM data based on view mode
         if ($viewMode === 'current') {
             // Get the latest RFM report for each client using the new structure
             $query = RfmReport::getLatestForUser($user->id);
         } else {
-            // Get historical snapshot for specific date
-            $query = RfmReport::getForSnapshotDate($user->id, $snapshotDate);
+            // Get historical snapshot for specific date (viewMode is the date)
+            $query = RfmReport::getForSnapshotDate($user->id, $viewMode);
         }
 
         // Apply search filter
@@ -34,7 +33,7 @@ class RfmController extends Controller
 
         $rows = $query->paginate(15)->withQueryString();
 
-        // Get available snapshot dates for historical view
+        // Get available snapshot dates for view mode dropdown
         $availableSnapshots = RfmReport::getAvailableSnapshotDates($user->id);
 
         // Get total counts for user feedback
@@ -45,7 +44,6 @@ class RfmController extends Controller
             'rows' => $rows,
             'search' => $search,
             'viewMode' => $viewMode,
-            'snapshotDate' => $snapshotDate,
             'availableSnapshots' => $availableSnapshots,
             'totalClients' => $totalClients,
             'filteredCount' => $filteredCount,

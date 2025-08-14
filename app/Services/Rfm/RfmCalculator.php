@@ -16,7 +16,7 @@ class RfmCalculator
      */
     public function computeSnapshot(int $userId, Carbon $snapshotDate = null): array
     {
-        $snapshotDate = $snapshotDate ?? Carbon::now();
+        $snapshotDate = $snapshotDate ?? Carbon::now()->startOfDay();
         $windowStart = (clone $snapshotDate)->subMonths(12)->startOfDay();
         
         // Aggregate invoice data for the rolling 12-month window
@@ -43,6 +43,8 @@ class RfmCalculator
                 'computed' => 0,
             ];
         }
+
+
 
         // Get all monetary values for min-max scaling
         $monetaries = $aggregates->pluck('monetary_sum')->map(fn($v) => (float) $v)->values();
@@ -127,6 +129,7 @@ class RfmCalculator
     /**
      * Compute historical snapshots for trend analysis.
      * Creates snapshots for the last N months at monthly intervals.
+     * Each snapshot is created for the 1st of each month.
      */
     public function computeHistoricalSnapshots(int $userId, int $monthsBack = 36): array
     {
@@ -134,7 +137,8 @@ class RfmCalculator
         $now = Carbon::now();
 
         for ($i = 0; $i <= $monthsBack; $i++) {
-            $snapshotDate = (clone $now)->subMonths($i);
+            // Create snapshot for the 1st of each month
+            $snapshotDate = (clone $now)->subMonths($i)->startOfMonth();
             $result = $this->computeSnapshot($userId, $snapshotDate);
             $results[] = $result;
         }

@@ -20,45 +20,61 @@
                 </div>
                 <form method="POST" action="{{ route('invoices.sync') }}">
                     @csrf
-                    <button class="px-3 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm">
+                    <button
+                        class="inline-flex items-center justify-center px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm border border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 text-sm">
                         Sync from Xero
                     </button>
                 </form>
             </div>
 
-            <!-- Filter body -->
-            <form method="GET" class="px-4 py-4 grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                <!-- Days -->
-                <div class="md:col-span-3">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Range</label>
-                    <select name="days" class="mt-1 w-full border rounded px-2 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100">
-                        <option value="0" {{ (int)$days === 0 ? 'selected' : '' }}>All time</option>
-                        <option value="30" {{ (int)$days === 30 ? 'selected' : '' }}>Last 30 days</option>
-                        <option value="90" {{ (int)$days === 90 ? 'selected' : '' }}>Last 90 days</option>
-                        <option value="180" {{ (int)$days === 180 ? 'selected' : '' }}>Last 6 months</option>
-                        <option value="365" {{ (int)$days === 365 ? 'selected' : '' }}>Last year</option>
-                    </select>
+            <!-- Filter form -->
+            <form method="GET" id="filters-form" class="px-4 py-4">
+                <!-- First row: Date range + Search -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Date Range -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Range</label>
+                        <select name="days" class="mt-1 w-full border rounded-md px-2 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="0" {{ (int)$days === 0 ? 'selected' : '' }}>All time</option>
+                            <option value="30" {{ (int)$days === 30 ? 'selected' : '' }}>Last 30 days</option>
+                            <option value="90" {{ (int)$days === 90 ? 'selected' : '' }}>Last 90 days</option>
+                            <option value="180" {{ (int)$days === 180 ? 'selected' : '' }}>Last 6 months</option>
+                            <option value="365" {{ (int)$days === 365 ? 'selected' : '' }}>Last year</option>
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
+                        <input type="text"
+                               name="q"
+                               value="{{ $q }}"
+                               placeholder="Invoice number or client..."
+                               class="mt-1 w-full border rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
+                    </div>
                 </div>
 
-                <!-- Statuses -->
-                <div class="md:col-span-6">
+                <!-- Second row: Status full width -->
+                <div class="mt-6">
                     <div class="flex items-center justify-between">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                         <div class="flex gap-2">
-                            <button type="button"
-                                    class="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    onclick="document.querySelectorAll('input[name=\'statuses[]\']').forEach(cb=>cb.checked=true)">
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                onclick="document.querySelectorAll('input[name=\'statuses[]\']').forEach(cb=>cb.checked=true)">
                                 Select all
                             </button>
-                            <button type="button"
-                                    class="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                                    onclick="document.querySelectorAll('input[name=\'statuses[]\']').forEach(cb=>cb.checked=false)">
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                onclick="document.querySelectorAll('input[name=\'statuses[]\']').forEach(cb=>cb.checked=false)">
                                 Clear
                             </button>
                         </div>
                     </div>
 
-                    <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2 p-2 border rounded dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                    <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 p-2 border rounded-md dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                         @php
                             $allStatuses = ['DRAFT','SUBMITTED','DELETED','AUTHORISED','PAID','VOIDED'];
                         @endphp
@@ -75,19 +91,14 @@
                     </div>
                 </div>
 
-                <!-- Search -->
-                <div class="md:col-span-3">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
-                    <input type="text"
-                           name="q"
-                           value="{{ $q }}"
-                           placeholder="Invoice number or client..."
-                           class="mt-1 w-full border rounded px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
-                </div>
-
-                <!-- Apply -->
-                <div class="md:col-span-12 flex justify-end">
-                    <button class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                <!-- Footer actions -->
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end gap-2">
+                    <a href="{{ url()->current() }}"
+                       class="inline-flex items-center justify-center px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        Reset
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm border border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 text-sm">
                         Apply Filters
                     </button>
                 </div>
@@ -100,23 +111,23 @@
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Results</h3>
             </div>
 
-            <div class="px-4 py-2 flex gap-2 text-xs">
+            <div class="px-4 py-2 flex flex-wrap gap-2 text-xs">
                 @if((int)$days > 0)
-                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                    <span class="px-2 py-1 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                         Date: <span class="font-medium">Last {{ (int)$days }} days</span>
                     </span>
                 @else
-                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                    <span class="px-2 py-1 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                         Date: <span class="font-medium">All time</span>
                     </span>
                 @endif
                 @if(!empty($statuses))
-                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                    <span class="px-2 py-1 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                         Status: <span class="font-medium">{{ implode(', ', $statuses) }}</span>
                     </span>
                 @endif
                 @if($q !== '')
-                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                    <span class="px-2 py-1 rounded-md bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                         Search: <span class="font-medium">{{ $q }}</span>
                     </span>
                 @endif
@@ -145,7 +156,7 @@
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format((float) $inv->subtotal, 2) }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format((float) $inv->total, 2) }} {{ $inv->currency }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">
-                                    <span class="px-2 py-1 rounded text-xs {{ $inv->status==='PAID' ? 'bg-green-100 text-green-800' : ($inv->status==='AUTHORISED' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                    <span class="px-2 py-1 rounded-md text-xs {{ $inv->status==='PAID' ? 'bg-green-100 text-green-800' : ($inv->status==='AUTHORISED' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800') }}">
                                         {{ $inv->status }}
                                     </span>
                                 </td>

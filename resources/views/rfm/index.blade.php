@@ -16,7 +16,7 @@
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Calculate RFM Scores</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">RFM scores help you understand customer value and behavior</p>
             </div>
-            
+
             <div class="px-4 py-4 space-y-4">
                 <!-- Current Scores -->
                 <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -33,72 +33,80 @@
                 </div>
 
                 <!-- Historical Analysis -->
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div>
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Historical Analysis</h4>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Create snapshots for trend analysis and future charts</p>
+                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="font-medium text-gray-900 dark:text-gray-100">Historical Analysis</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Create snapshots for trend analysis and future charts</p>
+                        </div>
+                        <form method="POST" action="{{ route('rfm.sync') }}" class="flex items-center gap-2">
+                            @csrf
+                            <select name="months_back" class="border rounded px-2 py-1 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100 text-sm">
+                                <option value="12">12 months</option>
+                                <option value="24">24 months</option>
+                                <option value="36">36 months</option>
+                            </select>
+                            <button type="submit" name="action" value="historical" class="px-4 py-2 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                Generate Monthly Snapshots
+                            </button>
+                        </form>
                     </div>
-                    <form method="POST" action="{{ route('rfm.sync') }}" class="flex items-center gap-2">
-                        @csrf
-                        <select name="months_back" class="border rounded px-2 py-1 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100 text-sm">
-                            <option value="12">12 months</option>
-                            <option value="24">24 months</option>
-                            <option value="36">36 months</option>
-                        </select>
-                        <button type="submit" name="action" value="historical" class="px-4 py-2 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                            Create Snapshots
-                        </button>
-                    </form>
+                    <div class="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2">
+                        <strong>Date Logic:</strong> Monthly snapshots are created for the 1st of each month (e.g., Aug 1st, Jul 1st, etc.) for consistent historical comparison.
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- View Options Card -->
         <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <!-- Card header -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <div>
+                <div class="flex items-center gap-2">
                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">View RFM Scores</h3>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">Showing {{ $filteredCount }} of {{ $totalClients }} total clients</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                        Showing {{ $filteredCount }} of {{ $totalClients }} total clients
+                        @if($availableSnapshots->count() > 0)
+                            • {{ $availableSnapshots->count() }} monthly snapshots available
+                        @endif
+                    </span>
                 </div>
             </div>
-            
-            <form method="GET" class="px-4 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">View Mode</label>
-                    <select name="view" class="mt-1 w-full border rounded px-2 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100">
-                        <option value="current" {{ $viewMode === 'current' ? 'selected' : '' }}>Current Scores</option>
-                        <option value="historical" {{ $viewMode === 'historical' ? 'selected' : '' }}>Historical Snapshot</option>
-                    </select>
-                </div>
 
-                @if($viewMode === 'historical')
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Snapshot Date</label>
-                    <select name="snapshot_date" class="mt-1 w-full border rounded px-2 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100">
-                        @foreach($availableSnapshots as $date)
-                            <option value="{{ $date }}" {{ $snapshotDate === $date ? 'selected' : '' }}>
-                                {{ \Carbon\Carbon::parse($date)->format('M Y') }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
+            <!-- Filter body (3 widgets spread out without individual cards) -->
+            <form method="GET" class="px-4 py-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <!-- View RFM Data -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">View RFM Data</label>
+                        <select name="view" class="mt-1 w-full border rounded px-2 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="current" {{ $viewMode === 'current' ? 'selected' : '' }}>Current Scores</option>
+                            @foreach($availableSnapshots as $date)
+                                <option value="{{ $date }}" {{ $viewMode === $date ? 'selected' : '' }}>
+                                    {{ \Carbon\Carbon::parse($date)->format('M 1, Y') }} Snapshot
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
-                    <input 
-                        type="text" 
-                        name="q" 
-                        value="{{ $search }}" 
-                        placeholder="Client name..." 
-                        class="mt-1 w-full border rounded px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
-                    />
-                </div>
+                    <!-- Search -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search</label>
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ $search }}"
+                            placeholder="Client name..."
+                            class="mt-1 w-full border rounded px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                        />
+                    </div>
 
-                <div class="sm:col-span-3 flex justify-end">
-                    <button class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
-                        Apply Filters
-                    </button>
+                    <!-- Apply -->
+                    <div class="flex md:justify-end">
+                        <button class="w-full md:w-auto px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                            Apply Filters
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -108,17 +116,18 @@
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">RFM Leaderboard</h3>
             </div>
-            
+
             <!-- Active Filters -->
             <div class="px-4 py-2 flex gap-2 text-xs">
                 <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                    View: <span class="font-medium">{{ $viewMode === 'current' ? 'Current Scores' : 'Historical Snapshot' }}</span>
-                </span>
-                @if($viewMode === 'historical' && $snapshotDate)
-                    <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                        Date: <span class="font-medium">{{ \Carbon\Carbon::parse($snapshotDate)->format('M Y') }}</span>
+                    View: <span class="font-medium">
+                        @if($viewMode === 'current')
+                            Current Scores
+                        @else
+                            {{ \Carbon\Carbon::parse($viewMode)->format('M 1, Y') }} Snapshot
+                        @endif
                     </span>
-                @endif
+                </span>
                 @if($search !== '')
                     <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                         Search: <span class="font-medium">{{ $search }}</span>
@@ -169,9 +178,9 @@
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ $r->txn_count }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format($r->monetary_sum, 2) }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ \Carbon\Carbon::parse($r->last_txn_date)->format('M Y') }}</td>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
-                                    {{ \Carbon\Carbon::parse($r->snapshot_date)->format('M Y') }}
-                                </td>
+                                                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+                                     {{ \Carbon\Carbon::parse($r->snapshot_date)->format('M j, Y') }}
+                                 </td>
                             </tr>
                         @empty
                             <tr>

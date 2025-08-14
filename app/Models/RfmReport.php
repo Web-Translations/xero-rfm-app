@@ -59,10 +59,13 @@ class RfmReport extends Model
      */
     public static function getForSnapshotDate(int $userId, string $snapshotDate)
     {
+        // Extract just the date part from the datetime string
+        $dateOnly = date('Y-m-d', strtotime($snapshotDate));
+        
         return self::select('rfm_reports.*', 'clients.name as client_name')
             ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
             ->where('rfm_reports.user_id', $userId)
-            ->where('rfm_reports.snapshot_date', $snapshotDate)
+            ->where('rfm_reports.snapshot_date', $dateOnly)
             ->orderBy('rfm_reports.rfm_score', 'desc');
     }
 
@@ -74,6 +77,10 @@ class RfmReport extends Model
         return self::where('user_id', $userId)
             ->distinct()
             ->pluck('snapshot_date')
+            ->map(function($date) {
+                // Convert datetime to date string for consistency
+                return date('Y-m-d', strtotime($date));
+            })
             ->sort()
             ->reverse()
             ->values();
