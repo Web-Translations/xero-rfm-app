@@ -45,7 +45,7 @@
 
             @if($conn)
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <a href="{{ route('demo.invoices') }}" class="block bg-white/70 dark:bg-gray-900/80 backdrop-blur shadow rounded-lg p-5 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                <a href="{{ route('invoices.index') }}" class="block bg-white/70 dark:bg-gray-900/80 backdrop-blur shadow rounded-lg p-5 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                     <div class="text-gray-700 dark:text-gray-200 font-medium">Invoices</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Review recent invoices</div>
                 </a>

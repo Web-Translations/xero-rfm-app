@@ -15,7 +15,7 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('demo.invoices')" :active="request()->routeIs('demo.invoices')">
+                    <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.index')">
                         {{ __('Invoices') }}
                     </x-nav-link>
                     <x-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
@@ -76,7 +76,7 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('demo.invoices')" :active="request()->routeIs('demo.invoices')">
+            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.index')">
                 {{ __('Invoices') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">

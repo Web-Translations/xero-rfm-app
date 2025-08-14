@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\XeroController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RfmController;
+use App\Http\Controllers\InvoicesController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
 use Illuminate\Http\Request;
@@ -28,11 +30,13 @@ Route::middleware('auth')->group(function () {
 
 // Require Xero link before accessing app features that need it
 Route::middleware(['auth', EnsureXeroLinked::class])->group(function () {
-    Route::get('/demo/invoices', [XeroController::class, 'demoInvoices'])->name('demo.invoices');
-    // Remove debug route if not needed anymore
-
-    // Placeholder RFM Analysis page
-    Route::view('/rfm', 'rfm.index')->name('rfm.index');
+    // Invoices from DB
+    Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
+    Route::post('/invoices/sync', [InvoicesController::class, 'sync'])->name('invoices.sync');
+    
+    // RFM Analysis
+    Route::get('/rfm', [RfmController::class, 'index'])->name('rfm.index');
+    Route::post('/rfm/sync', [RfmController::class, 'sync'])->name('rfm.sync');
 });
 
 require __DIR__.'/auth.php';

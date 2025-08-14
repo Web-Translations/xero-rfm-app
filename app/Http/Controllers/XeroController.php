@@ -32,11 +32,11 @@ class XeroController extends Controller
         $api = app(AccountingApi::class);
         $tenantId = $user->xeroConnection->tenant_id;
 
-        // last N days of sales invoices, excluding VOIDED/DRAFT
+        // last N days of sales invoices; include DRAFT even if Date is missing
         $days = (int) request('days', 90);
         $days = $days > 0 ? $days : 90;
         $where = sprintf(
-            'Type=="ACCREC"&&Status!="VOIDED"&&Status!="DRAFT"&&Date>=DateTime(%s)',
+            '(Type=="ACCREC")&&(Date>=DateTime(%s)||Status=="DRAFT")',
             now()->subDays($days)->format('Y,m,d')
         );
 
