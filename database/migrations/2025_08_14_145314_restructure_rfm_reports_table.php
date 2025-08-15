@@ -19,7 +19,7 @@ return new class extends Migration
             $table->unsignedInteger('txn_count'); // Number of invoices in last 12 months
             $table->decimal('monetary_sum', 15, 2); // Total revenue in last 12 months
             $table->date('last_txn_date')->nullable(); // Last transaction date
-            $table->unsignedInteger('months_since_last'); // Months from last transaction to snapshot
+            $table->unsignedInteger('months_since_last')->nullable(); // Months from last transaction to snapshot
             $table->unsignedTinyInteger('r_score'); // Recency score (0-10)
             $table->unsignedTinyInteger('f_score'); // Frequency score (0-10)
             $table->unsignedTinyInteger('m_score'); // Monetary score (0-10)

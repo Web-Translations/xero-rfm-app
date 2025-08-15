@@ -10,50 +10,22 @@
             </div>
         @endif
 
-        <!-- Actions Card -->
+        <!-- Sync Card -->
         <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Calculate RFM Scores</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">RFM scores help you understand customer value and behavior</p>
-            </div>
-
-            <div class="px-4 py-4 space-y-4">
-                <!-- Current Scores -->
-                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div class="px-6 py-6">
+                <div class="flex items-center justify-between">
                     <div>
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Current Scores</h4>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Calculate RFM scores based on your latest invoice data</p>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Analysis</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Calculate current RFM scores and generate historical snapshots for all available data
+                        </p>
                     </div>
                     <form method="POST" action="{{ route('rfm.sync') }}">
                         @csrf
-                        <button type="submit" name="action" value="current" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
-                            Calculate Now
+                        <button type="submit" name="action" value="sync_all" class="px-6 py-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-medium transition-colors">
+                            Sync RFM Data
                         </button>
                     </form>
-                </div>
-
-                <!-- Historical Analysis -->
-                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <h4 class="font-medium text-gray-900 dark:text-gray-100">Historical Analysis</h4>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Create snapshots for trend analysis and future charts</p>
-                        </div>
-                        <form method="POST" action="{{ route('rfm.sync') }}" class="flex items-center gap-2">
-                            @csrf
-                            <select name="months_back" class="border rounded px-2 py-1 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100 text-sm">
-                                <option value="12">12 months</option>
-                                <option value="24">24 months</option>
-                                <option value="36">36 months</option>
-                            </select>
-                            <button type="submit" name="action" value="historical" class="px-4 py-2 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                Generate Monthly Snapshots
-                            </button>
-                        </form>
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-2">
-                        <strong>Date Logic:</strong> Monthly snapshots are created for the 1st of each month (e.g., Aug 1st, Jul 1st, etc.) for consistent historical comparison.
-                    </div>
                 </div>
             </div>
         </div>
@@ -80,10 +52,9 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">View RFM Data</label>
                         <select name="view" class="mt-1 w-full border rounded px-2 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100">
-                            <option value="current" {{ $viewMode === 'current' ? 'selected' : '' }}>Current Scores</option>
                             @foreach($availableSnapshots as $date)
                                 <option value="{{ $date }}" {{ $viewMode === $date ? 'selected' : '' }}>
-                                    {{ \Carbon\Carbon::parse($date)->format('M 1, Y') }} Snapshot
+                                    {{ \Carbon\Carbon::parse($date)->format('M j, Y') }} Snapshot
                                 </option>
                             @endforeach
                         </select>
@@ -121,10 +92,8 @@
             <div class="px-4 py-2 flex gap-2 text-xs">
                 <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                     View: <span class="font-medium">
-                        @if($viewMode === 'current')
-                            Current Scores
-                        @else
-                            {{ \Carbon\Carbon::parse($viewMode)->format('M 1, Y') }} Snapshot
+                        @if($viewMode === 'date')
+                            {{ \Carbon\Carbon::parse($viewMode)->format('M j, Y') }} Snapshot
                         @endif
                     </span>
                 </span>

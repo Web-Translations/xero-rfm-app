@@ -77,4 +77,12 @@ class User extends Authenticatable
     {
         return XeroConnection::getAllForUser($this->id);
     }
+
+    /**
+     * Get all excluded invoices for this user
+     */
+    public function excludedInvoices()
+    {
+        return $this->hasMany(ExcludedInvoice::class);
+    }
 }

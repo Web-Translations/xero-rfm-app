@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\XeroInvoice;
+use App\Models\ExcludedInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +73,9 @@ class InvoicesController extends Controller
             ->get()
             ->keyBy('contact_id');
 
+        // Get excluded invoice IDs for the current page
+        $excludedInvoiceIds = ExcludedInvoice::getExcludedInvoiceIds($user->id, $activeConnection->tenant_id);
+
         return view('invoices.index', [
             'invoices' => $invoices,
             'clients' => $clients,
@@ -80,6 +84,7 @@ class InvoicesController extends Controller
             'q' => $q,
             'totalInvoices' => $totalInvoices,
             'filteredCount' => $filteredCount,
+            'excludedInvoiceIds' => $excludedInvoiceIds,
         ]);
     }
 
@@ -254,6 +259,66 @@ class InvoicesController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Exclude an invoice from RFM calculations
+     */
+    public function exclude(Request $request, string $invoiceId)
+    {
+        $user = $request->user();
+        $activeConnection = $user->getActiveXeroConnection();
+        
+        if (!$activeConnection) {
+            return response()->json(['error' => 'No active organization'], 400);
+        }
+
+        // Verify the invoice exists and belongs to the user
+        $invoice = XeroInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->where('invoice_id', $invoiceId)
+            ->first();
+
+        if (!$invoice) {
+            return response()->json(['error' => 'Invoice not found'], 404);
+        }
+
+        // Create the exclusion record
+        ExcludedInvoice::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'tenant_id' => $activeConnection->tenant_id,
+                'invoice_id' => $invoiceId,
+            ],
+            [
+                'user_id' => $user->id,
+                'tenant_id' => $activeConnection->tenant_id,
+                'invoice_id' => $invoiceId,
+            ]
+        );
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Remove an invoice from exclusion list
+     */
+    public function unexclude(Request $request, string $invoiceId)
+    {
+        $user = $request->user();
+        $activeConnection = $user->getActiveXeroConnection();
+        
+        if (!$activeConnection) {
+            return response()->json(['error' => 'No active organization'], 400);
+        }
+
+        // Remove the exclusion record
+        ExcludedInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->where('invoice_id', $invoiceId)
+            ->delete();
+
+        return response()->json(['success' => true]);
     }
 }
 

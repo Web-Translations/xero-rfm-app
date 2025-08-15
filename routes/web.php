@@ -39,10 +39,14 @@ Route::middleware(['auth', EnsureXeroLinked::class])->group(function () {
     // Invoices from DB
     Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
     Route::post('/invoices/sync', [InvoicesController::class, 'sync'])->name('invoices.sync');
+    Route::post('/invoices/{invoice}/exclude', [InvoicesController::class, 'exclude'])->name('invoices.exclude');
+    Route::delete('/invoices/{invoice}/exclude', [InvoicesController::class, 'unexclude'])->name('invoices.unexclude');
     
     // RFM Analysis
     Route::get('/rfm', [RfmController::class, 'index'])->name('rfm.index');
     Route::post('/rfm/sync', [RfmController::class, 'sync'])->name('rfm.sync');
 });
+
+
 
 require __DIR__.'/auth.php';

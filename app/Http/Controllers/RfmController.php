@@ -24,10 +24,12 @@ class RfmController extends Controller
         $search = trim((string) $request->get('q', ''));
         $viewMode = $request->get('view', 'current'); // 'current' or a specific date
 
+
+
         // Get RFM data based on view mode
         if ($viewMode === 'current') {
-            // Get the latest RFM report for each client using the new structure
-            $query = RfmReport::getLatestForUser($user->id, $activeConnection->tenant_id);
+            // Get current RFM scores (today's date)
+            $query = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id);
         } else {
             // Get historical snapshot for specific date (viewMode is the date)
             $query = RfmReport::getForSnapshotDate($user->id, $viewMode, $activeConnection->tenant_id);
@@ -37,6 +39,9 @@ class RfmController extends Controller
         if ($search !== '') {
             $query->where('client_name', 'like', '%' . $search . '%');
         }
+
+        // Filter out clients with RFM score of 0 (no point showing inactive clients)
+        $query->where('rfm_score', '>', 0);
 
         $rows = $query->paginate(15)->withQueryString();
 
@@ -56,24 +61,35 @@ class RfmController extends Controller
             'availableSnapshots' => $availableSnapshots,
             'totalClients' => $totalClients,
             'filteredCount' => $filteredCount,
+            'currentDate' => now()->toDateString(),
         ]);
     }
 
     public function sync(Request $request, RfmCalculator $calculator)
     {
         $user = $request->user();
-        $action = $request->get('action', 'current'); // 'current' or 'historical'
+        $action = $request->get('action', 'sync_all');
 
-        if ($action === 'current') {
+        if ($action === 'sync_all') {
             // Calculate current RFM scores
-            $result = $calculator->computeSnapshot($user->id);
-            $status = "Calculated current RFM scores for {$result['computed']} clients.";
+            $currentResult = $calculator->computeSnapshot($user->id);
+            
+            // Calculate historical snapshots for all available data (36 months should cover most cases)
+            $historicalResults = $calculator->computeHistoricalSnapshots($user->id, 36);
+            $totalHistorical = array_sum(array_column($historicalResults, 'computed'));
+            
+            $status = "Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created.";
         } else {
-            // Calculate historical snapshots for trend analysis
-            $monthsBack = (int) $request->get('months_back', 12);
-            $results = $calculator->computeHistoricalSnapshots($user->id, $monthsBack);
-            $totalComputed = array_sum(array_column($results, 'computed'));
-            $status = "Created historical snapshots for {$totalComputed} client records over {$monthsBack} months.";
+            // Fallback for old actions (if needed)
+            if ($action === 'current') {
+                $result = $calculator->computeSnapshot($user->id);
+                $status = "Calculated current RFM scores for {$result['computed']} clients.";
+            } else {
+                $monthsBack = (int) $request->get('months_back', 12);
+                $results = $calculator->computeHistoricalSnapshots($user->id, $monthsBack);
+                $totalComputed = array_sum(array_column($results, 'computed'));
+                $status = "Created historical snapshots for {$totalComputed} client records over {$monthsBack} months.";
+            }
         }
 
         return redirect()->route('rfm.index')->with('status', $status);

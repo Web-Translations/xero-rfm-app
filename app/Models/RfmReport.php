@@ -38,7 +38,7 @@ class RfmReport extends Model
     }
 
     /**
-     * Get the latest RFM report for each client
+     * Get the latest RFM report for each client (by most recent ID)
      */
     public static function getLatestForUser(int $userId, string $tenantId = null)
     {
@@ -66,17 +66,36 @@ class RfmReport extends Model
     }
 
     /**
+     * Get current RFM scores (today's date)
+     */
+    public static function getCurrentScoresForUser(int $userId, string $tenantId = null)
+    {
+        $today = now()->toDateString();
+        
+        $query = self::select('rfm_reports.*', 'clients.name as client_name')
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+            ->where('rfm_reports.user_id', $userId)
+            ->where('rfm_reports.snapshot_date', $today);
+            
+        if ($tenantId) {
+            $query->where('clients.tenant_id', $tenantId);
+        }
+        
+        return $query->orderBy('rfm_reports.rfm_score', 'desc');
+    }
+
+    /**
      * Get RFM reports for a specific snapshot date
      */
     public static function getForSnapshotDate(int $userId, string $snapshotDate, string $tenantId = null)
     {
-        // Extract just the date part from the datetime string
+        // Extract just the date part from the datetime string and ensure proper format
         $dateOnly = date('Y-m-d', strtotime($snapshotDate));
         
         $query = self::select('rfm_reports.*', 'clients.name as client_name')
             ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
             ->where('rfm_reports.user_id', $userId)
-            ->where('rfm_reports.snapshot_date', $dateOnly);
+            ->whereRaw('DATE(rfm_reports.snapshot_date) = ?', [$dateOnly]); // Use raw SQL for exact date matching
             
         if ($tenantId) {
             $query->where('clients.tenant_id', $tenantId);
@@ -97,14 +116,19 @@ class RfmReport extends Model
             $query->where('clients.tenant_id', $tenantId);
         }
         
-        return $query->distinct()
-            ->pluck('rfm_reports.snapshot_date')
+        // Use raw SQL to get distinct dates and avoid any timezone/format issues
+        $dates = $query->selectRaw('DISTINCT DATE(rfm_reports.snapshot_date) as date_only')
+            ->pluck('date_only')
             ->map(function($date) {
-                // Convert datetime to date string for consistency
                 return date('Y-m-d', strtotime($date));
             })
+            ->unique()
             ->sort()
             ->reverse()
             ->values();
+            
+        return $dates;
     }
+
+
 } 

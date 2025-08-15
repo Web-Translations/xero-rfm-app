@@ -144,11 +144,15 @@
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-right font-semibold">Subtotal</th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-right font-semibold">Total</th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Status</th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">Exclude</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         @forelse ($invoices as $inv)
-                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                            @php
+                                $isExcluded = in_array($inv->invoice_id, $excludedInvoiceIds);
+                            @endphp
+                            <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 {{ $isExcluded ? 'line-through opacity-60' : '' }}">
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 font-mono">{{ $inv->invoice_number }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ optional($clients->get($inv->contact_id))->name }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->date?->format('Y-m-d') }}</td>
@@ -160,10 +164,17 @@
                                         {{ $inv->status }}
                                     </span>
                                 </td>
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-center">
+                                    <input type="checkbox" 
+                                           class="exclude-checkbox rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500"
+                                           data-invoice-id="{{ $inv->invoice_id }}"
+                                           {{ $isExcluded ? 'checked' : '' }}
+                                           title="Exclude from RFM calculations">
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td class="p-3 border-b dark:border-gray-700" colspan="7">No invoices found for the selected filters.</td>
+                                <td class="p-3 border-b dark:border-gray-700" colspan="8">No invoices found for the selected filters.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -176,4 +187,60 @@
             {{ $invoices->links() }}
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle exclude checkbox changes
+            document.querySelectorAll('.exclude-checkbox').forEach(function(checkbox) {
+                checkbox.addEventListener('change', function() {
+                    const invoiceId = this.dataset.invoiceId;
+                    const isChecked = this.checked;
+                    const row = this.closest('tr');
+                    
+                    // Show loading state
+                    this.disabled = true;
+                    
+                    // Make AJAX request
+                    const url = isChecked 
+                        ? '{{ route("invoices.exclude", ["invoice" => ":id"]) }}'.replace(':id', invoiceId)
+                        : '{{ route("invoices.unexclude", ["invoice" => ":id"]) }}'.replace(':id', invoiceId);
+                    
+                    const method = isChecked ? 'POST' : 'DELETE';
+                    
+                    fetch(url, {
+                        method: method,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update row styling
+                            if (isChecked) {
+                                row.classList.add('line-through', 'opacity-60');
+                            } else {
+                                row.classList.remove('line-through', 'opacity-60');
+                            }
+                        } else {
+                            // Revert checkbox if failed
+                            this.checked = !isChecked;
+                            alert('Failed to update exclusion status');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Revert checkbox if failed
+                        this.checked = !isChecked;
+                        alert('Failed to update exclusion status');
+                    })
+                    .finally(() => {
+                        // Re-enable checkbox
+                        this.disabled = false;
+                    });
+                });
+            });
+        });
+    </script>
 </x-app-layout>
