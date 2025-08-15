@@ -1,181 +1,345 @@
-## Xero RFM MVP (Laravel 12, Blade)
+# Xero RFM Analysis Platform
 
-This application links a user’s Xero organisation via OAuth 2.0, syncs recent invoices, and lays the groundwork for RFM (Recency, Frequency, Monetary) analysis. It uses a simple Blade UI (Breeze) with a clean dark/light theme and a minimal data model.
+A comprehensive Laravel application that integrates with Xero to perform RFM (Recency, Frequency, Monetary) analysis on client data. The platform provides multi-organization support, invoice management, RFM scoring, and advanced analytics capabilities.
 
-### Stack
-- Laravel 12 (PHP 8.2+)
-- Breeze (Blade) for auth scaffolding and layouts
-- webfox/laravel-xero-oauth2 for OAuth + Xero SDK bindings
-- XeroAPI/xero-php-oauth2 for Accounting & Identity APIs
-- SQLite for local development (MySQL/MariaDB ready)
+## 🚀 Features
 
-## Features
-- Xero OAuth connect flow (consent → callback → persisted tokens/tenant)
-- Dashboard showing Xero integration status (organisation name, tenant id, token expiry)
-- Demo invoices page (last N days, read-only) with a basic table UI
-- RFM Analysis placeholder page
-- Dark mode–friendly layouts
+### Core Functionality
+- **Multi-Organization Xero Integration**: Connect and manage multiple Xero organizations per user
+- **OAuth 2.0 Authentication**: Secure Xero API access with automatic token refresh
+- **Invoice Synchronization**: Import and manage sales invoices from Xero
+- **RFM Analysis**: Calculate and track Recency, Frequency, and Monetary scores for clients
+- **Historical Data Tracking**: Monthly snapshots for trend analysis
+- **Invoice Exclusion System**: Mark specific invoices to exclude from RFM calculations
+- **Dark/Light Mode UI**: Modern, responsive interface with Tailwind CSS
 
-## Directory map (key parts)
-- `routes/web.php`
-  - Public landing `GET /`
-  - Authenticated: `GET /dashboard`, `GET /xero/connect`
-  - Xero-only pages: `GET /demo/invoices`, `GET /rfm`
-  - Compatibility callback: `GET /xero/callback` → forwards to package callback
-- `app/Http/Controllers/XeroController.php`
-  - `connect()` → redirect to Xero consent
-  - `demoInvoices()` → fetch recent invoices via `AccountingApi`
-- `app/Http/Middleware/EnsureXeroLinked.php` → enforces linking before Xero pages
-- `app/Providers/AppServiceProvider.php`
-  - Listens to `Webfox\Xero\Events\XeroAuthorized`
-  - Stores encrypted access/refresh tokens, expiry, tenant id, and organisation name
-- `resources/views/...`
-  - `landing.blade.php` → welcome/login/register/enter-dashboard
-  - `dashboard.blade.php` → Xero Integration card + quick links
-  - `demo/invoices.blade.php` → invoices table (dark-mode friendly)
-  - `rfm/index.blade.php` → placeholder
+### Pages & Functionality
+- **Dashboard**: Organization overview, connection status, and quick navigation
+- **Organizations**: Multi-org management with switching capabilities
+- **Invoices**: View, filter, and manage imported invoices with exclusion controls
+- **RFM Scores**: Current and historical RFM leaderboard with filtering
+- **RFM Reports**: Generate custom reports and analytics (in development)
+- **RFM Analysis**: Advanced analytics and trend analysis (in development)
 
-## Database schema (MVP)
-- `xero_connections`
-  - `user_id` (unique, 1 org per user)
-  - `tenant_id` (string)
-  - `org_name` (nullable string)
-  - `access_token` (encrypted text)
-  - `refresh_token` (encrypted text)
-  - `expires_at` (timestamp)
-- `clients`
-  - `user_id`, `contact_id` (Xero GUID), `name`
-- `xero_invoices`
-  - `user_id`, `invoice_id` (GUID), `contact_id`
-  - status, type, numbers, dates, amounts, currency
-- `rfm_reports` (future)
-  - Skeleton for client-level RFM metrics per period
+## 🛠 Tech Stack
 
-## Xero app setup
-Create a Xero “web app” in the developer portal.
+- **Backend**: Laravel 12 (PHP 8.4+)
+- **Frontend**: Blade templates with Tailwind CSS
+- **Authentication**: Laravel Breeze
+- **Database**: SQLite (development), MySQL/MariaDB ready
+- **Xero Integration**: webfox/laravel-xero-oauth2
+- **Build Tool**: Vite
 
-- Scopes (must include OpenID to receive id_token):
-  - `openid`, `profile`, `email`, `offline_access`, `accounting.transactions.read`
-- Redirect URI (must match your .env exactly):
-  - Example for PHP built-in server: `http://localhost:8080/xero/callback`
+## 📊 Database Schema
 
-## .env (development)
-SQLite for dev and full URL redirect for Xero. Ensure `APP_URL` and `XERO_REDIRECT_URI` host/port match how you run the server.
+### Core Tables
 
+#### `users`
+- Standard Laravel user authentication
+- Supports multiple Xero organizations
+
+#### `xero_connections`
+- `user_id` - Foreign key to users
+- `tenant_id` - Xero organization identifier
+- `org_name` - Organization display name
+- `access_token` - Encrypted OAuth access token
+- `refresh_token` - Encrypted OAuth refresh token
+- `expires_at` - Token expiration timestamp
+- `is_active` - Boolean flag for active organization
+
+#### `clients`
+- `user_id` - Foreign key to users
+- `tenant_id` - Xero organization identifier
+- `contact_id` - Xero contact GUID
+- `name` - Client/contact name
+
+#### `xero_invoices`
+- `user_id` - Foreign key to users
+- `tenant_id` - Xero organization identifier
+- `invoice_id` - Xero invoice GUID
+- `contact_id` - Foreign key to clients
+- `invoice_number` - Invoice number
+- `reference` - Invoice reference
+- `status` - Invoice status (AUTHORISED, PAID, etc.)
+- `type` - Invoice type (ACCREC for sales invoices)
+- `date` - Invoice date
+- `due_date` - Payment due date
+- `sub_total` - Invoice subtotal
+- `total_tax` - Tax amount
+- `total` - Total invoice amount
+- `currency_code` - Currency code
+- `line_amount_types` - Line amount type
+- `updated_date_utc` - Last update timestamp
+
+#### `excluded_invoices`
+- `user_id` - Foreign key to users
+- `invoice_id` - Foreign key to xero_invoices
+- `created_at` - Exclusion timestamp
+
+#### `rfm_reports`
+- `user_id` - Foreign key to users
+- `client_id` - Foreign key to clients
+- `snapshot_date` - Date of RFM calculation
+- `r_score` - Recency score (0-10)
+- `f_score` - Frequency score (0-10)
+- `m_score` - Monetary score (0-10)
+- `rfm_score` - Overall RFM score (0-10)
+- `months_since_last` - Months since last transaction (nullable)
+- `txn_count` - Number of transactions in period
+- `monetary_sum` - Total revenue in period
+- `last_txn_date` - Date of last transaction
+
+## 🔗 API Endpoints
+
+### Authentication & Core
+- `GET /` - Landing page
+- `GET /dashboard` - Main dashboard
+- `GET /profile` - User profile management
+- `POST /profile` - Update profile
+
+### Xero Integration
+- `GET /xero/connect` - Initiate Xero OAuth flow
+- `GET /xero/callback` - OAuth callback handler
+
+### Organization Management
+- `GET /organizations` - List user's Xero organizations
+- `POST /organizations/{id}/switch` - Switch active organization
+- `DELETE /organizations/{id}/disconnect` - Disconnect organization
+
+### Invoice Management
+- `GET /invoices` - View and filter invoices
+- `POST /invoices/sync` - Sync invoices from Xero
+- `POST /invoices/{id}/exclude` - Exclude invoice from RFM calculations
+- `DELETE /invoices/{id}/exclude` - Remove invoice exclusion
+
+### RFM Analysis
+- `GET /rfm` - RFM Scores leaderboard
+- `POST /rfm/sync` - Calculate current and historical RFM scores
+- `GET /rfm/reports` - RFM Reports page (in development)
+- `GET /rfm/reports/generate` - Generate RFM reports (in development)
+- `GET /rfm/analysis` - RFM Analysis tools (in development)
+- `GET /rfm/analysis/trends` - Trend analysis (in development)
+
+## 🏗 Project Structure
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── XeroController.php          # Xero OAuth and API integration
+│   │   ├── OrganizationController.php  # Multi-org management
+│   │   ├── InvoicesController.php      # Invoice management and sync
+│   │   ├── RfmController.php           # RFM scores and calculations
+│   │   ├── RfmReportsController.php    # Report generation (in dev)
+│   │   ├── RfmAnalysisController.php   # Advanced analytics (in dev)
+│   │   └── ProfileController.php       # User profile management
+│   └── Middleware/
+│       └── EnsureXeroLinked.php        # Enforce Xero connection
+├── Models/
+│   ├── User.php                        # User model with Xero relations
+│   ├── XeroConnection.php              # Xero organization connections
+│   ├── Client.php                      # Client/contact data
+│   ├── XeroInvoice.php                 # Invoice data
+│   ├── ExcludedInvoice.php             # Excluded invoice tracking
+│   └── RfmReport.php                   # RFM calculation results
+└── Services/
+    └── Rfm/
+        └── RfmCalculator.php           # RFM calculation logic
+
+resources/views/
+├── layouts/
+│   └── navigation.blade.php            # Main navigation
+├── dashboard.blade.php                 # Dashboard overview
+├── organizations/
+│   └── index.blade.php                 # Organization management
+├── invoices/
+│   └── index.blade.php                 # Invoice listing and filters
+├── rfm/
+│   ├── index.blade.php                 # RFM Scores leaderboard
+│   ├── reports/
+│   │   └── index.blade.php             # Reports page (in dev)
+│   └── analysis/
+│       ├── index.blade.php             # Analysis tools (in dev)
+│       └── trends.blade.php            # Trend analysis (in dev)
+└── landing.blade.php                   # Public landing page
+```
+
+## 🔧 Installation & Setup
+
+### Prerequisites
+- PHP 8.4+
+- Composer
+- Node.js & npm
+- Xero Developer Account
+
+### 1. Clone and Install Dependencies
+```bash
+git clone <repository-url>
+cd xero-rfm
+composer install
+npm install
+```
+
+### 2. Environment Configuration
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Configure your `.env` file:
 ```dotenv
-APP_NAME="Xero RFM App"
+APP_NAME="Xero RFM Analysis"
 APP_ENV=local
-APP_KEY=base64:changeme_if_you_regen
 APP_DEBUG=true
 APP_URL=http://localhost:8080
-
-LOG_CHANNEL=stack
-LOG_LEVEL=debug
 
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 
-SESSION_DRIVER=file
-CACHE_STORE=file
-QUEUE_CONNECTION=sync
-FILESYSTEM_DISK=local
-
-MAIL_MAILER=log
-MAIL_FROM_ADDRESS="hello@example.com"
-MAIL_FROM_NAME="${APP_NAME}"
-
-XERO_CLIENT_ID=your_client_id
-XERO_CLIENT_SECRET=your_client_secret
+XERO_CLIENT_ID=your_xero_client_id
+XERO_CLIENT_SECRET=your_xero_client_secret
 XERO_CREDENTIAL_DISK=local
 XERO_REDIRECT_URI=http://localhost:8080/xero/callback
 ```
 
-Switch to MySQL/MariaDB later by changing `DB_*` vars as usual.
-
-## Install & bootstrap
+### 3. Database Setup
 ```bash
-composer install
-cp .env.example .env   # if you don't already have one
-php artisan key:generate
+# Create SQLite database
+mkdir -p database
+touch database/database.sqlite
 
-# SQLite file
-mkdir -p database && touch database/database.sqlite
-
-# Migrate schema
+# Run migrations
 php artisan migrate
-
-# Frontend
-npm install
-npm run build  # or npm run dev for hot reload
 ```
 
-## Running the app
-
-### Option A: Artisan
+### 4. Build Frontend Assets
 ```bash
+npm run build
+# or for development with hot reload:
+npm run dev
+```
+
+### 5. Start the Application
+```bash
+# Option A: Laravel's built-in server
 php artisan serve --host=127.0.0.1 --port=8080
-```
 
-### Option B: PHP built-in server (no artisan)
-```bash
+# Option B: PHP built-in server
 php -S localhost:8080 -t public
 ```
 
-Front-end:
-- Live reload during development: `npm run dev`
-- One-off build (no watcher): `npm run build`
+## 🔐 Xero App Configuration
 
-Ensure the Redirect URI in the Xero portal matches the URL you actually use (e.g. `http://localhost:8080/xero/callback`).
+### Required Scopes
+- `openid` - OpenID Connect authentication
+- `profile` - User profile information
+- `email` - Email address access
+- `offline_access` - Refresh token access
+- `accounting.transactions.read` - Read invoice data
 
-## How the OAuth flow works
-1. User visits `Dashboard` and hits “Connect Xero,” or goes to `/xero/connect`.
-2. App redirects to Xero consent using the package’s `AuthorizationController`.
-3. Xero redirects back to `XERO_REDIRECT_URI` (full URL). We include a compatibility route at `/xero/callback` that forwards to the package callback.
-4. Package exchanges code → emits `XeroAuthorized` with token + tenants.
-5. Listener persists encrypted tokens, expiry, tenant id, and organisation name to `xero_connections`.
-6. User is redirected to `dashboard`.
+### Redirect URI
+Configure in Xero Developer Portal:
+- `http://localhost:8080/xero/callback`
 
-## Current user experience
-- Landing: shows Log in / Register (or Enter dashboard + Log out when authenticated).
-- Dashboard: shows “Xero Integration” card. If connected, shows Organisation name, Tenant ID, and token expiry, with a “Resync connection” action. Quick tiles link to Invoices and RFM Analysis.
-- Invoices: last N days (selectable) ACCREC invoices, read-only table (dark-mode friendly). Data is also upserted into local DB (`clients`, `xero_invoices`).
+## 📈 RFM Analysis Methodology
 
-## Clearing the database
-- Rebuild schema and wipe data:
+### Score Calculation
+- **Recency (R)**: `10 - months_since_last_transaction` (minimum 0)
+- **Frequency (F)**: Number of invoices in past 12 months (capped at 10)
+- **Monetary (M)**: Total revenue normalized to 0-10 scale using min-max scaling
+- **Overall RFM**: `(R + F + M) / 3`
+
+### Data Processing
+- Rolling 12-month analysis window
+- Sales invoices only (ACCREC type)
+- Excluded invoices are filtered out
+- Monthly snapshots for historical tracking
+- Zero scores for clients with no transactions
+
+## 🔄 Database Management
+
+### Reset Database
 ```bash
+# Fresh migration (drops all data)
 php artisan migrate:fresh
-```
 
-- For SQLite, full reset:
-```bash
-rm -f database/database.sqlite && touch database/database.sqlite
+# Complete SQLite reset
+rm -f database/database.sqlite
+touch database/database.sqlite
 php artisan migrate
 ```
-On Windows PowerShell:
+
+### Windows PowerShell
 ```powershell
 del database\database.sqlite
 ni database\database.sqlite -ItemType File
 php artisan migrate
 ```
 
-## Troubleshooting
-- 404 after consent: ensure your Xero Redirect URI and `.env` `XERO_REDIRECT_URI` are identical. We support `/xero/callback` and forward to the package callback.
-- unauthorized_client / Invalid redirect_uri: clear config and fix the Redirect URI.
-```bash
-php artisan config:clear
-```
-- id_token missing error: ensure scopes include `openid profile email`.
-- Port in use: change the port (and the Redirect URI) accordingly.
+## 🚨 Troubleshooting
 
-## Notes on tokens
-- Access/refresh tokens are stored encrypted in DB.
-- The package refreshes tokens automatically when expired.
-- “Resync connection” simply runs the connect flow again; you can convert this to a silent refresh endpoint later if desired.
+### Common Issues
 
-## Roadmap
-- Compute and persist RFM metrics from `xero_invoices` into `rfm_reports`.
-- Add filters, pagination, and exports to the Invoices page.
-- Add per-tenant multi-org support (today: 1 org per user).
+**404 after OAuth consent**
+- Verify `XERO_REDIRECT_URI` matches Xero app configuration exactly
+- Check port numbers and protocol (http/https)
 
-## License
-MIT (see LICENSE if present).
+**"Invalid redirect_uri" error**
+- Clear config cache: `php artisan config:clear`
+- Ensure redirect URI is identical in Xero portal and .env
+
+**"id_token missing" error**
+- Verify scopes include `openid profile email`
+
+**Port conflicts**
+- Change port in both server command and Xero redirect URI
+- Update `.env` `APP_URL` accordingly
+
+### Token Management
+- Access/refresh tokens are encrypted in database
+- Automatic token refresh handled by Xero package
+- "Resync connection" re-runs OAuth flow
+
+## 🔮 Roadmap
+
+### Completed Features
+- ✅ Multi-organization Xero integration
+- ✅ Invoice synchronization and management
+- ✅ RFM score calculation and historical tracking
+- ✅ Invoice exclusion system
+- ✅ Organization switching
+- ✅ Dark/light mode UI
+
+### In Development
+- 🔄 RFM Reports generation
+- 🔄 Advanced analytics and trend analysis
+- 🔄 Chart.js integration for visualizations
+- 🔄 Export functionality (PDF, CSV)
+
+### Planned Features
+- 📋 Email notifications for score changes
+- 📋 Automated monthly RFM calculations
+- 📋 Client segmentation analysis
+- 📋 Predictive churn modeling
+- 📋 API endpoints for external integrations
+- 📋 Bulk invoice operations
+- 📋 Advanced filtering and search
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📞 Support
+
+For issues and questions:
+- Check the troubleshooting section above
+- Review Laravel and Xero API documentation
+- Open an issue in the repository

@@ -47,10 +47,42 @@ class User extends Authenticatable
     }
 
     /**
-     * Relation: the single XeroConnection for this user
+     * Relation: all XeroConnections for this user
      */
-    public function xeroConnection()
+    public function xeroConnections()
     {
-        return $this->hasOne(\App\Models\XeroConnection::class);
+        return $this->hasMany(\App\Models\XeroConnection::class);
+    }
+    
+    /**
+     * Relation: the active XeroConnection for this user
+     */
+    public function activeXeroConnection()
+    {
+        return $this->hasOne(\App\Models\XeroConnection::class)->where('is_active', true);
+    }
+    
+    /**
+     * Get the active Xero connection
+     */
+    public function getActiveXeroConnection(): ?XeroConnection
+    {
+        return XeroConnection::getActiveForUser($this->id);
+    }
+    
+    /**
+     * Get all Xero connections
+     */
+    public function getAllXeroConnections()
+    {
+        return XeroConnection::getAllForUser($this->id);
+    }
+
+    /**
+     * Get all excluded invoices for this user
+     */
+    public function excludedInvoices()
+    {
+        return $this->hasMany(ExcludedInvoice::class);
     }
 }

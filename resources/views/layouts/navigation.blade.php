@@ -15,11 +15,20 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('demo.invoices')" :active="request()->routeIs('demo.invoices')">
+                    <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.index')">
                         {{ __('Invoices') }}
                     </x-nav-link>
                     <x-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
+                        {{ __('RFM Scores') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('rfm.reports.index')" :active="request()->routeIs('rfm.reports.*')">
+                        {{ __('RFM Reports') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                         {{ __('RFM Analysis') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.index')">
+                        {{ __('Organizations') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -76,11 +85,20 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('demo.invoices')" :active="request()->routeIs('demo.invoices')">
+            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.index')">
                 {{ __('Invoices') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
+                {{ __('RFM Scores') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('rfm.reports.index')" :active="request()->routeIs('rfm.reports.*')">
+                {{ __('RFM Reports') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                 {{ __('RFM Analysis') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.index')">
+                {{ __('Organizations') }}
             </x-responsive-nav-link>
         </div>
 
