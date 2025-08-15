@@ -20,8 +20,15 @@ class InvoicesController extends Controller
         $statuses = (array) $request->get('statuses', []);
         $q = trim((string) $request->get('q', ''));
 
+        // Get active connection
+        $activeConnection = $user->getActiveXeroConnection();
+        if (!$activeConnection) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+        }
+
         $query = XeroInvoice::query()
             ->where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
             ->orderByDesc('date');
 
         // Only apply date filter if user specifically requests it
@@ -51,13 +58,16 @@ class InvoicesController extends Controller
         $invoices = $query->paginate(15)->withQueryString();
 
         // Get total counts for user feedback
-        $totalInvoices = XeroInvoice::where('user_id', $user->id)->count();
+        $totalInvoices = XeroInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->count();
         $filteredCount = $invoices->total();
 
         // Preload client names
         $contactIds = $invoices->pluck('contact_id')->unique()->filter()->values();
         $clients = Client::query()
             ->where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
             ->whereIn('contact_id', $contactIds)
             ->get()
             ->keyBy('contact_id');
@@ -77,17 +87,18 @@ class InvoicesController extends Controller
     {
         $user = $request->user();
 
-        // Ensure user has a connection
-        if (! $user?->xeroConnection) {
+        // Ensure user has an active connection
+        $activeConnection = $user->getActiveXeroConnection();
+        if (! $activeConnection) {
             return redirect()->route('invoices.index')->withErrors('Connect Xero first.');
         }
 
         /** @var AccountingApi $api */
         $api = app(AccountingApi::class);
-        $tenantId = $user->xeroConnection->tenant_id;
+        $tenantId = $activeConnection->tenant_id;
 
-        // Fetch ALL invoices from Xero (both sales and bills)
-        $where = 'Type=="ACCREC"||Type=="ACCPAY"';
+        // Fetch sales invoices from Xero (ACCREC only)
+        $where = 'Type=="ACCREC"';
 
         $page = 1; $all = [];
         do {
@@ -113,30 +124,26 @@ class InvoicesController extends Controller
             $page++;
         } while (count($batch) === 100);
 
-        // Count by type for user feedback
-        $salesCount = 0;
-        $billsCount = 0;
-        foreach ($all as $inv) {
-            if ($inv->getType() === 'ACCREC') {
-                $salesCount++;
-            } else {
-                $billsCount++;
-            }
-        }
+        // Count invoices for user feedback
+        $invoiceCount = count($all);
 
         // Upsert Clients + Invoices
-        DB::transaction(function () use ($user, $all) {
+        DB::transaction(function () use ($user, $all, $tenantId) {
             foreach ($all as $inv) {
                 $contact = $inv->getContact();
                 if ($contact) {
                     Client::updateOrCreate(
                         ['user_id' => $user->id, 'contact_id' => $contact->getContactId()],
-                        ['name'    => $contact->getName()]
+                        [
+                            'tenant_id' => $tenantId,
+                            'name'      => $contact->getName()
+                        ]
                     );
                 }
                 XeroInvoice::updateOrCreate(
                     ['user_id' => $user->id, 'invoice_id' => $inv->getInvoiceId()],
                     [
+                        'tenant_id'         => $tenantId,
                         'contact_id'        => optional($contact)->getContactId(),
                         'status'            => $inv->getStatus(),
                         'type'              => $inv->getType(),
@@ -153,7 +160,7 @@ class InvoicesController extends Controller
             }
         });
 
-        $message = "Synced {$salesCount} sales invoices and {$billsCount} bills from Xero.";
+        $message = "Synced {$invoiceCount} sales invoices from Xero.";
         return redirect()->route('invoices.index')->with('status', $message);
     }
 

@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
                         {{ __('RFM Analysis') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.index')">
+                        {{ __('Organizations') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -81,6 +84,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
                 {{ __('RFM Analysis') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.index')">
+                {{ __('Organizations') }}
             </x-responsive-nav-link>
         </div>
 

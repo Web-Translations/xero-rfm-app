@@ -34,45 +34,95 @@ class AppServiceProvider extends ServiceProvider
                 return; // only persist when a user is logged in
             }
 
-            $tenantId = $event->tenants[0]['Id'] ?? null;
-            if (! $tenantId) {
-                return;
-            }
-
-            // Prefer tenant name from the event payload; fallback to Identity API, then Accounting API
-            $orgName = $event->tenants[0]['Name'] ?? null;
             try {
-                if (! $orgName) {
-                    /** @var IdentityApi $identity */
-                    $identity = app(IdentityApi::class);
-                    $connections = $identity->getConnections();
-                    foreach ($connections as $c) {
-                        if ($c->getTenantId() === $tenantId) {
-                            $orgName = $c->getTenantName();
-                            break;
-                        }
+                // Get all available connections from Xero Identity API
+                /** @var IdentityApi $identity */
+                $identity = app(IdentityApi::class);
+                $connections = $identity->getConnections();
+                
+                // Check if this is the first connection for this user
+                $isFirstConnection = !XeroConnection::where('user_id', $userId)->exists();
+                
+                foreach ($connections as $connection) {
+                    $tenantId = $connection->getTenantId();
+                    $orgName = $connection->getTenantName();
+                    
+                    // Check if this tenant is already connected
+                    $existingConnection = XeroConnection::where('user_id', $userId)
+                        ->where('tenant_id', $tenantId)
+                        ->first();
+
+                    if ($existingConnection) {
+                        // Update existing connection with new tokens
+                        $existingConnection->update([
+                            'org_name'      => $orgName,
+                            'access_token'  => Crypt::encryptString($event->token),
+                            'refresh_token' => Crypt::encryptString($event->refresh_token),
+                            'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                        ]);
+                    } else {
+                        // Create new connection
+                        XeroConnection::create([
+                            'user_id'       => $userId,
+                            'tenant_id'     => $tenantId,
+                            'org_name'      => $orgName,
+                            'access_token'  => Crypt::encryptString($event->token),
+                            'refresh_token' => Crypt::encryptString($event->refresh_token),
+                            'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                            'is_active'     => $isFirstConnection,
+                        ]);
+                        
+                        // Only set the first new connection as active
+                        $isFirstConnection = false;
                     }
                 }
-                if (! $orgName) {
-                    /** @var AccountingApi $accounting */
-                    $accounting = app(AccountingApi::class);
-                    $orgs = $accounting->getOrganisations($tenantId)?->getOrganisations();
-                    $orgName = $orgs[0]?->getName() ?? null;
-                }
             } catch (\Throwable $e) {
-                // ignore, optional
-            }
+                // Fallback to the original method if Identity API fails
+                $tenantId = $event->tenants[0]['Id'] ?? null;
+                if (! $tenantId) {
+                    return;
+                }
 
-            XeroConnection::updateOrCreate(
-                ['user_id' => $userId],
-                [
-                    'tenant_id'     => $tenantId,
-                    'org_name'      => $orgName,
-                    'access_token'  => Crypt::encryptString($event->token),
-                    'refresh_token' => Crypt::encryptString($event->refresh_token),
-                    'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
-                ]
-            );
+                $orgName = $event->tenants[0]['Name'] ?? null;
+                try {
+                    if (! $orgName) {
+                        /** @var AccountingApi $accounting */
+                        $accounting = app(AccountingApi::class);
+                        $orgs = $accounting->getOrganisations($tenantId)?->getOrganisations();
+                        $orgName = $orgs[0]?->getName() ?? null;
+                    }
+                } catch (\Throwable $e2) {
+                    // ignore, optional
+                }
+
+                // Check if this tenant is already connected
+                $existingConnection = XeroConnection::where('user_id', $userId)
+                    ->where('tenant_id', $tenantId)
+                    ->first();
+
+                if ($existingConnection) {
+                    // Update existing connection
+                    $existingConnection->update([
+                        'org_name'      => $orgName,
+                        'access_token'  => Crypt::encryptString($event->token),
+                        'refresh_token' => Crypt::encryptString($event->refresh_token),
+                        'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                    ]);
+                } else {
+                    // Create new connection and set as active if it's the first one
+                    $isFirstConnection = !XeroConnection::where('user_id', $userId)->exists();
+                    
+                    XeroConnection::create([
+                        'user_id'       => $userId,
+                        'tenant_id'     => $tenantId,
+                        'org_name'      => $orgName,
+                        'access_token'  => Crypt::encryptString($event->token),
+                        'refresh_token' => Crypt::encryptString($event->refresh_token),
+                        'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                        'is_active'     => $isFirstConnection,
+                    ]);
+                }
+            }
         });
     }
 }

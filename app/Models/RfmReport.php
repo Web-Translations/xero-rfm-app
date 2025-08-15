@@ -40,16 +40,27 @@ class RfmReport extends Model
     /**
      * Get the latest RFM report for each client
      */
-    public static function getLatestForUser(int $userId)
+    public static function getLatestForUser(int $userId, string $tenantId = null)
     {
-        return self::select('rfm_reports.*', 'clients.name as client_name')
+        $query = self::select('rfm_reports.*', 'clients.name as client_name')
             ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
-            ->where('rfm_reports.user_id', $userId)
-            ->whereIn('rfm_reports.id', function ($query) use ($userId) {
-                $query->select(DB::raw('MAX(id)'))
+            ->where('rfm_reports.user_id', $userId);
+            
+        if ($tenantId) {
+            $query->where('clients.tenant_id', $tenantId);
+        }
+        
+        return $query->whereIn('rfm_reports.id', function ($subQuery) use ($userId, $tenantId) {
+                $subQuery->select(DB::raw('MAX(rfm_reports.id)'))
                     ->from('rfm_reports')
-                    ->where('user_id', $userId)
-                    ->groupBy('client_id');
+                    ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+                    ->where('rfm_reports.user_id', $userId);
+                    
+                if ($tenantId) {
+                    $subQuery->where('clients.tenant_id', $tenantId);
+                }
+                
+                $subQuery->groupBy('rfm_reports.client_id');
             })
             ->orderBy('rfm_reports.rfm_score', 'desc');
     }
@@ -57,26 +68,37 @@ class RfmReport extends Model
     /**
      * Get RFM reports for a specific snapshot date
      */
-    public static function getForSnapshotDate(int $userId, string $snapshotDate)
+    public static function getForSnapshotDate(int $userId, string $snapshotDate, string $tenantId = null)
     {
         // Extract just the date part from the datetime string
         $dateOnly = date('Y-m-d', strtotime($snapshotDate));
         
-        return self::select('rfm_reports.*', 'clients.name as client_name')
+        $query = self::select('rfm_reports.*', 'clients.name as client_name')
             ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
             ->where('rfm_reports.user_id', $userId)
-            ->where('rfm_reports.snapshot_date', $dateOnly)
-            ->orderBy('rfm_reports.rfm_score', 'desc');
+            ->where('rfm_reports.snapshot_date', $dateOnly);
+            
+        if ($tenantId) {
+            $query->where('clients.tenant_id', $tenantId);
+        }
+        
+        return $query->orderBy('rfm_reports.rfm_score', 'desc');
     }
 
     /**
      * Get available snapshot dates for a user
      */
-    public static function getAvailableSnapshotDates(int $userId)
+    public static function getAvailableSnapshotDates(int $userId, string $tenantId = null)
     {
-        return self::where('user_id', $userId)
-            ->distinct()
-            ->pluck('snapshot_date')
+        $query = self::where('rfm_reports.user_id', $userId)
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id');
+            
+        if ($tenantId) {
+            $query->where('clients.tenant_id', $tenantId);
+        }
+        
+        return $query->distinct()
+            ->pluck('rfm_reports.snapshot_date')
             ->map(function($date) {
                 // Convert datetime to date string for consistency
                 return date('Y-m-d', strtotime($date));

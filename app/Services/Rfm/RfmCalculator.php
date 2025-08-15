@@ -19,8 +19,17 @@ class RfmCalculator
         $snapshotDate = $snapshotDate ?? Carbon::now()->startOfDay();
         $windowStart = (clone $snapshotDate)->subMonths(12)->startOfDay();
         
-        // Aggregate invoice data for the rolling 12-month window
-        // Include both ACCREC (sales) and ACCPAY (bills) for complete RFM analysis
+        // Get the active connection for this user
+        $activeConnection = \App\Models\XeroConnection::getActiveForUser($userId);
+        if (!$activeConnection) {
+            return [
+                'snapshot_date' => $snapshotDate->toDateString(),
+                'window_start' => $windowStart->toDateString(),
+                'computed' => 0,
+            ];
+        }
+
+        // Aggregate sales invoice data for the rolling 12-month window
         $aggregates = XeroInvoice::query()
             ->select([
                 'contact_id',
@@ -29,7 +38,8 @@ class RfmCalculator
                 DB::raw('MAX(date) as last_txn_date'),
             ])
             ->where('user_id', $userId)
-            ->whereIn('type', ['ACCREC', 'ACCPAY']) // Include both sales and bills
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->where('type', 'ACCREC') // Only sales invoices for RFM analysis
             ->where('date', '>=', $windowStart->toDateString())
             ->where('date', '<=', $snapshotDate->toDateString())
             ->groupBy('contact_id')
@@ -52,6 +62,7 @@ class RfmCalculator
         // Get clients
         $clients = Client::query()
             ->where('user_id', $userId)
+            ->where('tenant_id', $activeConnection->tenant_id)
             ->whereIn('contact_id', $aggregates->keys()->all())
             ->get()
             ->keyBy('contact_id');

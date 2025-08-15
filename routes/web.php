@@ -4,6 +4,7 @@ use App\Http\Controllers\XeroController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RfmController;
 use App\Http\Controllers\InvoicesController;
+use App\Http\Controllers\OrganizationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
 use Illuminate\Http\Request;
@@ -20,6 +21,11 @@ Route::middleware('auth')->group(function () {
 
     // Xero OAuth flow (package handles authorize + callback)
     Route::get('/xero/connect',  [XeroController::class, 'connect'])->name('xero.connect');
+
+    // Organization management
+    Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
+    Route::post('/organizations/{connection}/switch', [OrganizationController::class, 'switch'])->name('organizations.switch');
+    Route::delete('/organizations/{connection}/disconnect', [OrganizationController::class, 'disconnect'])->name('organizations.disconnect');
 
     // User profile (Breeze expects these route names)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

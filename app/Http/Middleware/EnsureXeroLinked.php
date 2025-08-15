@@ -12,8 +12,15 @@ class EnsureXeroLinked
     {
         $user = $request->user();
 
-        if (! $user?->xeroConnection) {
+        // Check if user has any Xero connections
+        if ($user->getAllXeroConnections()->isEmpty()) {
             return redirect()->route('xero.connect')->with('status', 'Connect your Xero account first.');
+        }
+
+        // Check if user has an active connection
+        $activeConnection = $user->getActiveXeroConnection();
+        if (!$activeConnection) {
+            return redirect()->route('dashboard')->withErrors('Please select an active organization.');
         }
 
         return $next($request);

@@ -14,7 +14,7 @@ return new class extends Migration
             $t->char('invoice_id', 36); // Xero InvoiceID (GUID)
             $t->char('contact_id', 36);
             $t->string('status', 32);
-            $t->string('type', 16); // ACCREC / ACCPAY
+            $t->string('type', 16); // ACCREC (sales invoices)
             $t->string('invoice_number', 50)->nullable();
             $t->date('date');
             $t->date('due_date')->nullable();

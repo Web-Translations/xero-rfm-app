@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class XeroInvoice extends Model
 {
     protected $fillable = [
-        'user_id','invoice_id','contact_id','status','type','invoice_number',
+        'user_id','tenant_id','invoice_id','contact_id','status','type','invoice_number',
         'date','due_date','subtotal','total','currency','updated_date_utc','fully_paid_at'
     ];
     protected $casts = [
