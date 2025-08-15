@@ -140,6 +140,7 @@
                 <table class="min-w-full text-sm divide-y divide-gray-200 dark:divide-gray-700 text-gray-800 dark:text-gray-100">
                     <thead class="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 sticky top-0 z-10">
                         <tr class="text-left">
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold w-12">#</th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Client</th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-right font-semibold">R</th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-right font-semibold">F</th>
@@ -152,12 +153,18 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @forelse ($rows as $r)
+                        @forelse ($rows as $index => $r)
+                            @php
+                                $rank = ($rows->currentPage() - 1) * $rows->perPage() + $index + 1;
+                            @endphp
                             <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold text-gray-600 dark:text-gray-400">
+                                    {{ $rank }}
+                                </td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 font-medium">
                                     {{ $r->client_name }}
                                 </td>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ $r->r_score }}</td>
+                                                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format($r->r_score, 2) }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ $r->f_score }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ $r->m_score }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right font-semibold">
@@ -184,7 +191,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700" colspan="9">
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700" colspan="10">
                                     No RFM data found. Click "Sync now" to compute current scores.
                                 </td>
                             </tr>
