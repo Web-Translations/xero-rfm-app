@@ -3,6 +3,8 @@
 use App\Http\Controllers\XeroController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RfmController;
+use App\Http\Controllers\RfmReportsController;
+use App\Http\Controllers\RfmAnalysisController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\OrganizationController;
 use Illuminate\Support\Facades\Route;
@@ -42,9 +44,17 @@ Route::middleware(['auth', EnsureXeroLinked::class])->group(function () {
     Route::post('/invoices/{invoice}/exclude', [InvoicesController::class, 'exclude'])->name('invoices.exclude');
     Route::delete('/invoices/{invoice}/exclude', [InvoicesController::class, 'unexclude'])->name('invoices.unexclude');
     
-    // RFM Analysis
+    // RFM Scores (renamed from RFM Analysis)
     Route::get('/rfm', [RfmController::class, 'index'])->name('rfm.index');
     Route::post('/rfm/sync', [RfmController::class, 'sync'])->name('rfm.sync');
+    
+    // RFM Reports
+    Route::get('/rfm/reports', [RfmReportsController::class, 'index'])->name('rfm.reports.index');
+    Route::get('/rfm/reports/generate', [RfmReportsController::class, 'generate'])->name('rfm.reports.generate');
+    
+    // RFM Analysis
+    Route::get('/rfm/analysis', [RfmAnalysisController::class, 'index'])->name('rfm.analysis.index');
+    Route::get('/rfm/analysis/trends', [RfmAnalysisController::class, 'trends'])->name('rfm.analysis.trends');
 });
 
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">RFM Analysis</h2>
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">RFM Scores</h2>
     </x-slot>
 
     <div class="p-6 space-y-6">

@@ -19,6 +19,12 @@
                         {{ __('Invoices') }}
                     </x-nav-link>
                     <x-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
+                        {{ __('RFM Scores') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('rfm.reports.index')" :active="request()->routeIs('rfm.reports.*')">
+                        {{ __('RFM Reports') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                         {{ __('RFM Analysis') }}
                     </x-nav-link>
                     <x-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.index')">
@@ -83,6 +89,12 @@
                 {{ __('Invoices') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('rfm.index')" :active="request()->routeIs('rfm.index')">
+                {{ __('RFM Scores') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('rfm.reports.index')" :active="request()->routeIs('rfm.reports.*')">
+                {{ __('RFM Reports') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                 {{ __('RFM Analysis') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.index')">
