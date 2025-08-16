@@ -18,13 +18,30 @@
                     <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Filters</h3>
                     <span class="text-xs text-gray-500 dark:text-gray-400">Showing {{ $filteredCount }} of {{ $totalInvoices }} total invoices</span>
                 </div>
-                <form method="POST" action="{{ route('invoices.sync') }}">
-                    @csrf
+                <div class="flex items-center justify-between">
+                    <!-- Left side: Sync info and counter -->
+                    <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center mr-4">
+                        @if($lastSyncInfo['last_sync_at'])
+                            <span>Last synced {{ number_format($lastSyncInfo['last_sync_invoice_count']) }} invoices at {{ $lastSyncInfo['last_sync_at']->format('M j, Y g:i A') }}</span>
+                        @endif
+                        
+                        <!-- Sync Counter (hidden by default) -->
+                        <span id="sync-counter" class="hidden ml-2">
+                            <span class="text-gray-400 dark:text-gray-600 mx-1">•</span>
+                            <span class="ml-1">Syncing <span id="sync-count">0</span> invoices...</span>
+                        </span>
+                    </div>
+                    
+                    <!-- Right side: Sync Button -->
                     <button
-                        class="inline-flex items-center justify-center px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm border border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 text-sm">
-                        Sync from Xero
+                        id="sync-button"
+                        class="inline-flex items-center justify-center px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm border border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 text-sm transition-all duration-200">
+                        <svg id="sync-icon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span id="sync-button-text">Sync from Xero</span>
                     </button>
-                </form>
+                </div>
             </div>
 
             <!-- Filter form -->
@@ -241,6 +258,184 @@
                     });
                 });
             });
+
+            // Enhanced sync functionality
+            const syncButton = document.getElementById('sync-button');
+            const syncCounter = document.getElementById('sync-counter');
+            const syncCount = document.getElementById('sync-count');
+            const syncIcon = document.getElementById('sync-icon');
+            const syncButtonText = document.getElementById('sync-button-text');
+
+            let syncInProgress = false;
+            let progressInterval = null;
+            let syncTimeout = null;
+
+            syncButton.addEventListener('click', function() {
+                if (syncInProgress) return;
+
+                startSync();
+            });
+
+            function startSync() {
+                syncInProgress = true;
+                
+                // Update UI to show sync is starting
+                syncButton.disabled = true;
+                syncButton.classList.add('opacity-50');
+                syncIcon.classList.add('animate-spin');
+                syncButtonText.textContent = 'Starting...';
+                syncCounter.classList.remove('hidden');
+                
+                // Set a timeout to prevent hanging (30 minutes)
+                syncTimeout = setTimeout(() => {
+                    if (syncInProgress) {
+                        resetSyncUI();
+                        alert('Sync timed out after 30 minutes. Please try again.');
+                    }
+                }, 30 * 60 * 1000);
+                
+                // Start the sync process
+                fetch('{{ route("invoices.sync") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Start polling for progress
+                        startProgressPolling();
+                        // Start fetching batches
+                        fetchNextBatch();
+                    } else {
+                        throw new Error(data.message || 'Failed to start sync');
+                    }
+                })
+                .catch(error => {
+                    console.error('Sync error:', error);
+                    resetSyncUI();
+                    alert('Failed to start sync: ' + error.message);
+                });
+            }
+
+            function startProgressPolling() {
+                progressInterval = setInterval(() => {
+                    fetch('{{ route("invoices.sync") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ action: 'get_progress' })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        updateProgressUI(data);
+                    })
+                    .catch(error => {
+                        console.error('Progress polling error:', error);
+                    });
+                }, 1000); // Poll every second
+            }
+
+            function fetchNextBatch() {
+                fetch('{{ route("invoices.sync") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ action: 'fetch_batch' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.completed) {
+                            // Sync completed
+                            completeSync();
+                        } else if (data.has_more) {
+                            // Continue with next batch after a short delay
+                            setTimeout(fetchNextBatch, 1000);
+                        } else {
+                            // No more data
+                            completeSync();
+                        }
+                    } else {
+                        throw new Error(data.error || 'Failed to fetch batch');
+                    }
+                })
+                .catch(error => {
+                    console.error('Batch fetch error:', error);
+                    resetSyncUI();
+                    alert('Sync failed: ' + error.message);
+                });
+            }
+
+            function completeSync() {
+                fetch('{{ route("invoices.sync") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ action: 'complete' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message briefly
+                        syncCount.textContent = data.processed_invoices.toLocaleString();
+                        
+                        // Reset UI after a delay
+                        setTimeout(() => {
+                            resetSyncUI();
+                            // Reload page to show updated data
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        throw new Error(data.error || 'Failed to complete sync');
+                    }
+                })
+                .catch(error => {
+                    console.error('Complete sync error:', error);
+                    resetSyncUI();
+                    alert('Failed to complete sync: ' + error.message);
+                });
+            }
+
+            function updateProgressUI(progress) {
+                if (progress.processed_invoices > 0) {
+                    // Simple counter update
+                    syncCount.textContent = progress.processed_invoices.toLocaleString();
+                }
+            }
+
+            function resetSyncUI() {
+                syncInProgress = false;
+                syncButton.disabled = false;
+                syncButton.classList.remove('opacity-50');
+                syncIcon.classList.remove('animate-spin');
+                syncButtonText.textContent = 'Sync from Xero';
+                syncCounter.classList.add('hidden');
+                syncCount.textContent = '0';
+                
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                
+                if (syncTimeout) {
+                    clearTimeout(syncTimeout);
+                    syncTimeout = null;
+                }
+            }
         });
     </script>
 </x-app-layout>
