@@ -66,7 +66,7 @@ class RfmCalculator
         // Get all monetary values for min-max scaling
         $monetaries = $aggregates->pluck('monetary_sum')->map(fn($v) => (float) $v)->values();
 
-        // Get clients
+        // Get clients that have transactions in the window
         $clients = Client::query()
             ->where('user_id', $userId)
             ->where('tenant_id', $activeConnection->tenant_id)
@@ -86,67 +86,42 @@ class RfmCalculator
             &$computedCount,
             $activeConnection
         ) {
-            // Get all clients that should have RFM scores for this snapshot
-            $allClients = Client::query()
-                ->where('user_id', $userId)
-                ->where('tenant_id', $activeConnection->tenant_id)
-                ->get();
-
-            foreach ($allClients as $client) {
+            // Only process clients that have transactions in the window
+            foreach ($clients as $client) {
                 $contactId = $client->contact_id;
                 $row = $aggregates->get($contactId);
 
-                if ($row) {
-                    // Client has invoices in the window - calculate RFM scores
-                    $monthsSinceLast = max(0, Carbon::parse($row->last_txn_date)->diffInMonths($snapshotDate));
-                    
-                    // R: 10 - months since last transaction (minimum 0)
-                    $rScore = max(0, 10 - $monthsSinceLast);
-                    
-                    // F: Number of invoices in past 12 months (capped at 10)
-                    $fScore = min(10, (int) $row->txn_count);
-                    
-                    // M: Min-max scaled monetary value (0-10 scale)
-                    $mScore = $this->minMaxScale((float) $row->monetary_sum, $monetaries);
-                    
-                    // Overall RFM score: average of R, F, M
-                    $rfmScore = round(($rScore + $fScore + $mScore) / 3, 2);
+                // Client has invoices in the window - calculate RFM scores
+                $monthsSinceLast = max(0, Carbon::parse($row->last_txn_date)->diffInMonths($snapshotDate));
+                
+                // R: 10 - months since last transaction (minimum 0)
+                $rScore = max(0, 10 - $monthsSinceLast);
+                
+                // F: Number of invoices in past 12 months (capped at 10)
+                $fScore = min(10, (int) $row->txn_count);
+                
+                // M: Min-max scaled monetary value (0-10 scale)
+                $mScore = $this->minMaxScale((float) $row->monetary_sum, $monetaries);
+                
+                // Overall RFM score: average of R, F, M
+                $rfmScore = round(($rScore + $fScore + $mScore) / 3, 2);
 
-                    $insertData = [
-                        'user_id' => $userId,
-                        'client_id' => $client->id,
-                        'snapshot_date' => $snapshotDate->toDateString(),
-                    ];
-                    
-                    $updateData = [
-                        'txn_count' => (int) $row->txn_count,
-                        'monetary_sum' => (float) $row->monetary_sum,
-                        'last_txn_date' => Carbon::parse($row->last_txn_date)->toDateString(),
-                        'months_since_last' => $monthsSinceLast,
-                        'r_score' => $rScore,
-                        'f_score' => $fScore,
-                        'm_score' => $mScore,
-                        'rfm_score' => $rfmScore,
-                    ];
-                } else {
-                    // Client has no invoices in the window - set all scores to 0
-                    $insertData = [
-                        'user_id' => $userId,
-                        'client_id' => $client->id,
-                        'snapshot_date' => $snapshotDate->toDateString(),
-                    ];
-                    
-                    $updateData = [
-                        'txn_count' => 0,
-                        'monetary_sum' => 0,
-                        'last_txn_date' => null,
-                        'months_since_last' => null,
-                        'r_score' => 0,
-                        'f_score' => 0,
-                        'm_score' => 0,
-                        'rfm_score' => 0,
-                    ];
-                }
+                $insertData = [
+                    'user_id' => $userId,
+                    'client_id' => $client->id,
+                    'snapshot_date' => $snapshotDate->toDateString(),
+                ];
+                
+                $updateData = [
+                    'txn_count' => (int) $row->txn_count,
+                    'monetary_sum' => (float) $row->monetary_sum,
+                    'last_txn_date' => Carbon::parse($row->last_txn_date)->toDateString(),
+                    'months_since_last' => $monthsSinceLast,
+                    'r_score' => $rScore,
+                    'f_score' => $fScore,
+                    'm_score' => $mScore,
+                    'rfm_score' => $rfmScore,
+                ];
 
                 DB::table('rfm_reports')->updateOrInsert($insertData, $updateData);
                 $computedCount++;
