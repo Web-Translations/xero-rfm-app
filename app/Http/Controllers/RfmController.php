@@ -16,9 +16,8 @@ class RfmController extends Controller
         $user = $request->user();
         
         // Get active connection
-        $activeConnection = $user->getActiveXeroConnection();
-        if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+        if (!$user->getActiveXeroConnection()) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
         
         $search = trim((string) $request->get('q', ''));
@@ -29,10 +28,10 @@ class RfmController extends Controller
         // Get RFM data based on view mode
         if ($viewMode === 'current') {
             // Get current RFM scores (today's date)
-            $query = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id);
+            $query = RfmReport::getCurrentScoresForUser($user->id, $user->getActiveXeroConnection()->tenant_id);
         } else {
             // Get historical snapshot for specific date (viewMode is the date)
-            $query = RfmReport::getForSnapshotDate($user->id, $viewMode, $activeConnection->tenant_id);
+            $query = RfmReport::getForSnapshotDate($user->id, $viewMode, $user->getActiveXeroConnection()->tenant_id);
         }
 
         // Apply search filter
@@ -46,11 +45,11 @@ class RfmController extends Controller
         $rows = $query->paginate(15)->withQueryString();
 
         // Get available snapshot dates for view mode dropdown
-        $availableSnapshots = RfmReport::getAvailableSnapshotDates($user->id, $activeConnection->tenant_id);
+        $availableSnapshots = RfmReport::getAvailableSnapshotDates($user->id, $user->getActiveXeroConnection()->tenant_id);
 
         // Get total counts for user feedback
         $totalClients = Client::where('user_id', $user->id)
-            ->where('tenant_id', $activeConnection->tenant_id)
+            ->where('tenant_id', $user->getActiveXeroConnection()->tenant_id)
             ->count();
         $filteredCount = $rows->total();
 

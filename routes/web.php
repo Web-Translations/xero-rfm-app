@@ -6,7 +6,8 @@ use App\Http\Controllers\RfmController;
 use App\Http\Controllers\RfmReportsController;
 use App\Http\Controllers\RfmAnalysisController;
 use App\Http\Controllers\InvoicesController;
-use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\OrganisationController;
+use App\Http\Controllers\TokenController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
 use Illuminate\Http\Request;
@@ -24,10 +25,12 @@ Route::middleware('auth')->group(function () {
     // Xero OAuth flow (package handles authorize + callback)
     Route::get('/xero/connect',  [XeroController::class, 'connect'])->name('xero.connect');
 
-    // Organization management
-    Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
-    Route::post('/organizations/{connection}/switch', [OrganizationController::class, 'switch'])->name('organizations.switch');
-    Route::delete('/organizations/{connection}/disconnect', [OrganizationController::class, 'disconnect'])->name('organizations.disconnect');
+    // Organisation management
+    Route::get('/organisations', [OrganisationController::class, 'index'])->name('organisations.index');
+    Route::post('/organisations/{connection}/switch', [OrganisationController::class, 'switch'])->name('organisations.switch');
+    Route::delete('/organisations/{connection}/disconnect', [OrganisationController::class, 'disconnect'])->name('organisations.disconnect');
+
+    // Token management (moved to auto-refresh group below)
 
     // User profile (Breeze expects these route names)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,8 +39,14 @@ Route::middleware('auth')->group(function () {
 
 });
 
+// Token management (simplified for debugging)
+Route::post('/token/refresh', [TokenController::class, 'refresh'])->name('token.refresh')->middleware('auth');
+Route::get('/token/status', [TokenController::class, 'status'])->name('token.status')->middleware('auth');
+Route::post('/token/reconnect', [TokenController::class, 'reconnect'])->name('token.reconnect')->middleware('auth');
+
 // Require Xero link before accessing app features that need it
-Route::middleware(['auth', EnsureXeroLinked::class])->group(function () {
+Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group(function () {
+    
     // Invoices from DB
     Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
     Route::post('/invoices/sync', [InvoicesController::class, 'sync'])->name('invoices.sync');

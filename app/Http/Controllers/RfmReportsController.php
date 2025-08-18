@@ -14,13 +14,12 @@ class RfmReportsController extends Controller
         $user = $request->user();
         
         // Get active connection
-        $activeConnection = $user->getActiveXeroConnection();
-        if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+        if (!$user->getActiveXeroConnection()) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         return view('rfm.reports.index', [
-            'activeConnection' => $activeConnection,
+            'activeConnection' => $user->getActiveXeroConnection(),
         ]);
     }
 
@@ -29,9 +28,8 @@ class RfmReportsController extends Controller
         $user = $request->user();
         
         // Get active connection
-        $activeConnection = $user->getActiveXeroConnection();
-        if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+        if (!$user->getActiveXeroConnection()) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         $reportType = $request->get('report_type', 'summary');
@@ -39,16 +37,16 @@ class RfmReportsController extends Controller
 
         // Get RFM data based on report type and date range
         if ($dateRange === 'current') {
-            $rfmData = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->get();
+            $rfmData = RfmReport::getCurrentScoresForUser($user->id, $user->getActiveXeroConnection()->tenant_id)->get();
         } else {
-            $rfmData = RfmReport::getForSnapshotDate($user->id, $dateRange, $activeConnection->tenant_id)->get();
+            $rfmData = RfmReport::getForSnapshotDate($user->id, $dateRange, $user->getActiveXeroConnection()->tenant_id)->get();
         }
 
         return view('rfm.reports.show', [
             'rfmData' => $rfmData,
             'reportType' => $reportType,
             'dateRange' => $dateRange,
-            'activeConnection' => $activeConnection,
+            'activeConnection' => $user->getActiveXeroConnection(),
         ]);
     }
 } 

@@ -7,6 +7,7 @@ use App\Models\XeroConnection;
 use App\Models\XeroInvoice;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Webfox\Xero\OauthCredentialManager;
 use XeroAPI\XeroPHP\Api\AccountingApi;
 use XeroAPI\XeroPHP\Api\IdentityApi;
@@ -16,6 +17,8 @@ class XeroController extends Controller
     // Step 1: send the user to Xero consent
     public function connect(OauthCredentialManager $xero)
     {
+        // Ensure any temp callback tokens are cleared for a fresh connect flow
+        Session::forget(['xero_temp_token', 'xero_temp_refresh_token', 'xero_temp_id_token', 'xero_temp_expires', 'xero_temp_tenants']);
         return redirect()->to($xero->getAuthorizationUrl());
     }
 

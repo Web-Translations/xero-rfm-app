@@ -24,7 +24,7 @@ class InvoicesController extends Controller
         // Get active connection
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         $query = XeroInvoice::query()
@@ -414,7 +414,7 @@ class InvoicesController extends Controller
         $activeConnection = $user->getActiveXeroConnection();
         
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         // Verify the invoice exists and belongs to the user
@@ -453,7 +453,7 @@ class InvoicesController extends Controller
         $activeConnection = $user->getActiveXeroConnection();
         
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         // Remove the exclusion record

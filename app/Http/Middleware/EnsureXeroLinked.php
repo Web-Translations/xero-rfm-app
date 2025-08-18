@@ -20,7 +20,7 @@ class EnsureXeroLinked
         // Check if user has an active connection
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please select an active organization.');
+            return redirect()->route('dashboard')->withErrors('Please select an active organisation.');
         }
 
         return $next($request);
