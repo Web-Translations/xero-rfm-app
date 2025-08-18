@@ -43,7 +43,7 @@ class RfmCalculator
             ])
             ->where('user_id', $userId)
             ->where('tenant_id', $activeConnection->tenant_id)
-            ->where('type', 'ACCREC') // Only sales invoices for RFM analysis
+            // Removed type filter since all invoices are ACCREC (sales invoices)
             ->where('date', '>=', $windowStart->toDateString())
             ->where('date', '<=', $snapshotDate->toDateString())
             ->when(!empty($excludedInvoiceIds), function ($query) use ($excludedInvoiceIds) {

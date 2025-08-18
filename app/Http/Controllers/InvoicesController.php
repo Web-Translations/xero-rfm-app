@@ -38,8 +38,7 @@ class InvoicesController extends Controller
             $query->where('date', '>=', $fromDate);
         }
 
-        // Only show ACCREC by default (sales invoices)
-        $query->where('type', 'ACCREC');
+        // Removed type filter since all invoices are ACCREC (sales invoices)
 
         if (!empty($statuses)) {
             $query->whereIn('status', $statuses);
@@ -167,7 +166,7 @@ class InvoicesController extends Controller
         $api = app(AccountingApi::class);
         $tenantId = $activeConnection->tenant_id;
 
-        // Fetch sales invoices from Xero (ACCREC only)
+        // Fetch sales invoices from Xero (all invoices are ACCREC)
         $where = 'Type=="ACCREC"';
         $currentPage = session('sync_current_page', 0) + 1;
 
@@ -266,7 +265,7 @@ class InvoicesController extends Controller
                         'tenant_id'         => $tenantId,
                         'contact_id'        => optional($contact)->getContactId(),
                         'status'            => $inv->getStatus(),
-                        'type'              => $inv->getType(),
+                        // Removed type field since all invoices are ACCREC
                         'invoice_number'    => $inv->getInvoiceNumber(),
                         'date'              => $this->extractInvoiceDate($inv),
                         'due_date'          => $this->formatDateField($inv->getDueDate()),
