@@ -51,6 +51,11 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     // Invoices from DB
     Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
     Route::post('/invoices/sync', [InvoicesController::class, 'sync'])->name('invoices.sync');
+    Route::get('/invoices/rfm-timeline', [InvoicesController::class, 'getRfmTimeline'])->name('invoices.rfm-timeline');
+    Route::get('/invoices/rfm-timeline-view', function() { return view('invoices.rfm-timeline'); })->name('invoices.rfm-timeline-view');
+    Route::get('/invoices/rfm-data', [InvoicesController::class, 'getRfmData'])->name('invoices.rfm-data');
+    Route::get('/invoices/rfm-data-test', function() { return view('invoices.rfm-data-test'); })->name('invoices.rfm-data-test');
+
     Route::post('/invoices/{invoice}/exclude', [InvoicesController::class, 'exclude'])->name('invoices.exclude');
     Route::delete('/invoices/{invoice}/exclude', [InvoicesController::class, 'unexclude'])->name('invoices.unexclude');
     
@@ -73,6 +78,11 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     // RFM Analysis
     Route::get('/rfm/analysis', [RfmAnalysisController::class, 'index'])->name('rfm.analysis.index');
     Route::get('/rfm/analysis/trends', [RfmAnalysisController::class, 'trends'])->name('rfm.analysis.trends');
+    Route::get('/rfm/analysis/business', [RfmAnalysisController::class, 'business'])->name('rfm.analysis.business');
+    Route::get('/rfm/analysis/segments', [RfmAnalysisController::class, 'segments'])->name('rfm.analysis.segments');
+    Route::get('/rfm/analysis/predictive', [RfmAnalysisController::class, 'predictive'])->name('rfm.analysis.predictive');
+    Route::get('/rfm/analysis/cohort', [RfmAnalysisController::class, 'cohort'])->name('rfm.analysis.cohort');
+    Route::get('/rfm/analysis/comparative', [RfmAnalysisController::class, 'comparative'])->name('rfm.analysis.comparative');
 });
 
 

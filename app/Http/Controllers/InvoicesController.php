@@ -13,23 +13,32 @@ use XeroAPI\XeroPHP\Api\AccountingApi;
 
 class InvoicesController extends Controller
 {
+    /**
+     * List + filter invoices (index page)
+     */
     public function index(Request $request)
     {
         $user = $request->user();
 
-        $days = (int) $request->get('days', 0); // 0 = show all
+        $days     = (int) $request->get('days', 0);       // 0 = show all
         $statuses = (array) $request->get('statuses', []);
-        $q = trim((string) $request->get('q', ''));
+        $q        = trim((string) $request->get('q', ''));
 
         // Get active connection
         $activeConnection = $user->getActiveXeroConnection();
+<<<<<<< Updated upstream
         if (!$activeConnection) {
             return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
+=======
+        if (! $activeConnection) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+>>>>>>> Stashed changes
         }
 
         $query = XeroInvoice::query()
             ->where('user_id', $user->id)
             ->where('tenant_id', $activeConnection->tenant_id)
+            ->where('type', 'ACCREC') // sales invoices by default
             ->orderByDesc('date');
 
         // Only apply date filter if user specifically requests it
@@ -38,20 +47,24 @@ class InvoicesController extends Controller
             $query->where('date', '>=', $fromDate);
         }
 
+<<<<<<< Updated upstream
         // Removed type filter since all invoices are ACCREC (sales invoices)
 
         if (!empty($statuses)) {
+=======
+        if (! empty($statuses)) {
+>>>>>>> Stashed changes
             $query->whereIn('status', $statuses);
         }
 
         if ($q !== '') {
             $query->where(function ($w) use ($q) {
-                $w->where('invoice_number', 'like', '%'.$q.'%')
-                  ->orWhereIn('contact_id', function ($sub) use ($q) {
-                      $sub->select('contact_id')
-                          ->from('clients')
-                          ->where('name', 'like', '%'.$q.'%');
-                  });
+                $w->where('invoice_number', 'like', '%' . $q . '%')
+                    ->orWhereIn('contact_id', function ($sub) use ($q) {
+                        $sub->select('contact_id')
+                            ->from('clients')
+                            ->where('name', 'like', '%' . $q . '%');
+                    });
             });
         }
 
@@ -72,17 +85,17 @@ class InvoicesController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        // Get excluded invoice IDs for the current page
+        // Get excluded invoice IDs for the current user/tenant
         $excludedInvoiceIds = ExcludedInvoice::getExcludedInvoiceIds($user->id, $activeConnection->tenant_id);
 
         return view('invoices.index', [
-            'invoices' => $invoices,
-            'clients' => $clients,
-            'days' => $days,
-            'statuses' => $statuses,
-            'q' => $q,
-            'totalInvoices' => $totalInvoices,
-            'filteredCount' => $filteredCount,
+            'invoices'           => $invoices,
+            'clients'            => $clients,
+            'days'               => $days,
+            'statuses'           => $statuses,
+            'q'                  => $q,
+            'totalInvoices'      => $totalInvoices,
+            'filteredCount'      => $filteredCount,
             'excludedInvoiceIds' => $excludedInvoiceIds,
             'lastSyncInfo' => [
                 'last_sync_at' => $activeConnection->last_sync_at,
@@ -91,6 +104,124 @@ class InvoicesController extends Controller
         ]);
     }
 
+    /**
+     * Get invoice RFM timeline data for charts (monthly by default).
+     * Returns compact rows so the chart renders even with many invoices.
+     *
+     * Query params:
+     *   - client_id (optional)
+     *   - months_back (int, default 12)
+     *   - group_by ("month" | "date", default "month")
+     */
+    public function getRfmTimeline(Request $request)
+    {
+        $user = $request->user();
+
+        // Get active connection
+        $activeConnection = $user->getActiveXeroConnection();
+        if (! $activeConnection) {
+            return response()->json(['error' => 'No active Xero connection'], 400);
+        }
+
+        $clientId   = $request->get('client_id'); // Optional: filter by specific client
+        $monthsBack = max(1, (int) $request->get('months_back', 12));
+        $groupBy    = $request->get('group_by', 'month'); // "month" (default) or "date"
+
+        $dateCutoff = now()->subMonths($monthsBack)->startOfDay();
+
+        // Choose DB-specific trunc expression
+        [$periodExpr, $periodAlias] = $this->periodTruncExpression($groupBy === 'date' ? 'date' : 'month');
+
+        $base = XeroInvoice::query()
+            ->join('clients', 'clients.contact_id', '=', 'xero_invoices.contact_id')
+            ->where('xero_invoices.user_id', $user->id)
+            ->where('xero_invoices.tenant_id', $activeConnection->tenant_id)
+            ->where('xero_invoices.type', 'ACCREC')
+            ->where('xero_invoices.date', '>=', $dateCutoff)
+            ->whereNotNull('xero_invoices.rfm_score');
+
+        if ($clientId) {
+            $base->where('clients.id', $clientId);
+        }
+
+        // Aggregate in SQL so the payload is chart-ready
+        $rows = $base->selectRaw("
+                {$periodExpr} as {$periodAlias},
+                AVG(xero_invoices.rfm_score) as avg_rfm_score,
+                AVG(xero_invoices.r_score)  as avg_r_score,
+                AVG(xero_invoices.f_score)  as avg_f_score,
+                AVG(xero_invoices.m_score)  as avg_m_score,
+                SUM(xero_invoices.total)    as total_revenue,
+                COUNT(*)                    as invoice_count
+            ")
+            ->groupBy($periodAlias)
+            ->orderBy($periodAlias, 'asc')
+            ->get();
+
+        return response()->json([
+            'timeline_data' => $rows,
+            'total_invoices' => (int) $rows->sum('invoice_count'),
+            'date_range' => [
+                'start' => optional($rows->first())?->{$periodAlias},
+                'end'   => optional($rows->last())?->{$periodAlias},
+            ],
+        ]);
+    }
+
+    /**
+     * Get simple RFM data for charts - just R, F, M scores, date, and client ID
+     * Uses RfmReport; if it has no rows, returns an empty array (front-end should handle this).
+     */
+    public function getRfmData(Request $request)
+    {
+        $user = $request->user();
+
+        // Get active connection
+        $activeConnection = $user->getActiveXeroConnection();
+        if (! $activeConnection) {
+            return response()->json(['error' => 'No active Xero connection'], 400);
+        }
+
+        $clientId   = $request->get('client_id'); // Optional
+        $monthsBack = max(1, (int) $request->get('months_back', 12));
+        $dateCutoff = now()->subMonths($monthsBack)->startOfDay();
+
+        $query = \App\Models\RfmReport::select([
+                'rfm_reports.snapshot_date as date',
+                'rfm_reports.r_score',
+                'rfm_reports.f_score',
+                'rfm_reports.m_score',
+                'rfm_reports.rfm_score',
+                'rfm_reports.client_id',
+                'clients.name as client_name',
+            ])
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+            ->where('rfm_reports.user_id', $user->id)
+            ->where('clients.tenant_id', $activeConnection->tenant_id)
+            ->where('rfm_reports.snapshot_date', '>=', $dateCutoff)
+            ->where('rfm_reports.rfm_score', '>', 0)
+            ->orderBy('rfm_reports.snapshot_date', 'asc');
+
+        if ($clientId) {
+            $query->where('rfm_reports.client_id', $clientId);
+        }
+
+        $rfmData = $query->get();
+
+        return response()->json([
+            'rfm_data' => $rfmData,
+            'total_records' => $rfmData->count(),
+            'date_range' => [
+                'start' => optional($rfmData->first())->date,
+                'end'   => optional($rfmData->last())->date,
+            ],
+            'clients' => $rfmData->pluck('client_name')->unique()->values(),
+        ]);
+    }
+
+    /**
+     * Sync Xero invoices (ACCREC) and compute per-invoice RFM scores.
+     */
     public function sync(Request $request, OauthCredentialManager $xero)
     {
         $user = $request->user();
@@ -170,7 +301,13 @@ class InvoicesController extends Controller
         $where = 'Type=="ACCREC"';
         $currentPage = session('sync_current_page', 0) + 1;
 
+<<<<<<< Updated upstream
         try {
+=======
+        $page = 1;
+        $all  = [];
+        do {
+>>>>>>> Stashed changes
             $resp = $api->getInvoices(
                 $tenantId,
                 null,
@@ -204,6 +341,7 @@ class InvoicesController extends Controller
             }
             
             $batch = $resp?->getInvoices() ?? [];
+<<<<<<< Updated upstream
             $batchSize = count($batch);
 
             if ($batchSize > 0) {
@@ -217,6 +355,13 @@ class InvoicesController extends Controller
                     'sync_processed_invoices' => $processedInvoices,
                     'sync_status' => 'processing'
                 ]);
+=======
+            $all   = array_merge($all, $batch);
+            $page++;
+        } while (count($batch) === 100);
+
+        $invoiceCount = count($all);
+>>>>>>> Stashed changes
 
                 // Simple progress tracking - just count invoices processed
                 // No complex estimation needed
@@ -250,18 +395,21 @@ class InvoicesController extends Controller
         DB::transaction(function () use ($batch, $user, $tenantId) {
             foreach ($batch as $inv) {
                 $contact = $inv->getContact();
+
                 if ($contact) {
                     Client::updateOrCreate(
                         ['user_id' => $user->id, 'contact_id' => $contact->getContactId()],
                         [
                             'tenant_id' => $tenantId,
-                            'name'      => $contact->getName()
+                            'name'      => $contact->getName(),
                         ]
                     );
                 }
+
                 XeroInvoice::updateOrCreate(
                     ['user_id' => $user->id, 'invoice_id' => $inv->getInvoiceId()],
                     [
+<<<<<<< Updated upstream
                         'tenant_id'         => $tenantId,
                         'contact_id'        => optional($contact)->getContactId(),
                         'status'            => $inv->getStatus(),
@@ -274,12 +422,27 @@ class InvoicesController extends Controller
                         'currency'          => $inv->getCurrencyCode(),
                         'updated_date_utc'  => $this->formatDateTimeField($inv->getUpdatedDateUtc()),
                         'fully_paid_at'     => $this->formatDateTimeField($inv->getFullyPaidOnDate()),
+=======
+                        'tenant_id'        => $tenantId,
+                        'contact_id'       => optional($contact)->getContactId(),
+                        'status'           => $inv->getStatus(),
+                        'type'             => $inv->getType(),
+                        'invoice_number'   => $inv->getInvoiceNumber(),
+                        'date'             => $this->extractInvoiceDate($inv),
+                        'due_date'         => $this->formatDateField($inv->getDueDate()),
+                        'subtotal'         => $inv->getSubTotal(),
+                        'total'            => $inv->getTotal(),
+                        'currency'         => $inv->getCurrencyCode(),
+                        'updated_date_utc' => $this->formatDateTimeField($inv->getUpdatedDateUtc()),
+                        'fully_paid_at'    => $this->formatDateTimeField($inv->getFullyPaidOnDate()),
+>>>>>>> Stashed changes
                     ]
                 );
             }
         });
     }
 
+<<<<<<< Updated upstream
     private function completeSync($user, $activeConnection)
     {
         $processedInvoices = session('sync_processed_invoices', 0);
@@ -311,91 +474,236 @@ class InvoicesController extends Controller
             'last_sync_at' => now(),
             'last_sync_invoice_count' => $processedInvoices
         ]);
+=======
+        // Calculate RFM scores for each invoice
+        $this->calculateInvoiceRfmScores($user->id, $tenantId);
+
+        $message = "Synced {$invoiceCount} sales invoices from Xero and calculated RFM scores.";
+        return redirect()->route('invoices.index')->with('status', $message);
+>>>>>>> Stashed changes
     }
 
-    private function extractInvoiceDate($inv)
+    /**
+     * Calculate RFM scores for each individual invoice
+     */
+    private function calculateInvoiceRfmScores($userId, $tenantId): void
+    {
+        // Get all invoices for this user/tenant, ordered by date
+        $invoices = XeroInvoice::where('user_id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->where('type', 'ACCREC')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        if ($invoices->isEmpty()) {
+            return;
+        }
+
+        // Group invoices by contact_id for processing
+        $invoicesByContact = $invoices->groupBy('contact_id');
+
+        foreach ($invoicesByContact as $contactInvoices) {
+            // Ensure collection is sorted by date
+            $contactInvoices = $contactInvoices->sortBy('date')->values();
+
+            foreach ($contactInvoices as $index => $invoice) {
+                /** @var \App\Models\XeroInvoice $invoice */
+                $invoiceDate = Carbon::parse($invoice->date);
+
+                // Calculate R Score: 10 - months since last transaction (minimum 0)
+                $rScore = $this->calculateRScore($contactInvoices, $index, $invoiceDate);
+
+                // Calculate F Score: number of invoices in past 12 months (capped at 10)
+                $fScore = $this->calculateFScore($contactInvoices, $index, $invoiceDate);
+
+                // Calculate M Score: normalized monetary value (0-10 scale)
+                $mScore = $this->calculateMScore($contactInvoices, $index, $invoiceDate);
+
+                // Calculate overall RFM score: (R + F + M) / 3
+                $rfmScore = round(($rScore + $fScore + $mScore) / 3, 2);
+
+                // Update the invoice with RFM scores
+                $invoice->update([
+                    'r_score'           => $rScore,
+                    'f_score'           => $fScore,
+                    'm_score'           => $mScore,
+                    'rfm_score'         => $rfmScore,
+                    'rfm_calculated_at' => now(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Calculate R Score for a specific invoice
+     */
+    private function calculateRScore($contactInvoices, $currentIndex, Carbon $invoiceDate): int
+    {
+        // Find the previous invoice (by date)
+        $previous = null;
+        for ($i = $currentIndex - 1; $i >= 0; $i--) {
+            if (Carbon::parse($contactInvoices[$i]->date)->lt($invoiceDate)) {
+                $previous = $contactInvoices[$i];
+                break;
+            }
+        }
+
+        if (! $previous) {
+            // First invoice for this contact
+            return 10;
+        }
+
+        // Months since last transaction
+        $monthsSinceLast = $invoiceDate->diffInMonths(Carbon::parse($previous->date));
+        return max(0, 10 - $monthsSinceLast);
+    }
+
+    /**
+     * Calculate F Score for a specific invoice
+     */
+    private function calculateFScore($contactInvoices, $currentIndex, Carbon $invoiceDate): int
+    {
+        $twelveMonthsAgo = (clone $invoiceDate)->subMonths(12)->startOfDay();
+        $count = 0;
+
+        // Count invoices in the past 12 months up to this invoice
+        for ($i = 0; $i <= $currentIndex; $i++) {
+            $d = Carbon::parse($contactInvoices[$i]->date);
+            if ($d->gte($twelveMonthsAgo) && $d->lte($invoiceDate)) {
+                $count++;
+            }
+        }
+
+        return min(10, $count);
+    }
+
+    /**
+     * Calculate M Score for a specific invoice
+     */
+    private function calculateMScore($contactInvoices, $currentIndex, Carbon $invoiceDate): float
+    {
+        $twelveMonthsAgo = (clone $invoiceDate)->subMonths(12)->startOfDay();
+        $monetaryValues = [];
+
+        // Get all monetary values in the past 12 months up to this invoice
+        for ($i = 0; $i <= $currentIndex; $i++) {
+            $rowDate = Carbon::parse($contactInvoices[$i]->date);
+            if ($rowDate->gte($twelveMonthsAgo) && $rowDate->lte($invoiceDate)) {
+                $monetaryValues[] = (float) $contactInvoices[$i]->total;
+            }
+        }
+
+        if (empty($monetaryValues)) {
+            return 0.0;
+        }
+
+        // Min-max scaling to 0-10 scale
+        $min = min($monetaryValues);
+        $max = max($monetaryValues);
+
+        if ($max <= $min) {
+            return 0.0;
+        }
+
+        $currentTotal = (float) $contactInvoices[$currentIndex]->total;
+        return round((($currentTotal - $min) / ($max - $min)) * 10, 2);
+    }
+
+    /**
+     * Extract a normalized Y-m-d invoice date from Xero SDK value
+     */
+    private function extractInvoiceDate($inv): ?string
     {
         // Helper function to safely format dates
-        $formatDate = function($dateValue) {
-            if (!$dateValue) return null;
-            
+        $formatDate = function ($dateValue) {
+            if (! $dateValue) {
+                return null;
+            }
+
             // Handle .NET JSON date format: /Date(timestamp+offset)/
-            if (is_string($dateValue) && preg_match('/\/Date\((\d+)([+-]\d+)\)\//', $dateValue, $matches)) {
-                $timestamp = (int)($matches[1] / 1000); // Convert milliseconds to seconds
+            if (is_string($dateValue) && preg_match('/\/Date\((\d+)([+-]\d+)?\)\//', $dateValue, $m)) {
+                $timestamp = (int) ($m[1] / 1000); // ms -> s
                 return date('Y-m-d', $timestamp);
             }
-            
-            if (is_string($dateValue)) return $dateValue;
+
+            if (is_string($dateValue)) {
+                // Already a string; trust first 10 chars if looks like datetime
+                return substr($dateValue, 0, 10);
+            }
+
             if (method_exists($dateValue, 'format')) {
                 return $dateValue->format('Y-m-d');
             }
+
             return null;
         };
-        
 
-        
-        // Try to get the actual invoice date first
+        // Prefer actual invoice date
         $date = $formatDate($inv->getDate());
         if ($date) {
             return $date;
         }
-        
-        // If no date, try to get from line items (sometimes the date is stored there)
+
+        // Try to find a date in line items (sometimes appears there)
         $lineItems = $inv->getLineItems();
         if ($lineItems && count($lineItems) > 0) {
             foreach ($lineItems as $lineItem) {
-                if ($lineItem->getLineItemID()) {
-                    // Sometimes the date is in the description or other fields
-                    $description = $lineItem->getDescription();
-                    if ($description && preg_match('/(\d{4}-\d{2}-\d{2})/', $description, $matches)) {
-                        return $matches[1];
-                    }
+                $description = $lineItem->getDescription();
+                if ($description && preg_match('/(\d{4}-\d{2}-\d{2})/', $description, $m)) {
+                    return $m[1];
                 }
             }
         }
-        
-        // Fallback to due date if available
+
+        // Fallback to due date
         $dueDate = $formatDate($inv->getDueDate());
         if ($dueDate) {
             return $dueDate;
         }
-        
-        // Last resort: use updated date (but this might not be the actual invoice date)
+
+        // Fallback to updated date
         $updatedDate = $inv->getUpdatedDateUtc();
         if ($updatedDate) {
+            if (is_string($updatedDate) && preg_match('/\/Date\((\d+)([+-]\d+)?\)\//', $updatedDate, $m)) {
+                $timestamp = (int) ($m[1] / 1000);
+                return date('Y-m-d', $timestamp);
+            }
             if (is_string($updatedDate)) {
-                // Handle .NET JSON date format for updated date too
-                if (preg_match('/\/Date\((\d+)([+-]\d+)\)\//', $updatedDate, $matches)) {
-                    $timestamp = (int)($matches[1] / 1000);
-                    return date('Y-m-d', $timestamp);
-                }
-                return substr($updatedDate, 0, 10); // Extract Y-m-d from datetime string
+                return substr($updatedDate, 0, 10);
             }
             if (method_exists($updatedDate, 'format')) {
                 return $updatedDate->format('Y-m-d');
             }
         }
-        
-        // If all else fails, use today's date
+
+        // Last resort: today (avoids nulls)
         return now()->format('Y-m-d');
     }
 
-    private function formatDateField($dateValue)
+    private function formatDateField($dateValue): ?string
     {
         return $this->formatDateTimeField($dateValue);
     }
 
-    private function formatDateTimeField($dateValue)
+    private function formatDateTimeField($dateValue): ?string
     {
-        if (!$dateValue) return null;
+        if (! $dateValue) {
+            return null;
+        }
 
         if (is_string($dateValue)) {
             // Handle .NET JSON date format: /Date(timestamp+offset)/
-            if (preg_match('/\/Date\((\d+)([+-]\d+)\)\//', $dateValue, $matches)) {
-                $timestamp = (int)($matches[1] / 1000); // Convert milliseconds to seconds
+            if (preg_match('/\/Date\((\d+)([+-]\d+)?\)\//', $dateValue, $m)) {
+                $timestamp = (int) ($m[1] / 1000); // ms -> s
                 return date('Y-m-d H:i:s', $timestamp);
             }
-            return substr($dateValue, 0, 10); // Extract Y-m-d from datetime string
+            // Assume standard ISO string
+            $s = substr($dateValue, 0, 19);
+            // If only date provided
+            if (strlen($s) === 10) {
+                return $s . ' 00:00:00';
+            }
+            return $s;
         }
 
         if (method_exists($dateValue, 'format')) {
@@ -412,9 +720,15 @@ class InvoicesController extends Controller
     {
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
+<<<<<<< Updated upstream
         
         if (!$activeConnection) {
             return response()->json(['error' => 'No active organisation'], 400);
+=======
+
+        if (! $activeConnection) {
+            return response()->json(['error' => 'No active organization'], 400);
+>>>>>>> Stashed changes
         }
 
         // Verify the invoice exists and belongs to the user
@@ -423,21 +737,21 @@ class InvoicesController extends Controller
             ->where('invoice_id', $invoiceId)
             ->first();
 
-        if (!$invoice) {
+        if (! $invoice) {
             return response()->json(['error' => 'Invoice not found'], 404);
         }
 
         // Create the exclusion record
         ExcludedInvoice::updateOrCreate(
             [
-                'user_id' => $user->id,
+                'user_id'   => $user->id,
                 'tenant_id' => $activeConnection->tenant_id,
-                'invoice_id' => $invoiceId,
+                'invoice_id'=> $invoiceId,
             ],
             [
-                'user_id' => $user->id,
+                'user_id'   => $user->id,
                 'tenant_id' => $activeConnection->tenant_id,
-                'invoice_id' => $invoiceId,
+                'invoice_id'=> $invoiceId,
             ]
         );
 
@@ -451,12 +765,17 @@ class InvoicesController extends Controller
     {
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
+<<<<<<< Updated upstream
         
         if (!$activeConnection) {
             return response()->json(['error' => 'No active organisation'], 400);
+=======
+
+        if (! $activeConnection) {
+            return response()->json(['error' => 'No active organization'], 400);
+>>>>>>> Stashed changes
         }
 
-        // Remove the exclusion record
         ExcludedInvoice::where('user_id', $user->id)
             ->where('tenant_id', $activeConnection->tenant_id)
             ->where('invoice_id', $invoiceId)
@@ -464,5 +783,39 @@ class InvoicesController extends Controller
 
         return response()->json(['success' => true]);
     }
-}
 
+    /**
+     * Build a DB driver-specific expression to truncate a date to month or day.
+     *
+     * @param "month"|"date" $granularity
+     * @return array{0:string,1:string} [expression, alias]
+     */
+    private function periodTruncExpression(string $granularity): array
+    {
+        $driver = DB::getDriverName();
+        $alias  = $granularity === 'date' ? 'period_date' : 'period_start';
+
+        if ($granularity === 'date') {
+            // Exact date (YYYY-MM-DD)
+            switch ($driver) {
+                case 'pgsql':
+                    return ["DATE(xero_invoices.date)", $alias];
+                case 'sqlite':
+                    return ["DATE(xero_invoices.date)", $alias];
+                default: // mysql/mariadb
+                    return ["DATE(xero_invoices.date)", $alias];
+            }
+        }
+
+        // Month start (YYYY-MM-01)
+        switch ($driver) {
+            case 'pgsql':
+                // date_trunc returns timestamp; cast to date
+                return ["DATE(date_trunc('month', xero_invoices.date))", $alias];
+            case 'sqlite':
+                return ["DATE(strftime('%Y-%m-01', xero_invoices.date))", $alias];
+            default: // mysql/mariadb
+                return ["DATE_FORMAT(xero_invoices.date, '%Y-%m-01')", $alias];
+        }
+    }
+}

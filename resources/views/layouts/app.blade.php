@@ -59,6 +59,7 @@
                 {{ $slot }}
             </main>
         </div>
+<<<<<<< Updated upstream
 
         <script>
             document.addEventListener("DOMContentLoaded", function() {
@@ -73,5 +74,9 @@
                 });
             });
         </script>
+=======
+        
+        @stack('scripts')
+>>>>>>> Stashed changes
     </body>
 </html>
