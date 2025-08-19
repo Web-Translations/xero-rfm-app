@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RfmController;
 use App\Http\Controllers\RfmReportsController;
 use App\Http\Controllers\RfmAnalysisController;
+use App\Http\Controllers\RfmConfigController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\TokenController;
@@ -60,6 +61,14 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     // RFM Reports
     Route::get('/rfm/reports', [RfmReportsController::class, 'index'])->name('rfm.reports.index');
     Route::get('/rfm/reports/generate', [RfmReportsController::class, 'generate'])->name('rfm.reports.generate');
+    
+    // RFM Configuration
+    Route::prefix('rfm/config')->name('rfm.config.')->group(function () {
+        Route::get('/', [RfmConfigController::class, 'index'])->name('index');
+        Route::post('/', [RfmConfigController::class, 'store'])->name('store');
+        Route::post('/reset', [RfmConfigController::class, 'reset'])->name('reset');
+        Route::post('/recalculate', [RfmConfigController::class, 'recalculate'])->name('recalculate');
+    });
     
     // RFM Analysis
     Route::get('/rfm/analysis', [RfmAnalysisController::class, 'index'])->name('rfm.analysis.index');
