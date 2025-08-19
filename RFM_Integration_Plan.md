@@ -5,128 +5,199 @@
 
 ---
 
-## 0) Assumptions & Scope
+## 0) Current Implementation Status & Changes from Original Plan
 
-- **Framework:** Laravel (PHP)
-- **DB:** SQLite (can swap to MySQL/Postgres later with no logic change)
-- **Data source:** `rfm_reports` snapshots (one row per `user_id` × `client_id` × `snapshot_date`)
-- **Execution:** On-demand (user chooses snapshot date + comparison period + RFM window)
-- **Output:** HTML (Blade) and PDF via Browsershot (Chrome-based with Chart.js support)
-- **Numbers:** One deterministic source of truth (a single PHP service)
-- **Narrative:** Pluggable: deterministic text first; OpenAI LLM narrative later
-- **Comparison:** Flexible periods (monthly, quarterly, yearly, custom date ranges)
-- **RFM Window:** Configurable lookback periods (6, 10, 12, 18, 24 months)
+### ✅ **COMPLETED (Current Implementation)**
 
-### RFM Definition (Configurable Implementation)
+**Core RFM System:**
+- ✅ **Configurable RFM Calculation Engine** (`RfmCalculator.php`)
+- ✅ **RFM Configuration Management** (`RfmConfiguration.php` + `RfmConfigurationManager.php`)
+- ✅ **Slimmed Down RFM Reports Table** (only stores final scores + config reference)
+- ✅ **Separate Window Configuration** (R, F, M each have independent configurable windows)
+- ✅ **Monetary Benchmark System** (percentile-based or direct value)
+- ✅ **Historical Snapshot Generation** (monthly snapshots for trend analysis)
+- ✅ **RFM Configuration UI** (fully functional config page with LaTeX formulas)
+- ✅ **RFM Scores Display** (current scores with loading UI and config display)
+- ✅ **Xero Integration** (invoice sync, excluded invoices, tenant management)
 
-Each client is scored on three dimensions over a configurable rolling period (scores 0–10):
+**Enhanced Reporting System:**
+- ✅ **RfmTools Service** - Comprehensive KPI calculation and business intelligence
+- ✅ **Enhanced Report Generation** - Full business intelligence reports with comparison periods
+- ✅ **Risk Assessment** - Automated risk identification and recommendations
+- ✅ **Growth Opportunities** - Business opportunity identification and action items
+- ✅ **Customer Movement Analysis** - Detailed tracking of customer ranking changes
+- ✅ **Historical Trends** - Multi-period performance tracking
+- ✅ **Revenue Concentration Analysis** - Gini coefficient and concentration metrics
+- ✅ **Customer Segmentation** - High-value, mid-value, low-value, at-risk categorization
 
-1. **Recency (R):**
-   - Time since last invoice (in months).
-   - **Score:** `R = max(0, 10 - months_since_last)`
-
-2. **Frequency (F):**
-   - Number of invoices in the configurable period.
-   - **Score (capped):** `F = min(10, invoices_in_period)`
-
-3. **Monetary (M):**
-   - Total revenue = sum of invoice **subtotals** over the configurable period.
-   - **Score (min–max normalized to 0–10):**
-     ```
-     M = (ClientTotal - MinTotal) / (MaxTotal - MinTotal) * 10
-     ```
-
-**Overall RFM (0–10):**  
-`RFM = (R + F + M) / 3`
-
-> Note: The snapshot table stores `r_score`, `f_score`, `m_score`, and `rfm_score`. We **do not recompute** them for reporting; we read what the snapshot provided. For configurable periods, we'll need to add a `rfm_window_months` field to track the calculation period used.
-
----
-
-## 1) Data Model & Indexes
-
-### Enhanced table structure
+**Database Schema (Current):**
 ```sql
--- Existing table (already optimized)
+-- rfm_configurations table (COMPLETED)
+CREATE TABLE rfm_configurations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  user_id INTEGER NOT NULL,
+  tenant_id VARCHAR(255) NOT NULL,
+  recency_window_months INTEGER DEFAULT 12,
+  frequency_period_months INTEGER DEFAULT 12,
+  monetary_window_months INTEGER DEFAULT 12,
+  monetary_benchmark_mode ENUM('percentile', 'direct_value') DEFAULT 'percentile',
+  monetary_benchmark_percentile DECIMAL(5,2) DEFAULT 5.00,
+  monetary_benchmark_value DECIMAL(15,2) NULL,
+  monetary_use_largest_invoice BOOLEAN DEFAULT true,
+  methodology_name VARCHAR(50) DEFAULT 'custom_v1',
+  is_active BOOLEAN DEFAULT true,
+  created_at DATETIME,
+  updated_at DATETIME,
+  UNIQUE(user_id, tenant_id)
+);
+
+-- rfm_reports table (COMPLETED - Slimmed Down)
 CREATE TABLE rfm_reports (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   user_id INTEGER NOT NULL,
   client_id INTEGER NOT NULL,
   snapshot_date DATE NOT NULL,
-  rfm_window_months INTEGER DEFAULT 12, -- NEW: Track calculation period
-  txn_count INTEGER NOT NULL,
-  monetary_sum NUMERIC NOT NULL,
-  last_txn_date DATE,
-  months_since_last INTEGER,
-  r_score INTEGER NOT NULL,
-  f_score INTEGER NOT NULL,
-  m_score INTEGER NOT NULL,
-  rfm_score NUMERIC NOT NULL,
+  r_score TINYINT NOT NULL, -- 0-10
+  f_score TINYINT NOT NULL, -- 0-10
+  m_score DECIMAL(4,2) NOT NULL, -- 0-10
+  rfm_score DECIMAL(4,2) NOT NULL, -- 0-10
+  rfm_configuration_id INTEGER NULL,
+  created_at DATETIME,
+  updated_at DATETIME,
+  UNIQUE(user_id, client_id, snapshot_date),
+  FOREIGN KEY (rfm_configuration_id) REFERENCES rfm_configurations(id)
+);
+```
+
+**Current RFM Formulas (IMPLEMENTED):**
+1. **Recency (R):** `R = 10 - (10 / window_months) × months_since_last` (0-10)
+2. **Frequency (F):** `F = count of invoices in frequency window` (0-10, capped)
+3. **Monetary (M):** `M = (LargestInvoiceInWindow / BenchmarkValue) × 10` (0-10)
+4. **Overall RFM:** `RFM = (R + F + M) / 3` (simple average, no weights)
+
+### 🔄 **CHANGES FROM ORIGINAL PLAN**
+
+**Major Changes:**
+1. **Removed Weights System** - Original plan had configurable R/F/M weights, now uses simple average
+2. **Separate Windows** - Each component (R, F, M) has independent configurable windows
+3. **Monetary Benchmark** - Uses largest invoice per client (not sum of all invoices)
+4. **Slimmed Storage** - Removed intermediate calculation data (txn_count, monetary_sum, etc.)
+5. **Configuration Reference** - Each RFM report links to the configuration used
+6. **Enhanced UI** - Added LaTeX formula rendering, loading states, and better UX
+7. **Advanced Business Intelligence** - Implemented comprehensive KPI system with risk assessment and growth opportunities
+
+**Formula Changes:**
+- **Original Plan:** `RFM = (R × r_weight) + (F × f_weight) + (M × m_weight)`
+- **Current Implementation:** `RFM = (R + F + M) / 3`
+
+**Monetary Calculation Changes:**
+- **Original Plan:** Used sum of all invoices in window
+- **Current Implementation:** Uses largest single invoice in window
+
+---
+
+## 1) Data Model & Indexes (UPDATED)
+
+### Current table structure (COMPLETED)
+```sql
+-- rfm_reports (COMPLETED - Optimized)
+CREATE TABLE rfm_reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  user_id INTEGER NOT NULL,
+  client_id INTEGER NOT NULL,
+  snapshot_date DATE NOT NULL,
+  r_score TINYINT NOT NULL,
+  f_score TINYINT NOT NULL,
+  m_score DECIMAL(4, 2) NOT NULL,
+  rfm_score DECIMAL(4, 2) NOT NULL,
+  rfm_configuration_id INTEGER NULL,
   created_at DATETIME,
   updated_at DATETIME
 );
 
--- NEW: RFM calculation configuration per user
+-- rfm_configurations (COMPLETED)
 CREATE TABLE rfm_configurations (
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   user_id INTEGER NOT NULL,
   tenant_id VARCHAR(255) NOT NULL,
-  default_rfm_window INTEGER DEFAULT 12,
-  default_comparison_period VARCHAR(20) DEFAULT 'monthly',
+  recency_window_months INTEGER DEFAULT 12,
+  frequency_period_months INTEGER DEFAULT 12,
+  monetary_window_months INTEGER DEFAULT 12,
+  monetary_benchmark_mode ENUM('percentile', 'direct_value') DEFAULT 'percentile',
+  monetary_benchmark_percentile DECIMAL(5, 2) DEFAULT 5.00,
+  monetary_benchmark_value DECIMAL(15, 2) NULL,
+  monetary_use_largest_invoice BOOLEAN DEFAULT true,
+  methodology_name VARCHAR(50) DEFAULT 'custom_v1',
+  is_active BOOLEAN DEFAULT true,
   created_at DATETIME,
   updated_at DATETIME,
   UNIQUE(user_id, tenant_id)
 );
 ```
 
-### Recommended indexes (existing + new)
-- `(user_id, snapshot_date)` ✅ Already exists
-- `(user_id, snapshot_date, client_id)` ✅ Already exists
-- `(user_id, client_id)` ✅ Already exists
-- `(user_id, rfm_window_months, snapshot_date)` NEW
-- `(user_id, tenant_id)` on rfm_configurations
+### Current indexes (COMPLETED)
+- ✅ `(user_id, client_id, snapshot_date)` - Unique constraint + index
+- ✅ `(user_id, snapshot_date)` - For user-specific date queries
+- ✅ `(snapshot_date)` - For date range queries
+- ✅ `(rfm_configuration_id)` - For configuration-based queries
+- ✅ `(user_id, tenant_id)` on rfm_configurations
 
 ---
 
-## 2) Enhanced KPIs & Diagnostics
+## 2) Enhanced KPIs & Diagnostics (UPDATED)
 
-### Core KPIs per snapshot (vs flexible comparison period)
-- **Revenue (L12M):** `SUM(monetary_sum)`
-- **AOV:** `SUM(monetary_sum) / NULLIF(SUM(txn_count),0)`
-- **Avg RFM (overall)** and **Avg RFM for Top‑50** (by `monetary_sum`)
-- **Shares:** Top‑10 and Top‑50 revenue shares; **customers to reach 80%** of revenue
-- **Counts:** Active customers; **New** (first‑ever active at this snapshot); **Returned** (not active comparison period but active before); **Lost** (active comparison period, not active now); **Dormant ≥6m** (`months_since_last >= 6`)
+### Core KPIs per snapshot (COMPLETED)
+- ✅ **Revenue (L12M):** `SUM(monetary_sum)` - Implemented via invoice aggregation
+- ✅ **AOV:** `SUM(monetary_sum) / NULLIF(SUM(txn_count),0)` - Implemented via invoice aggregation
+- ✅ **Avg RFM (overall)** and **Avg RFM for Top‑50** - Implemented via RFM report aggregation
+- ✅ **Shares:** Top‑10 and Top‑50 revenue shares; **customers to reach 80%** of revenue - Implemented
+- ✅ **Counts:** Active customers; **New** (first‑ever active at this snapshot); **Returned** (not active comparison period but active before); **Lost** (active comparison period, not active now); **Dormant ≥6m** (`months_since_last >= 6`) - Implemented
 
-### NEW: Advanced KPIs & Metrics
-- **Customer Lifetime Value (CLV):** `SUM(monetary_sum) / COUNT(DISTINCT client_id)`
-- **RFM Segments:** High-Value (RFM 8-10), Mid-Value (RFM 5-7), Low-Value (RFM 2-4), At-Risk (RFM 0-1)
-- **Churn Rate:** `(Lost customers / Previous active customers) * 100`
-- **Retention Rate:** `((Current active - New) / Previous active) * 100`
-- **Revenue Concentration:** Gini coefficient for revenue distribution
-- **RFM Score Distribution:** Histogram of RFM scores across customer base
-- **Top Customer Contribution:** Revenue share of top 5, 10, 25 customers
-- **Average Order Frequency:** `SUM(txn_count) / COUNT(DISTINCT client_id)`
-- **Revenue per Customer:** `SUM(monetary_sum) / COUNT(DISTINCT client_id)`
-- **Customer Acquisition Cost Proxy:** Revenue from new customers vs total marketing spend (if available)
+### ✅ **COMPLETED: Advanced KPIs & Metrics**
+- ✅ **Customer Lifetime Value (CLV):** `SUM(monetary_sum) / COUNT(DISTINCT client_id)`
+- ✅ **RFM Segments:** High-Value (RFM 8-10), Mid-Value (RFM 5-7), Low-Value (RFM 2-4), At-Risk (RFM 0-1)
+- ✅ **Churn Rate:** `(Lost customers / Previous active customers) * 100`
+- ✅ **Retention Rate:** `((Current active - New) / Previous active) * 100`
+- ✅ **Revenue Concentration:** Gini coefficient for revenue distribution
+- ✅ **RFM Score Distribution:** Histogram of RFM scores across customer base
+- ✅ **Top Customer Contribution:** Revenue share of top 5, 10, 25 customers
+- ✅ **Average Order Frequency:** `SUM(txn_count) / COUNT(DISTINCT client_id)`
+- ✅ **Revenue per Customer:** `SUM(monetary_sum) / COUNT(DISTINCT client_id)`
 
-### Enhanced Diagnostics (explaining *why* things changed)
-- **Revenue decomposition** (approximate): Separate ΔRevenue into
-  - `volume_effect = (T_curr - T_prev) * P_prev` (orders effect)
-  - `aov_effect    = (P_curr - P_prev) * T_curr` (ticket size effect)
-  - `mix_effect    = ΔR - volume_effect - aov_effect` (customer mix)
-  where `T = txn_count`, `P = AOV`, `R = revenue`.
-- **Recency spike:** `% of active clients with months_since_last ≤ 1`, plus a flag if `avg RFM ↑` while `revenue ↓`.
-- **Concentration shift:** ΔTop‑10/50 share and Δ"customers to reach 80%" (who moved in/out).
-- **Churn analysis:** lost and dormant ≥6m with last spend/seen, churn velocity trends
-- **Movers analysis:** Top ΔRFM ± and Top Δ£ ±, movement between RFM segments
-- **Seasonal patterns:** Month-over-month, quarter-over-quarter trends
-- **Customer cohort analysis:** Performance by customer acquisition period
+### ✅ **COMPLETED: Enhanced Diagnostics**
+- ✅ **Revenue decomposition** (approximate): Separate ΔRevenue into volume_effect, aov_effect, mix_effect
+- ✅ **Recency spike:** `% of active clients with months_since_last ≤ 1`
+- ✅ **Concentration shift:** ΔTop‑10/50 share and Δ"customers to reach 80%"
+- ✅ **Churn analysis:** lost and dormant ≥6m with last spend/seen
+- ✅ **Movers analysis:** Top ΔRFM ± and Top Δ£ ±
+- ✅ **Seasonal patterns:** Month-over-month, quarter-over-quarter trends
+- ✅ **Customer cohort analysis:** Performance by customer acquisition period
+
+### ✅ **COMPLETED: Business Intelligence Features**
+- ✅ **Risk Assessment:** Automated identification of concentration, churn, retention, and performance risks
+- ✅ **Growth Opportunities:** Identification of upselling, retention, and acquisition opportunities
+- ✅ **Customer Movement Tracking:** Detailed analysis of ranking changes and customer movements
+- ✅ **Historical Trends:** Multi-period performance tracking with trend analysis
+- ✅ **Actionable Insights:** Business recommendations and next steps
 
 ---
 
-## 3) Laravel Components
+## 3) Laravel Components (UPDATED)
 
-### Routes (on‑demand with flexible configuration)
+### Current Routes (COMPLETED)
+```
+GET  /rfm                                    → RFM Scores Display (COMPLETED)
+POST /rfm/sync                               → Calculate RFM Scores (COMPLETED)
+GET  /rfm/config                             → RFM Configuration UI (COMPLETED)
+POST /rfm/config                             → Update RFM Configuration (COMPLETED)
+POST /rfm/config/reset                       → Reset to Defaults (COMPLETED)
+POST /rfm/config/recalculate                 → Recalculate All Scores (COMPLETED)
+GET  /rfm/reports                            → Reports Index (COMPLETED)
+GET  /rfm/reports/generate                   → Generate Report (COMPLETED)
+GET  /rfm/analysis                           → Analysis Dashboard (EXISTS - NEEDS ENHANCEMENT)
+```
+
+### Planned Routes (NEEDS IMPLEMENTATION)
 ```
 GET  /reports/rfm?date=YYYY-MM-DD&compare=monthly&window=12        → HTML report
 GET  /reports/rfm?date=YYYY-MM-DD&compare=quarterly&window=10      → HTML report  
@@ -134,59 +205,38 @@ GET  /reports/rfm?date=YYYY-MM-DD&compare=yearly&window=18         → HTML repo
 GET  /reports/rfm?date=YYYY-MM-DD&compare=custom&from=YYYY-MM-DD&to=YYYY-MM-DD&window=24 → HTML report
 GET  /reports/rfm.pdf?date=YYYY-MM-DD&compare=monthly&window=12    → PDF download
 POST /agent/rfm                                                      → (Phase 3) AI narrative / Q&A
-GET  /rfm/config                                                     → RFM configuration settings
-POST /rfm/config                                                     → Update RFM configuration
 ```
 
-### Services
-- **`RfmTools`**
-  - `computeKpis($userId, $asOf, $comparisonPeriod, $rfmWindow)` → KPIs + comparison data
-  - `getComparisonSnapshot($userId, $asOf, $comparisonPeriod, $rfmWindow)` → Previous period data
-  - `breakdownRevenueChange($userId, $asOf, $kpis, $comparisonData)`
-  - `concentrationChange($userId, $asOf, $kpis, $comparisonData)`
-  - `recencyAnalysis($userId, $asOf, $kpis, $comparisonData)`
-  - `moversAnalysis($userId, $asOf, $comparisonData)`
-  - `churnAnalysis($userId, $asOf, $comparisonData)`
-  - `segmentAnalysis($userId, $asOf, $kpis)` → RFM segment distribution
-  - `cohortAnalysis($userId, $asOf, $comparisonData)` → Customer cohort performance
-  - `deriveFindings($kpis, $diagnostics)` → structured tags
+### Current Services (COMPLETED)
+- ✅ **`RfmCalculator`** - Core RFM calculation engine with configurable windows
+- ✅ **`RfmConfigurationManager`** - Configuration management and validation
+- ✅ **`RfmConfiguration`** - Eloquent model for configurations
+- ✅ **`RfmReport`** - Eloquent model for RFM reports with enhanced queries
+- ✅ **`RfmTools`** - Enhanced KPIs and diagnostics with flexible comparison
 
-- **`ComparisonPeriodResolver`**
-  - `resolveComparisonDate($asOf, $period)` → Previous period date
-  - `getAvailableSnapshots($userId, $rfmWindow)` → Available dates for window
-  - `validateComparisonPeriod($asOf, $comparisonDate)` → Ensure valid comparison
+### Planned Services (NEEDS IMPLEMENTATION)
+- **`ComparisonPeriodResolver`** - Handle comparison periods and date logic
+- **`ReportRenderer`** - Blade → HTML → PDF via Browsershot
+- **`ReportStore`** - Persist report data and metadata
+- **Narrative engine (pluggable)** - Deterministic and AI-powered narratives
 
-- **`RfmConfigurationManager`**
-  - `getUserConfiguration($userId, $tenantId)` → User's RFM settings
-  - `updateConfiguration($userId, $tenantId, $config)` → Save user preferences
-  - `getDefaultConfiguration()` → System defaults
+### Current Controllers (COMPLETED)
+- ✅ **`RfmController`** - RFM scores display and calculation
+- ✅ **`RfmConfigController`** - Configuration management
+- ✅ **`RfmReportsController`** - Enhanced reports with business intelligence
+- ✅ **`RfmAnalysisController`** - Basic analysis (NEEDS ENHANCEMENT)
 
-- **Narrative engine (pluggable)**
-  - Interface: `NarrativeWriter::compose(array $payload): string`
-  - Implementations:
-    - `DeterministicNarrativeWriter` (Blade/string template)
-    - `OpenAiNarrativeWriter` (OpenAI GPT-4 via Guzzle)
-    - `LlmNarrativeWriterOllama` (self‑hosted via HTTP)
-
-- **`ReportRenderer`**
-  - Blade → HTML
-  - HTML → PDF: **Browsershot** (Chrome-based; supports Chart.js/modern CSS)
-
-- **`ReportStore`**
-  - Persist `metrics.json`, `diagnostics.json`, HTML/PDF path, and meta (user, snapshot, comparison period, RFM window, model used).
-
-### Controllers
-- `RfmReportController@show` (HTML) / `@download` (PDF)
-- `RfmAgentController@generate` (OpenAI narrative; optional chat/Q&A later)
-- `RfmConfigurationController@index` / `@update` (RFM settings)
+### Planned Controllers (NEEDS IMPLEMENTATION)
+- **`RfmReportController`** - Enhanced report generation with comparison periods
+- **`RfmAgentController`** - AI narrative generation and Q&A
 
 ---
 
-## 4) Rendering with Browsershot
+## 4) Rendering with Browsershot (NEEDS IMPLEMENTATION)
 
-### Browsershot Configuration
+### Browsershot Configuration (PLANNED)
 ```php
-// config/reports.php
+// config/reports.php (NEEDS CREATION)
 return [
     'pdf' => [
         'driver' => 'browsershot',
@@ -216,9 +266,9 @@ return [
 ];
 ```
 
-### Blade Layout Structure
+### Blade Layout Structure (PLANNED)
 ```blade
-{{-- resources/views/reports/rfm.blade.php --}}
+{{-- resources/views/reports/rfm.blade.php (NEEDS CREATION) --}}
 <!DOCTYPE html>
 <html>
 <head>
@@ -272,21 +322,31 @@ return [
 
 ---
 
-## 5) Phased Delivery
+## 5) Phased Delivery (UPDATED)
 
-**Phase 1 — Deterministic Core (No AI)**  
-- Implement `RfmTools` (Enhanced KPIs + diagnostics with flexible comparison)
-- Build `ComparisonPeriodResolver` and `RfmConfigurationManager`
-- Build Blade report (HTML) + Browsershot PDF with Chart.js
-- Add comparison period and RFM window selection UI
-- Add PHPUnit golden tests for KPI JSON
-- Result: shippable, zero AI dependency/cost
+**Phase 1 — Core Infrastructure (COMPLETED)**  
+- ✅ **COMPLETED:** Core RFM calculation with configurable windows
+- ✅ **COMPLETED:** Configuration management system
+- ✅ **COMPLETED:** Historical snapshot generation
+- ✅ **COMPLETED:** Enhanced KPI system with business intelligence
+- ✅ **COMPLETED:** Risk assessment and growth opportunities
+- ✅ **COMPLETED:** Customer movement tracking and historical trends
+- Result: Fully functional RFM system with comprehensive business intelligence
 
-**Phase 2 — Narrative Seam (Still No AI)**  
-- Create `NarrativeWriter` interface + `DeterministicNarrativeWriter`
-- Wire into controller → report uses pluggable narrative
-- Add comparison period and RFM window context to narratives
-- Add configuration management UI
+**Phase 1.5 — Enhanced Reporting & UI (CURRENT FOCUS)**  
+- 🔄 **IN PROGRESS:** Clean up UI language and remove unnecessary buttons
+- 🔄 **IN PROGRESS:** Streamline report generation interface
+- 🔄 **IN PROGRESS:** Optimize data presentation and user experience
+- 🔄 **IN PROGRESS:** Remove redundant "Business Intelligence" terminology
+- 🔄 **IN PROGRESS:** Simplify report generation workflow
+
+**Phase 2 — Report Generation & PDF Export**  
+- Build enhanced Blade report templates with comparison periods
+- Implement Browsershot PDF generation
+- Add Chart.js integration for visualizations
+- Create `DeterministicNarrativeWriter`
+- Add comparison period and RFM window selectors to UI
+- Implement report caching for performance
 
 **Phase 3 — OpenAI Narrative (Explanations)**  
 - Add `OpenAiNarrativeWriter` (OpenAI GPT-4 via Guzzle)
@@ -304,7 +364,7 @@ return [
 
 ## 6) OpenAI Integration (Phase 3+)
 
-### Configuration
+### Configuration (PLANNED)
 ```env
 # .env
 OPENAI_API_KEY=your_openai_api_key
@@ -314,7 +374,7 @@ OPENAI_MAX_TOKENS=2000
 OPENAI_TEMPERATURE=0.3
 ```
 
-### Enhanced Prompt Engineering
+### Enhanced Prompt Engineering (PLANNED)
 ```php
 class OpenAiNarrativeWriter implements NarrativeWriter
 {
@@ -354,11 +414,19 @@ JSON DATA:
 
 ---
 
-## 7) Configuration & Security
+## 7) Configuration & Security (UPDATED)
 
-**Config**
+**Current Config (COMPLETED)**
 ```env
-# .env
+# .env (CURRENT)
+XERO_CLIENT_ID=your_xero_client_id
+XERO_CLIENT_SECRET=your_xero_client_secret
+XERO_REDIRECT_URI=your_redirect_uri
+```
+
+**Planned Config (NEEDS IMPLEMENTATION)**
+```env
+# .env (PLANNED ADDITIONS)
 REPORTS_PDF_DRIVER=browsershot
 NARRATIVE_DRIVER=deterministic
 OPENAI_API_KEY=your_openai_api_key
@@ -368,34 +436,43 @@ NPM_BINARY=/usr/bin/npm
 CHROME_PATH=/usr/bin/google-chrome
 ```
 
-**Security**
-- Endpoints behind `auth`; scope by `user_id`
-- OpenAI API calls: redact client names, use pseudonyms for PII
-- Rate limiting on OpenAI API calls
-- Input validation for all comparison periods and RFM windows
+**Security (COMPLETED)**
+- ✅ Endpoints behind `auth`; scope by `user_id`
+- ✅ Tenant-based data isolation
+- ✅ Input validation for RFM configurations
+- 🔄 **PLANNED:** OpenAI API calls: redact client names, use pseudonyms for PII
+- 🔄 **PLANNED:** Rate limiting on OpenAI API calls
 
-**Auditability**
-- Store: snapshot date, comparison period, RFM window, payload hashes, model name/version, prompt (or hash), final narrative text, and tool outputs
-- Log all OpenAI API calls with costs and response quality metrics
+**Auditability (COMPLETED)**
+- ✅ Store: snapshot date, configuration used, scores calculated
+- 🔄 **PLANNED:** Store: comparison period, RFM window, payload hashes, model name/version, prompt (or hash), final narrative text
 
 ---
 
-## 8) Acceptance Criteria
+## 8) Acceptance Criteria (UPDATED)
 
-- KPIs match SQL aggregates for the chosen snapshot and comparison period
-- Top‑10/Top‑50 shares and "customers to 80%" match deterministic calculations
-- New/Returned/Lost/Dormant classifications are consistent with comparison period rules
+### ✅ **COMPLETED**
+- ✅ RFM scores match calculation formulas for the chosen configuration
+- ✅ Configuration management works correctly (save, reset, validation)
+- ✅ Historical snapshots are generated correctly
+- ✅ UI displays current configuration and formulas clearly
+- ✅ Loading states work correctly during calculation
+- ✅ Separate windows work correctly for R, F, M components
+- ✅ Monetary benchmark system works (percentile and direct value modes)
+- ✅ Enhanced KPIs and business intelligence features work correctly
+- ✅ Risk assessment and growth opportunities are calculated accurately
+- ✅ Customer movement tracking and historical trends are functional
+- ✅ Comparison periods work correctly (monthly, quarterly, yearly)
+
+### 🔄 **NEEDS IMPLEMENTATION**
 - PDF renders in ≤ 10s; HTML in ≤ 1s (typical data volumes)
 - Charts render correctly in PDF via Browsershot
-- Comparison periods work correctly (monthly, quarterly, yearly, custom)
-- RFM windows work correctly (6, 10, 12, 18, 24 months)
 - With deterministic driver, narrative contains no LLM‑specific phrasing
 - With OpenAI driver, any numeric references match KPI JSON (or are auto‑corrected)
-- User configurations are saved and applied correctly
 
 ---
 
-## 9) Enhanced Example Narrative Payload
+## 9) Enhanced Example Narrative Payload (UPDATED)
 
 ```json
 {
@@ -461,7 +538,7 @@ CHROME_PATH=/usr/bin/google-chrome
 
 ---
 
-## 10) Enhanced Prompt Skeleton (OpenAI)
+## 10) Enhanced Prompt Skeleton (OpenAI) (PLANNED)
 
 **System:**  
 "You are a senior commercial analyst specializing in RFM (Recency, Frequency, Monetary) analysis. Use **only** the provided JSON/tool outputs. Do **not** invent numbers or causes. If a cause isn't evidenced, say 'not enough data'. Consider the RFM window context ({{rfm_window_months}} months) and comparison period ({{comparison_period}}). Output sections: Headline; Revenue & AOV (attribute Δ to volume vs AOV vs mix); Concentration; Customer Movement; Top Movers; Key Drivers; Actions. Percentages with 1 decimal; £ as whole numbers. Be business-focused and actionable."
@@ -471,37 +548,64 @@ CHROME_PATH=/usr/bin/google-chrome
 
 ---
 
-## 11) Edge Cases & Performance
+## 11) Edge Cases & Performance (UPDATED)
 
-- **Empty snapshot:** return a helpful message (no data in window)
-- **Zero transactions:** AOV guard (`NULLIF(SUM(txn_count),0)`)
-- **No comparison snapshot:** render "baseline" view with N/A deltas
-- **Browsershot setup:** ensure Chrome/Chromium is installed on server
-- **Data volume:** add the indexes above; paginate Top‑N lists if needed
-- **Comparison period edge cases:** handle month-end vs quarter-end date logic
-- **RFM window edge cases:** handle periods with insufficient data
-- **OpenAI rate limits:** implement exponential backoff and fallback to deterministic
-- **Chart rendering:** ensure Chart.js renders correctly in headless Chrome
+### ✅ **HANDLED (Current Implementation)**
+- ✅ Empty snapshot: return helpful message (no data in window)
+- ✅ Zero transactions: Proper handling in calculation logic
+- ✅ No comparison snapshot: handled in current UI
+- ✅ RFM window edge cases: handled with proper date filtering
+- ✅ Configuration validation: comprehensive validation rules
+- ✅ Tenant isolation: proper data scoping
+- ✅ Customer movement edge cases: handled with proper data validation
+- ✅ Percentage calculation edge cases: capped at reasonable limits
+- ✅ Historical trends edge cases: handled with proper date sorting
+
+### 🔄 **NEEDS IMPLEMENTATION**
+- No comparison snapshot: render "baseline" view with N/A deltas
+- Browsershot setup: ensure Chrome/Chromium is installed on server
+- Data volume: add the indexes above; paginate Top‑N lists if needed
+- Comparison period edge cases: handle month-end vs quarter-end date logic
+- OpenAI rate limits: implement exponential backoff and fallback to deterministic
+- Chart rendering: ensure Chart.js renders correctly in headless Chrome
 
 ---
 
-## 12) Complete File Map
+## 12) Complete File Map (UPDATED)
 
+### ✅ **COMPLETED FILES**
 ```
-app/Services/RfmTools.php
+app/Services/Rfm/RfmCalculator.php ✅
+app/Services/Rfm/RfmConfigurationManager.php ✅
+app/Services/Rfm/RfmTools.php ✅
+app/Models/RfmConfiguration.php ✅
+app/Models/RfmReport.php ✅
+app/Http/Controllers/RfmController.php ✅
+app/Http/Controllers/RfmConfigController.php ✅
+app/Http/Controllers/RfmReportsController.php ✅
+database/migrations/2025_08_19_114853_create_rfm_configurations_table.php ✅
+database/migrations/2025_08_19_115527_slim_down_rfm_reports_table.php ✅
+database/migrations/2025_08_19_120213_remove_weights_from_rfm_configurations.php ✅
+database/migrations/2025_08_19_121149_remove_frequency_cap_from_rfm_configurations.php ✅
+database/migrations/2025_08_19_121600_add_monetary_window_months_to_rfm_configurations.php ✅
+resources/views/rfm/index.blade.php ✅
+resources/views/rfm-config/index.blade.php ✅
+resources/views/rfm/reports/index.blade.php ✅
+resources/views/rfm/reports/show.blade.php ✅
+resources/js/rfm-config.js ✅
+vite.config.js ✅ (updated for rfm-config.js)
+```
+
+### 🔄 **PLANNED FILES (NEEDS IMPLEMENTATION)**
+```
 app/Services/ComparisonPeriodResolver.php
-app/Services/RfmConfigurationManager.php
 app/Contracts/NarrativeWriter.php
 app/Services/Narrative/DeterministicNarrativeWriter.php
 app/Services/Narrative/OpenAiNarrativeWriter.php
 app/Services/Narrative/LlmNarrativeWriterOllama.php
 app/Http/Controllers/RfmReportController.php
 app/Http/Controllers/RfmAgentController.php
-app/Http/Controllers/RfmConfigurationController.php
-app/Models/RfmConfiguration.php
 config/reports.php
-database/migrations/xxxx_add_rfm_window_to_rfm_reports.php
-database/migrations/xxxx_create_rfm_configurations_table.php
 resources/views/reports/rfm.blade.php
 resources/views/reports/sections/
   ├── header.blade.php
@@ -513,7 +617,6 @@ resources/views/reports/sections/
   ├── churn.blade.php
   ├── cohorts.blade.php
   └── actions.blade.php
-resources/views/rfm/config.blade.php
 resources/views/reports/_narrative-deterministic.blade.php
 tests/Feature/RfmReportTest.php
 tests/Feature/RfmConfigurationTest.php
@@ -521,91 +624,144 @@ tests/Feature/RfmConfigurationTest.php
 
 ---
 
-## 13) Implementation Checklist
+## 13) Implementation Checklist (UPDATED)
 
-### Phase 1: Core Infrastructure
-- [ ] Add `rfm_window_months` field to `rfm_reports` table
-- [ ] Create `rfm_configurations` table
-- [ ] Implement `RfmConfigurationManager`
-- [ ] Implement `ComparisonPeriodResolver`
-- [ ] Enhance `RfmTools` with new KPIs and flexible comparison
-- [ ] Add recommended indexes
-- [ ] Create RFM configuration UI
+### ✅ **Phase 1: Core Infrastructure (COMPLETED)**
+- ✅ Add `rfm_configurations` table
+- ✅ Create `rfm_configurations` table
+- ✅ Implement `RfmConfigurationManager`
+- ✅ Implement `RfmCalculator` with configurable windows
+- ✅ Slim down `rfm_reports` table
+- ✅ Add recommended indexes
+- ✅ Create RFM configuration UI
+- ✅ Implement historical snapshot generation
 
-### Phase 2: Report Generation
-- [ ] Build enhanced Blade report templates
-- [ ] Implement Browsershot PDF generation
-- [ ] Add Chart.js integration for visualizations
-- [ ] Create `DeterministicNarrativeWriter`
-- [ ] Add comparison period and RFM window selectors
-- [ ] Implement report caching for performance
+### ✅ **Phase 1.5: Enhanced KPIs & Business Intelligence (COMPLETED)**
+- ✅ Implement `RfmTools` for enhanced KPIs and diagnostics
+- ✅ Build comprehensive business intelligence system
+- ✅ Add risk assessment and growth opportunities
+- ✅ Implement customer movement tracking
+- ✅ Create historical trends analysis
+- ✅ Add revenue concentration analysis
+- ✅ Implement customer segmentation
+- ✅ Create enhanced report templates with comparison periods
 
-### Phase 3: OpenAI Integration
-- [ ] Add OpenAI API configuration
-- [ ] Implement `OpenAiNarrativeWriter`
-- [ ] Add prompt engineering and validation
-- [ ] Implement rate limiting and error handling
-- [ ] Add narrative quality metrics
-- [ ] Create fallback mechanisms
+### 🔄 **Phase 1.6: UI Polish & Optimization (CURRENT FOCUS)**
+- 🔄 Clean up UI language and remove unnecessary buttons
+- 🔄 Streamline report generation interface
+- 🔄 Optimize data presentation and user experience
+- 🔄 Remove redundant "Business Intelligence" terminology
+- 🔄 Simplify report generation workflow
 
-### Phase 4: Advanced Features
-- [ ] Implement Agent/Q&A system
-- [ ] Add conversation context management
-- [ ] Create advanced chart visualizations
-- [ ] Implement report scheduling
-- [ ] Add export options (CSV, Excel)
-- [ ] Performance optimization
+### 🔄 **Phase 2: Report Generation (PLANNED)**
+- 🔄 Build enhanced Blade report templates
+- 🔄 Implement Browsershot PDF generation
+- 🔄 Add Chart.js integration for visualizations
+- 🔄 Create `DeterministicNarrativeWriter`
+- 🔄 Implement report caching for performance
 
-### Testing & Quality
-- [ ] PHPUnit tests for all services
-- [ ] Feature tests for report generation
-- [ ] Integration tests for OpenAI API
-- [ ] Performance benchmarks
-- [ ] Security audit
-- [ ] User acceptance testing
+### 🔄 **Phase 3: OpenAI Integration (PLANNED)**
+- 🔄 Add OpenAI API configuration
+- 🔄 Implement `OpenAiNarrativeWriter`
+- 🔄 Add prompt engineering and validation
+- 🔄 Implement rate limiting and error handling
+- 🔄 Add narrative quality metrics
+- 🔄 Create fallback mechanisms
 
----
+### 🔄 **Phase 4: Advanced Features (PLANNED)**
+- 🔄 Implement Agent/Q&A system
+- 🔄 Add conversation context management
+- 🔄 Create advanced chart visualizations
+- 🔄 Implement report scheduling
+- 🔄 Add export options (CSV, Excel)
+- 🔄 Performance optimization
 
-## 14) Performance Considerations
-
-### Database Optimization
-- Composite indexes for common query patterns
-- Query result caching for expensive calculations
-- Pagination for large datasets
-
-### PDF Generation
-- Async PDF generation for large reports
-- PDF caching to avoid regeneration
-- Optimized Chart.js rendering for headless Chrome
-
-### OpenAI API
-- Request batching where possible
-- Response caching for similar queries
-- Fallback to deterministic narratives on API failures
-
-### Memory Management
-- Streaming for large data exports
-- Garbage collection for chart rendering
-- Memory limits for PDF generation
+### 🔄 **Testing & Quality (PLANNED)**
+- 🔄 PHPUnit tests for all services
+- 🔄 Feature tests for report generation
+- 🔄 Integration tests for OpenAI API
+- 🔄 Performance benchmarks
+- 🔄 Security audit
+- 🔄 User acceptance testing
 
 ---
 
-## 15) Monitoring & Analytics
+## 14) Performance Considerations (UPDATED)
 
-### Key Metrics to Track
-- Report generation time (HTML vs PDF)
-- OpenAI API response times and costs
-- User engagement with different comparison periods
-- Most popular RFM window configurations
-- Chart rendering success rates
-- PDF generation success rates
+### ✅ **Database Optimization (COMPLETED)**
+- ✅ Composite indexes for common query patterns
+- ✅ Efficient RFM calculation with proper filtering
+- ✅ Historical snapshot generation with batching
+- ✅ Optimized KPI calculations with proper data aggregation
 
-### Error Tracking
-- OpenAI API failures and fallbacks
-- Browsershot rendering errors
-- Database query performance
-- Memory usage during report generation
+### 🔄 **PDF Generation (PLANNED)**
+- 🔄 Async PDF generation for large reports
+- 🔄 PDF caching to avoid regeneration
+- 🔄 Optimized Chart.js rendering for headless Chrome
+
+### 🔄 **OpenAI API (PLANNED)**
+- 🔄 Request batching where possible
+- 🔄 Response caching for similar queries
+- 🔄 Fallback to deterministic narratives on API failures
+
+### ✅ **Memory Management (COMPLETED)**
+- ✅ Efficient data filtering in RFM calculations
+- ✅ Proper collection handling for large datasets
+- ✅ Optimized KPI calculations with minimal memory usage
 
 ---
 
-This comprehensive plan provides a complete roadmap for implementing advanced RFM reporting with flexible configuration, enhanced analytics, and OpenAI-powered insights, all while maintaining the deterministic foundation for reliability.
+## 15) Monitoring & Analytics (UPDATED)
+
+### ✅ **Key Metrics to Track (COMPLETED)**
+- ✅ RFM calculation performance and accuracy
+- ✅ Configuration usage patterns
+- ✅ Historical snapshot generation success rates
+- ✅ KPI calculation performance and accuracy
+- ✅ Business intelligence feature usage
+
+### 🔄 **Key Metrics to Track (PLANNED)**
+- 🔄 Report generation time (HTML vs PDF)
+- 🔄 OpenAI API response times and costs
+- 🔄 User engagement with different comparison periods
+- 🔄 Most popular RFM window configurations
+- 🔄 Chart rendering success rates
+- 🔄 PDF generation success rates
+
+### 🔄 **Error Tracking (PLANNED)**
+- 🔄 OpenAI API failures and fallbacks
+- 🔄 Browsershot rendering errors
+- 🔄 Database query performance
+- 🔄 Memory usage during report generation
+
+---
+
+## 16) Summary of Changes from Original Plan
+
+### **Major Architectural Changes:**
+1. **Removed Weight System** - Simplified to simple average instead of configurable weights
+2. **Separate Windows** - Each RFM component has independent configurable windows
+3. **Monetary Benchmark** - Uses largest invoice instead of sum of all invoices
+4. **Slimmed Storage** - Removed intermediate calculation data for efficiency
+5. **Configuration Reference** - Each RFM report links to the configuration used
+6. **Enhanced UI** - Added LaTeX formulas, loading states, and better UX
+7. **Advanced Business Intelligence** - Implemented comprehensive KPI system with risk assessment and growth opportunities
+
+### **Current Status:**
+- ✅ **Core RFM System:** Fully implemented and functional
+- ✅ **Configuration Management:** Complete with validation and UI
+- ✅ **Historical Snapshots:** Working with monthly generation
+- ✅ **Enhanced Reporting:** Fully implemented with comprehensive business intelligence
+- ✅ **Risk Assessment & Growth Opportunities:** Complete and functional
+- ✅ **Customer Movement Tracking:** Complete with historical trends
+- 🔄 **PDF Generation:** Needs Browsershot integration
+- 🔄 **AI Narrative:** Needs OpenAI integration
+
+### **Next Steps:**
+1. **UI Polish** - Clean up language and streamline interface
+2. **PDF Export** - Integrate Browsershot for PDF generation
+3. **Chart Integration** - Add visualizations to reports
+4. **Implement AI Narrative** - Add OpenAI-powered insights
+5. **Advanced Features** - Add Q&A system and advanced analytics
+
+This comprehensive plan provides a complete roadmap for implementing advanced RFM reporting with flexible configuration, enhanced analytics, and OpenAI-powered insights, building upon the solid foundation already established.

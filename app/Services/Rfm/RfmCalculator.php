@@ -198,7 +198,15 @@ class RfmCalculator
     private function calculateMonetaryScore(float $largestInvoice, ?float $benchmark): float
     {
         if (!$benchmark || $benchmark <= 0) {
-            return 0.0;
+            // If no benchmark, use a fallback calculation based on the invoice value
+            // This prevents all customers from getting 0 monetary scores
+            if ($largestInvoice <= 0) {
+                return 0.0;
+            }
+            
+            // Use a simple scale: £1000 = 5 points, £2000 = 10 points
+            $fallbackScore = min(10, ($largestInvoice / 2000) * 10);
+            return round($fallbackScore, 2);
         }
         
         $score = ($largestInvoice / $benchmark) * 10;
@@ -224,7 +232,16 @@ class RfmCalculator
         
         // Calculate the (100 - percentile)th percentile
         $q = max(0, min(1, 1 - ($percentile / 100)));
-        return $this->quantile($sorted, $q);
+        $benchmark = $this->quantile($sorted, $q);
+        
+        // Ensure we have a reasonable benchmark value
+        if (!$benchmark || $benchmark <= 0) {
+            // Fallback to median if percentile calculation fails
+            $median = $sorted->median();
+            return $median > 0 ? $median : null;
+        }
+        
+        return $benchmark;
     }
 
     /**
