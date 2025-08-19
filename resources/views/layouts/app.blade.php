@@ -20,46 +20,20 @@
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
 
         <style>
-            /* Dark mode KaTeX styling */
-            .dark .katex {
-                color: white !important;
-            }
-            .dark .katex .mord {
-                color: white !important;
-            }
-            .dark .katex .mbin {
-                color: white !important;
-            }
-            .dark .katex .mrel {
-                color: white !important;
-            }
-            .dark .katex .mopen {
-                color: white !important;
-            }
-            .dark .katex .mclose {
-                color: white !important;
-            }
-            .dark .katex .mpunct {
-                color: white !important;
-            }
-            .dark .katex .mord.text {
-                color: white !important;
-            }
-            /* Fix for text elements in KaTeX */
-            .dark .katex .text {
-                color: white !important;
-            }
-            .dark .katex .mord.text {
-                color: white !important;
-            }
-            .dark .katex .mord .text {
-                color: white !important;
-            }
-            .dark .katex .mord.text .text {
-                color: white !important;
-            }
-            /* Override any black text */
-            .dark .katex * {
+            /* KaTeX styling - make all LaTeX text white for visibility */
+            .katex,
+            .katex *,
+            .katex .mord,
+            .katex .mbin,
+            .katex .mrel,
+            .katex .mopen,
+            .katex .mclose,
+            .katex .mpunct,
+            .katex .mord.text,
+            .katex .text,
+            .katex .mord.text .text,
+            .katex-display,
+            .katex-display * {
                 color: white !important;
             }
         </style>
