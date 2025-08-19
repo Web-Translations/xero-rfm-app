@@ -14,9 +14,8 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         
         // Get active connection
-        $activeConnection = $user->getActiveXeroConnection();
-        if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+        if (!$user->getActiveXeroConnection()) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         // Get available snapshot dates for analysis
@@ -35,7 +34,7 @@ class RfmAnalysisController extends Controller
         // Get active connection
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         $clientId = $request->get('client_id');

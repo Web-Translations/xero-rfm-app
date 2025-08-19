@@ -5,8 +5,8 @@ use Webfox\Xero\Oauth2CredentialManagers\FileStore;
 return [
     'api_host' => 'https://api.xero.com/api.xro/2.0',
 
-    // Store tokens on the filesystem for now (good for dev)
-    'credential_store' => FileStore::class,
+    // Store tokens in database (production-ready)
+    'credential_store' => \App\Services\Xero\DatabaseCredentialManager::class,
     'credential_disk' => env('XERO_CREDENTIAL_DISK', 'local'),
 
     'oauth' => [

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\RfmReport;
+use App\Models\RfmConfiguration;
 use App\Services\Rfm\RfmCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -18,13 +19,14 @@ class RfmController extends Controller
         // Get active connection
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
         
         $search = trim((string) $request->get('q', ''));
         $viewMode = $request->get('view', 'current'); // 'current' or a specific date
 
-
+        // Get current RFM configuration
+        $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
 
         // Get RFM data based on view mode
         if ($viewMode === 'current') {
@@ -62,6 +64,7 @@ class RfmController extends Controller
             'totalClients' => $totalClients,
             'filteredCount' => $filteredCount,
             'currentDate' => now()->toDateString(),
+            'config' => $config,
         ]);
     }
 
@@ -70,23 +73,31 @@ class RfmController extends Controller
         $user = $request->user();
         $action = $request->get('action', 'sync_all');
 
+        // Get the active connection and configuration
+        $activeConnection = $user->getActiveXeroConnection();
+        if (!$activeConnection) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
+        }
+
+        $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
+
         if ($action === 'sync_all') {
-            // Calculate current RFM scores
-            $currentResult = $calculator->computeSnapshot($user->id);
+            // Calculate current RFM scores with configuration
+            $currentResult = $calculator->computeSnapshot($user->id, null, $config);
             
             // Calculate historical snapshots for all available data (36 months should cover most cases)
-            $historicalResults = $calculator->computeHistoricalSnapshots($user->id, 36);
+            $historicalResults = $calculator->computeHistoricalSnapshots($user->id, 36, $config);
             $totalHistorical = array_sum(array_column($historicalResults, 'computed'));
             
             $status = "Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created.";
         } else {
             // Fallback for old actions (if needed)
             if ($action === 'current') {
-                $result = $calculator->computeSnapshot($user->id);
+                $result = $calculator->computeSnapshot($user->id, null, $config);
                 $status = "Calculated current RFM scores for {$result['computed']} clients.";
             } else {
                 $monthsBack = (int) $request->get('months_back', 12);
-                $results = $calculator->computeHistoricalSnapshots($user->id, $monthsBack);
+                $results = $calculator->computeHistoricalSnapshots($user->id, $monthsBack, $config);
                 $totalComputed = array_sum(array_column($results, 'computed'));
                 $status = "Created historical snapshots for {$totalComputed} client records over {$monthsBack} months.";
             }

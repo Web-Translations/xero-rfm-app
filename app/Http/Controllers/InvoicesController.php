@@ -24,7 +24,7 @@ class InvoicesController extends Controller
         // Get active connection
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         $query = XeroInvoice::query()
@@ -38,8 +38,7 @@ class InvoicesController extends Controller
             $query->where('date', '>=', $fromDate);
         }
 
-        // Only show ACCREC by default (sales invoices)
-        $query->where('type', 'ACCREC');
+        // Removed type filter since all invoices are ACCREC (sales invoices)
 
         if (!empty($statuses)) {
             $query->whereIn('status', $statuses);
@@ -85,6 +84,10 @@ class InvoicesController extends Controller
             'totalInvoices' => $totalInvoices,
             'filteredCount' => $filteredCount,
             'excludedInvoiceIds' => $excludedInvoiceIds,
+            'lastSyncInfo' => [
+                'last_sync_at' => $activeConnection->last_sync_at,
+                'last_sync_invoice_count' => $activeConnection->last_sync_invoice_count,
+            ],
         ]);
     }
 
@@ -98,15 +101,76 @@ class InvoicesController extends Controller
             return redirect()->route('invoices.index')->withErrors('Connect Xero first.');
         }
 
+        // Check if this is an AJAX request for progress updates
+        if ($request->ajax()) {
+            if ($request->has('action')) {
+                return $this->handleSyncProgress($request, $user, $activeConnection);
+            } else {
+                // Initial sync request
+                return $this->startSync($user, $activeConnection);
+            }
+        }
+
+        // Non-AJAX request - redirect with error
+        return redirect()->route('invoices.index')->withErrors('Please use the sync button to start the sync process.');
+    }
+
+    private function startSync($user, $activeConnection)
+    {
+        // Store sync session data
+        session([
+            'sync_user_id' => $user->id,
+            'sync_tenant_id' => $activeConnection->tenant_id,
+            'sync_total_pages' => 0,
+            'sync_current_page' => 0,
+            'sync_processed_invoices' => 0,
+            'sync_status' => 'starting'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sync started',
+            'sync_id' => uniqid()
+        ]);
+    }
+
+    private function handleSyncProgress(Request $request, $user, $activeConnection)
+    {
+        $action = $request->get('action');
+        
+        switch ($action) {
+            case 'get_progress':
+                return $this->getSyncProgress();
+            case 'fetch_batch':
+                return $this->fetchAndProcessBatch($user, $activeConnection);
+            case 'complete':
+                return $this->completeSync($user, $activeConnection);
+            default:
+                return response()->json(['error' => 'Invalid action'], 400);
+        }
+    }
+
+    private function getSyncProgress()
+    {
+        $progress = [
+            'status' => session('sync_status', 'idle'),
+            'processed_invoices' => session('sync_processed_invoices', 0),
+        ];
+
+        return response()->json($progress);
+    }
+
+    private function fetchAndProcessBatch($user, $activeConnection)
+    {
         /** @var AccountingApi $api */
         $api = app(AccountingApi::class);
         $tenantId = $activeConnection->tenant_id;
 
-        // Fetch sales invoices from Xero (ACCREC only)
+        // Fetch sales invoices from Xero (all invoices are ACCREC)
         $where = 'Type=="ACCREC"';
+        $currentPage = session('sync_current_page', 0) + 1;
 
-        $page = 1; $all = [];
-        do {
+        try {
             $resp = $api->getInvoices(
                 $tenantId,
                 null,
@@ -116,7 +180,7 @@ class InvoicesController extends Controller
                 null,
                 null,
                 null,
-                $page,
+                $currentPage,
                 null,
                 null,
                 null,
@@ -124,17 +188,67 @@ class InvoicesController extends Controller
                 null,
                 null
             );
+            
+            // Debug: Let's see what's in the response
+            if ($currentPage === 1) {
+                \Log::info('Xero API Response Debug', [
+                    'response_class' => get_class($resp),
+                    'response_methods' => get_class_methods($resp),
+                    'has_getInvoices' => method_exists($resp, 'getInvoices'),
+                    'has_getPagination' => method_exists($resp, 'getPagination'),
+                    'has_getTotalCount' => method_exists($resp, 'getTotalCount'),
+                    'has_getPage' => method_exists($resp, 'getPage'),
+                    'has_getPageSize' => method_exists($resp, 'getPageSize'),
+                    'has_getPageCount' => method_exists($resp, 'getPageCount'),
+                ]);
+            }
+            
             $batch = $resp?->getInvoices() ?? [];
-            $all = array_merge($all, $batch);
-            $page++;
-        } while (count($batch) === 100);
+            $batchSize = count($batch);
 
-        // Count invoices for user feedback
-        $invoiceCount = count($all);
+            if ($batchSize > 0) {
+                // Process this batch
+                $this->processBatch($batch, $user, $tenantId);
+                
+                // Update session with progress
+                $processedInvoices = session('sync_processed_invoices', 0) + $batchSize;
+                session([
+                    'sync_current_page' => $currentPage,
+                    'sync_processed_invoices' => $processedInvoices,
+                    'sync_status' => 'processing'
+                ]);
 
-        // Upsert Clients + Invoices
-        DB::transaction(function () use ($user, $all, $tenantId) {
-            foreach ($all as $inv) {
+                // Simple progress tracking - just count invoices processed
+                // No complex estimation needed
+
+                return response()->json([
+                    'success' => true,
+                    'batch_size' => $batchSize,
+                    'current_page' => $currentPage,
+                    'processed_invoices' => $processedInvoices,
+                    'has_more' => $batchSize === 100
+                ]);
+            } else {
+                // No more invoices to fetch
+                return response()->json([
+                    'success' => true,
+                    'batch_size' => 0,
+                    'current_page' => $currentPage,
+                    'has_more' => false,
+                    'completed' => true
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch batch: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function processBatch($batch, $user, $tenantId)
+    {
+        DB::transaction(function () use ($batch, $user, $tenantId) {
+            foreach ($batch as $inv) {
                 $contact = $inv->getContact();
                 if ($contact) {
                     Client::updateOrCreate(
@@ -151,7 +265,7 @@ class InvoicesController extends Controller
                         'tenant_id'         => $tenantId,
                         'contact_id'        => optional($contact)->getContactId(),
                         'status'            => $inv->getStatus(),
-                        'type'              => $inv->getType(),
+                        // Removed type field since all invoices are ACCREC
                         'invoice_number'    => $inv->getInvoiceNumber(),
                         'date'              => $this->extractInvoiceDate($inv),
                         'due_date'          => $this->formatDateField($inv->getDueDate()),
@@ -164,9 +278,39 @@ class InvoicesController extends Controller
                 );
             }
         });
+    }
 
-        $message = "Synced {$invoiceCount} sales invoices from Xero.";
-        return redirect()->route('invoices.index')->with('status', $message);
+    private function completeSync($user, $activeConnection)
+    {
+        $processedInvoices = session('sync_processed_invoices', 0);
+
+        // Store last sync information in the database
+        $this->updateLastSyncInfo($user, $activeConnection, $processedInvoices);
+
+        // Clear sync session data
+        session()->forget([
+            'sync_user_id',
+            'sync_tenant_id',
+            'sync_total_pages',
+            'sync_current_page',
+            'sync_processed_invoices',
+            'sync_status'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully synced {$processedInvoices} invoices",
+            'processed_invoices' => $processedInvoices
+        ]);
+    }
+
+    private function updateLastSyncInfo($user, $activeConnection, $processedInvoices)
+    {
+        // Update the XeroConnection with last sync info
+        $activeConnection->update([
+            'last_sync_at' => now(),
+            'last_sync_invoice_count' => $processedInvoices
+        ]);
     }
 
     private function extractInvoiceDate($inv)
@@ -270,7 +414,7 @@ class InvoicesController extends Controller
         $activeConnection = $user->getActiveXeroConnection();
         
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         // Verify the invoice exists and belongs to the user
@@ -309,7 +453,7 @@ class InvoicesController extends Controller
         $activeConnection = $user->getActiveXeroConnection();
         
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         // Remove the exclusion record

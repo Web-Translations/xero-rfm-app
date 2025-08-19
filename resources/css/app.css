@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* KaTeX styling - make all LaTeX text white for visibility */
+.katex,
+.katex *,
+.katex .mord,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct,
+.katex .mord.text,
+.katex .text,
+.katex .mord.text .text,
+.katex-display,
+.katex-display * {
+    color: white !important;
+}

@@ -7,6 +7,7 @@ use App\Models\XeroConnection;
 use App\Models\XeroInvoice;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 use Webfox\Xero\OauthCredentialManager;
 use XeroAPI\XeroPHP\Api\AccountingApi;
 use XeroAPI\XeroPHP\Api\IdentityApi;
@@ -16,94 +17,15 @@ class XeroController extends Controller
     // Step 1: send the user to Xero consent
     public function connect(OauthCredentialManager $xero)
     {
+        // Ensure any temp callback tokens are cleared for a fresh connect flow
+        Session::forget(['xero_temp_token', 'xero_temp_refresh_token', 'xero_temp_id_token', 'xero_temp_expires', 'xero_temp_tenants']);
         return redirect()->to($xero->getAuthorizationUrl());
     }
 
     // Step 2: handle callback, persist tokens + tenant (one org per user)
     // Note: callback is handled by the package route 'xero.auth.callback'.
 
-    // Demo: fetch recent invoices, upsert locally, and render
-    public function demoInvoices(OauthCredentialManager $xero)
-    {
-        $user = auth()->user();
-        abort_unless($user?->xeroConnection, 403, 'Connect Xero first.');
 
-        // AccountingApi is bound by the package; it uses tokens from session/credentials
-        $api = app(AccountingApi::class);
-        $tenantId = $user->xeroConnection->tenant_id;
-
-        // last N days of sales invoices; include DRAFT even if Date is missing
-        $days = (int) request('days', 90);
-        $days = $days > 0 ? $days : 90;
-        $where = sprintf(
-            '(Type=="ACCREC")&&(Date>=DateTime(%s)||Status=="DRAFT")',
-            now()->subDays($days)->format('Y,m,d')
-        );
-
-        $page = 1; $all = [];
-        do {
-            // Signature: ($tenantId, $ifModifiedSince=null, $where=null, $order=null,
-            //             $ids=null, $invoiceNumbers=null, $contactIDs=null, $statuses=null,
-            //             $page=null, $includeArchived=null, $createdByMyApp=null, $unitdp=null,
-            //             $summaryOnly=null, $sentToContact=null, $isOverpaid=null)
-            $resp = $api->getInvoices(
-                $tenantId,
-                null,
-                $where,
-                'Date DESC',
-                null,
-                null,
-                null,
-                null,
-                $page,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
-            );
-            $batch = $resp?->getInvoices() ?? [];
-            $all = array_merge($all, $batch);
-            $page++;
-        } while (count($batch) === 100);
-
-        // upsert Clients + Invoices (idempotent)
-        DB::transaction(function () use ($user, $all) {
-            foreach ($all as $inv) {
-                $contact = $inv->getContact();
-                if ($contact) {
-                    Client::updateOrCreate(
-                        ['user_id' => $user->id, 'contact_id' => $contact->getContactId()],
-                        ['name'    => $contact->getName()]
-                    );
-                }
-                XeroInvoice::updateOrCreate(
-                    ['user_id' => $user->id, 'invoice_id' => $inv->getInvoiceId()],
-                    [
-                        'contact_id'        => optional($contact)->getContactId(),
-                        'status'            => $inv->getStatus(),
-                        'type'              => $inv->getType(),
-                        'invoice_number'    => $inv->getInvoiceNumber(),
-                        // Some invoices can miss Date; fall back to UpdatedDateUTC, then DueDate, then today
-                        'date'              => optional($inv->getDate())->format('Y-m-d')
-                                                ?? optional($inv->getUpdatedDateUtc())->format('Y-m-d')
-                                                ?? optional($inv->getDueDate())->format('Y-m-d')
-                                                ?? now()->format('Y-m-d'),
-                        'due_date'          => optional($inv->getDueDate())->format('Y-m-d'),
-                        'subtotal'          => $inv->getSubTotal(),
-                        'total'             => $inv->getTotal(),
-                        'currency'          => $inv->getCurrencyCode(),
-                        'updated_date_utc'  => optional($inv->getUpdatedDateUtc())->format('Y-m-d H:i:s')
-                                                ?? now()->format('Y-m-d H:i:s'),
-                        'fully_paid_at'     => optional($inv->getFullyPaidOnDate())->format('Y-m-d H:i:s'),
-                    ]
-                );
-            }
-        });
-
-        return view('demo.invoices', ['invoices' => $all]);
-    }
 
     // Debug: fetch identity connections and organisation name, persist if found
     public function debugOrg(IdentityApi $identity, AccountingApi $accounting)

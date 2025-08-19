@@ -53,29 +53,45 @@ class AppServiceProvider extends ServiceProvider
                         ->first();
 
                     if ($existingConnection) {
-                        // Update existing connection with new tokens
+                        // Update existing connection with new tokens and set as active
                         $existingConnection->update([
                             'org_name'      => $orgName,
                             'access_token'  => Crypt::encryptString($event->token),
                             'refresh_token' => Crypt::encryptString($event->refresh_token),
-                            'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                            'expires_at'    => $event->expires, // Store raw UTC timestamp
+                            'is_active'     => true, // Set as active when reconnecting
                         ]);
+                        
+                        // Deactivate all other connections for this user
+                        XeroConnection::where('user_id', $userId)
+                            ->where('id', '!=', $existingConnection->id)
+                            ->update(['is_active' => false]);
                     } else {
                         // Create new connection
-                        XeroConnection::create([
+                        $newConnection = XeroConnection::create([
                             'user_id'       => $userId,
                             'tenant_id'     => $tenantId,
                             'org_name'      => $orgName,
                             'access_token'  => Crypt::encryptString($event->token),
                             'refresh_token' => Crypt::encryptString($event->refresh_token),
-                            'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                            'expires_at'    => $event->expires, // Store raw UTC timestamp
                             'is_active'     => $isFirstConnection,
                         ]);
+                        
+                        // If this is the first connection, deactivate any others (safety check)
+                        if ($isFirstConnection) {
+                            XeroConnection::where('user_id', $userId)
+                                ->where('id', '!=', $newConnection->id)
+                                ->update(['is_active' => false]);
+                        }
                         
                         // Only set the first new connection as active
                         $isFirstConnection = false;
                     }
                 }
+                
+                // Clear temporary session data after storing in database
+                session()->forget(['xero_temp_token', 'xero_temp_refresh_token', 'xero_temp_id_token', 'xero_temp_expires', 'xero_temp_tenants']);
             } catch (\Throwable $e) {
                 // Fallback to the original method if Identity API fails
                 $tenantId = $event->tenants[0]['Id'] ?? null;
@@ -101,27 +117,43 @@ class AppServiceProvider extends ServiceProvider
                     ->first();
 
                 if ($existingConnection) {
-                    // Update existing connection
+                    // Update existing connection and set as active
                     $existingConnection->update([
                         'org_name'      => $orgName,
                         'access_token'  => Crypt::encryptString($event->token),
                         'refresh_token' => Crypt::encryptString($event->refresh_token),
-                        'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                        'expires_at'    => $event->expires, // Store raw UTC timestamp
+                        'is_active'     => true, // Set as active when reconnecting
                     ]);
+                    
+                    // Deactivate all other connections for this user
+                    XeroConnection::where('user_id', $userId)
+                        ->where('id', '!=', $existingConnection->id)
+                        ->update(['is_active' => false]);
                 } else {
                     // Create new connection and set as active if it's the first one
                     $isFirstConnection = !XeroConnection::where('user_id', $userId)->exists();
                     
-                    XeroConnection::create([
+                    $newConnection = XeroConnection::create([
                         'user_id'       => $userId,
                         'tenant_id'     => $tenantId,
                         'org_name'      => $orgName,
                         'access_token'  => Crypt::encryptString($event->token),
                         'refresh_token' => Crypt::encryptString($event->refresh_token),
-                        'expires_at'    => CarbonImmutable::createFromTimestamp($event->expires),
+                        'expires_at'    => $event->expires, // Store raw UTC timestamp
                         'is_active'     => $isFirstConnection,
                     ]);
+                    
+                    // If this is the first connection, deactivate any others (safety check)
+                    if ($isFirstConnection) {
+                        XeroConnection::where('user_id', $userId)
+                            ->where('id', '!=', $newConnection->id)
+                            ->update(['is_active' => false]);
+                    }
                 }
+                
+                // Clear temporary session data after storing in database
+                session()->forget(['xero_temp_token', 'xero_temp_refresh_token', 'xero_temp_id_token', 'xero_temp_expires', 'xero_temp_tenants']);
             }
         });
     }
