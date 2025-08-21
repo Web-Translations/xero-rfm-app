@@ -1,7 +1,7 @@
 
-# RFM Reporting & Agent — Integration Plan (Laravel + SQLite + Browsershot)
+# RFM Reporting & Agent — Integration Plan (Laravel + SQLite + DomPDF)
 
-> **Goal:** Generate on-demand RFM reports from the existing `rfm_reports` snapshot table, ship a deterministic version first, and then plug in an AI narrative/agent that explains *why* things changed. Reports mirror the sections in your historical Word reports (headline KPIs, Top 50/10, concentration, movers, dormant/lost, actions) with flexible comparison periods, configurable RFM calculation windows, and Browsershot PDF generation.
+> **Goal:** Generate on-demand RFM reports from the existing `rfm_reports` snapshot table, ship a deterministic version first, and then plug in an AI narrative/agent that explains *why* things changed. Reports mirror the sections in your historical Word reports (headline KPIs, Top 50/10, concentration, movers, dormant/lost, actions) with flexible comparison periods, configurable RFM calculation windows, and PDF generation.
 
 ---
 
@@ -40,15 +40,13 @@
 - ✅ **Enhanced Data Accuracy** - Fixed calculation logic for all customer movement metrics
 - ✅ **Improved User Experience** - Intuitive navigation, clear information display, responsive design
 
-**Advanced UI & User Experience (BEYOND ORIGINAL PLAN):**
-- ✅ **Modern Card-Based Layouts** - Professional, responsive design with hover effects
-- ✅ **Enhanced Customer Movement Logic** - Clear definitions for Retained, New, Returned, Lost customers
-- ✅ **Improved Customer Retention Alert** - Shows "Recently Lost Customers" instead of random inactive ones
-- ✅ **Redesigned "Customers Who Became Active" Section** - Proper spacing and card layout
-- ✅ **Fixed UI Issues** - Removed double arrows, improved spacing, fixed color mismatches
-- ✅ **Better Visual Hierarchy** - Consistent styling, proper typography, and professional appearance
-- ✅ **Enhanced Data Accuracy** - Fixed calculation logic for all customer movement metrics
-- ✅ **Improved User Experience** - Intuitive navigation, clear information display, responsive design
+**PDF Generation System:**
+- ✅ **DomPDF Integration** - Professional PDF generation with beautiful templates
+- ✅ **Comprehensive Report Templates** - Full business intelligence reports in PDF format
+- ✅ **Comparison Period Support** - Monthly, quarterly, yearly comparisons in PDF
+- ✅ **Risk Assessment & Opportunities** - Automated insights in PDF reports
+- ✅ **Customer Movement Analysis** - Detailed tracking in PDF format
+- ✅ **Historical Trends** - Multi-period performance in PDF reports
 
 **Database Schema (Current):**
 ```sql
@@ -107,6 +105,7 @@ CREATE TABLE rfm_reports (
 7. **Advanced Business Intelligence** - Implemented comprehensive KPI system with risk assessment and growth opportunities
 8. **Significantly Enhanced UI/UX** - Modern card-based layouts, improved logic, better user experience
 9. **Improved Data Accuracy** - Fixed customer movement calculations and edge case handling
+10. **DomPDF Instead of Browsershot** - Using DomPDF for PDF generation (more reliable, easier setup)
 
 **Formula Changes:**
 - **Original Plan:** `RFM = (R × r_weight) + (F × f_weight) + (M × m_weight)`
@@ -124,7 +123,7 @@ CREATE TABLE rfm_reports (
 
 ---
 
-## 1) Data Model & Indexes (UPDATED)
+## 1) Data Model & Indexes (COMPLETED)
 
 ### Current table structure (COMPLETED)
 ```sql
@@ -172,7 +171,7 @@ CREATE TABLE rfm_configurations (
 
 ---
 
-## 2) Enhanced KPIs & Diagnostics (UPDATED)
+## 2) Enhanced KPIs & Diagnostics (COMPLETED)
 
 ### Core KPIs per snapshot (COMPLETED)
 - ✅ **Revenue (L12M):** `SUM(monetary_sum)` - Implemented via invoice aggregation
@@ -220,7 +219,7 @@ CREATE TABLE rfm_configurations (
 
 ---
 
-## 3) Laravel Components (UPDATED)
+## 3) Laravel Components (COMPLETED)
 
 ### Current Routes (COMPLETED)
 ```
@@ -232,17 +231,9 @@ POST /rfm/config/reset                       → Reset to Defaults (COMPLETED)
 POST /rfm/config/recalculate                 → Recalculate All Scores (COMPLETED)
 GET  /rfm/reports                            → Reports Index (COMPLETED)
 GET  /rfm/reports/generate                   → Generate Report (COMPLETED)
+GET  /rfm/reports/pdf                        → PDF Download (COMPLETED)
+POST /rfm/reports/pdf                        → PDF Generation from Builder (COMPLETED)
 GET  /rfm/analysis                           → Analysis Dashboard (EXISTS - NEEDS ENHANCEMENT)
-```
-
-### Planned Routes (NEEDS IMPLEMENTATION)
-```
-GET  /reports/rfm?date=YYYY-MM-DD&compare=monthly&window=12        → HTML report
-GET  /reports/rfm?date=YYYY-MM-DD&compare=quarterly&window=10      → HTML report  
-GET  /reports/rfm?date=YYYY-MM-DD&compare=yearly&window=18         → HTML report
-GET  /reports/rfm?date=YYYY-MM-DD&compare=custom&from=YYYY-MM-DD&to=YYYY-MM-DD&window=24 → HTML report
-GET  /reports/rfm.pdf?date=YYYY-MM-DD&compare=monthly&window=12    → PDF download
-POST /agent/rfm                                                      → (Phase 3) AI narrative / Q&A
 ```
 
 ### Current Services (COMPLETED)
@@ -251,36 +242,25 @@ POST /agent/rfm                                                      → (Phase 
 - ✅ **`RfmConfiguration`** - Eloquent model for configurations
 - ✅ **`RfmReport`** - Eloquent model for RFM reports with enhanced queries
 - ✅ **`RfmTools`** - Enhanced KPIs and diagnostics with flexible comparison
-
-### Planned Services (NEEDS IMPLEMENTATION)
-- **`ComparisonPeriodResolver`** - Handle comparison periods and date logic
-- **`ReportRenderer`** - Blade → HTML → PDF via Browsershot
-- **`ReportStore`** - Persist report data and metadata
-- **Narrative engine (pluggable)** - Deterministic and AI-powered narratives
+- ✅ **`RfmPdfService`** - PDF generation using DomPDF with professional templates
 
 ### Current Controllers (COMPLETED)
 - ✅ **`RfmController`** - RFM scores display and calculation
 - ✅ **`RfmConfigController`** - Configuration management
 - ✅ **`RfmReportsController`** - Enhanced reports with business intelligence
+- ✅ **`RfmPdfController`** - PDF generation and download
 - ✅ **`RfmAnalysisController`** - Basic analysis (NEEDS ENHANCEMENT)
-
-### Planned Controllers (NEEDS IMPLEMENTATION)
-- **`RfmReportController`** - Enhanced report generation with comparison periods
-- **`RfmAgentController`** - AI narrative generation and Q&A
 
 ---
 
-## 4) Rendering with Browsershot (NEEDS IMPLEMENTATION)
+## 4) PDF Generation with DomPDF (COMPLETED)
 
-### Browsershot Configuration (PLANNED)
+### DomPDF Configuration (COMPLETED)
 ```php
-// config/reports.php (NEEDS CREATION)
+// config/reports.php (COMPLETED)
 return [
     'pdf' => [
-        'driver' => 'browsershot',
-        'node_binary' => env('NODE_BINARY', '/usr/bin/node'),
-        'npm_binary' => env('NPM_BINARY', '/usr/bin/npm'),
-        'chrome_path' => env('CHROME_PATH', '/usr/bin/google-chrome'),
+        'driver' => 'dompdf',
         'options' => [
             'format' => 'A4',
             'margin_top' => '0.5in',
@@ -292,7 +272,7 @@ return [
         ]
     ],
     'charts' => [
-        'enabled' => true,
+        'enabled' => false, // Will be enabled in Phase 2
         'library' => 'chart.js',
         'colors' => [
             'primary' => '#3B82F6',
@@ -304,15 +284,14 @@ return [
 ];
 ```
 
-### Blade Layout Structure (PLANNED)
+### Blade Layout Structure (COMPLETED)
 ```blade
-{{-- resources/views/reports/rfm.blade.php (NEEDS CREATION) --}}
+{{-- resources/views/pdf/rfm-report.blade.php (COMPLETED) --}}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <title>RFM Report - {{ $asOf }} ({{ $rfmWindow }}m window)</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Print-optimized CSS */
         @media print {
@@ -336,24 +315,6 @@ return [
     @include('reports.sections.churn')
     @include('reports.sections.cohorts')
     @include('reports.sections.actions')
-    
-    {{-- Charts (Chart.js) --}}
-    <script>
-        // Chart.js configurations for PDF rendering
-        const charts = {
-            rfmDistribution: new Chart(document.getElementById('rfm-distribution'), {
-                type: 'bar',
-                data: @json($chartData['rfmDistribution']),
-                options: { responsive: true, maintainAspectRatio: false }
-            }),
-            revenueTrend: new Chart(document.getElementById('revenue-trend'), {
-                type: 'line',
-                data: @json($chartData['revenueTrend']),
-                options: { responsive: true, maintainAspectRatio: false }
-            }),
-            // ... more charts
-        };
-    </script>
 </body>
 </html>
 ```
@@ -382,42 +343,46 @@ return [
 - ✅ **COMPLETED:** Professional visual design and user experience
 - Result: Fully functional RFM system with comprehensive business intelligence and modern UI/UX
 
-**Phase 1.6 — UI Polish & Data Validation (CURRENT FOCUS)**  
+**Phase 1.6 — PDF Generation & Report Enhancement (COMPLETED)**  
+- ✅ **COMPLETED:** DomPDF integration for professional PDF generation
+- ✅ **COMPLETED:** Comprehensive PDF report templates with business intelligence
+- ✅ **COMPLETED:** Risk assessment and growth opportunities in PDF format
+- ✅ **COMPLETED:** Customer movement analysis in PDF reports
+- ✅ **COMPLETED:** Historical trends and performance tracking in PDF
+- ✅ **COMPLETED:** Professional styling and layout for PDF
+- Result: Complete PDF generation system with comprehensive business intelligence
+
+**Phase 1.7 — Final Validation & Testing (CURRENT FOCUS)**  
 - 🔄 **IN PROGRESS:** Final testing and validation of all calculations
 - 🔄 **IN PROGRESS:** Edge case testing and error handling
 - 🔄 **IN PROGRESS:** Performance optimization for large datasets
 - 🔄 **IN PROGRESS:** Cross-browser compatibility testing
 - 🔄 **IN PROGRESS:** Mobile responsiveness validation
-- ✅ **COMPLETED:** Modern card-based layouts with hover effects
-- ✅ **COMPLETED:** Enhanced customer movement logic and data accuracy
-- ✅ **COMPLETED:** Professional visual design and user experience
+- 🔄 **IN PROGRESS:** PDF generation performance optimization
+- 🔄 **IN PROGRESS:** Data accuracy validation across all features
+- Result: Production-ready RFM system with comprehensive validation
 
-**Phase 1.6 — UI Polish & Data Validation (CURRENT FOCUS)**  
-- 🔄 **IN PROGRESS:** Final testing and validation of all calculations
-- 🔄 **IN PROGRESS:** Edge case testing and error handling
-- 🔄 **IN PROGRESS:** Performance optimization for large datasets
-- 🔄 **IN PROGRESS:** Cross-browser compatibility testing
-- 🔄 **IN PROGRESS:** Mobile responsiveness validation
+**Phase 2 — Enhanced Visualizations & Browsershot (PLANNED)**  
+- 🔄 **PLANNED:** Replace DomPDF with Browsershot
+- 🔄 **PLANNED:** Add Chart.js integration for visualizations
+- 🔄 **PLANNED:** Implement interactive charts in reports
+- 🔄 **PLANNED:** Enhanced report templates with better visualizations
+- 🔄 **PLANNED:** Report caching for performance
+- Result: Enhanced reporting with better visualizations and rendering
 
-**Phase 2 — Report Generation & PDF Export**  
-- Build enhanced Blade report templates with comparison periods
-- Implement Browsershot PDF generation
-- Add Chart.js integration for visualizations
-- Create `DeterministicNarrativeWriter`
-- Add comparison period and RFM window selectors to UI
-- Implement report caching for performance
+**Phase 3 — OpenAI Narrative (Explanations) (PLANNED)**  
+- 🔄 **PLANNED:** Add `OpenAiNarrativeWriter` (OpenAI GPT-4 via Guzzle)
+- 🔄 **PLANNED:** Strict prompt: "Use only supplied JSON; do not invent numbers; explain using diagnostics, comparison period, and RFM window context."
+- 🔄 **PLANNED:** Optional numeric validation pass (replace mismatched sentences with deterministic text)
+- 🔄 **PLANNED:** Config‑switch in `.env`: `NARRATIVE_DRIVER=deterministic|openai|ollama`
+- Result: AI-powered insights and explanations
 
-**Phase 3 — OpenAI Narrative (Explanations)**  
-- Add `OpenAiNarrativeWriter` (OpenAI GPT-4 via Guzzle)
-- Strict prompt: "Use only supplied JSON; do not invent numbers; explain using diagnostics, comparison period, and RFM window context."
-- Optional numeric validation pass (replace mismatched sentences with deterministic text)
-- Config‑switch in `.env`: `NARRATIVE_DRIVER=deterministic|openai|ollama`
-
-**Phase 4 — Agent/Q&A (Optional)**  
-- Chat box for follow‑ups (e.g., "Which five clients drove the decline vs Q1 with 10-month window?")
-- Agent calls the same deterministic tools; never recomputes numbers itself
-- Support for comparison period and RFM window queries
-- Context-aware responses based on user's configuration
+**Phase 4 — Agent/Q&A (Optional) (PLANNED)**  
+- 🔄 **PLANNED:** Chat box for follow‑ups (e.g., "Which five clients drove the decline vs Q1 with 10-month window?")
+- 🔄 **PLANNED:** Agent calls the same deterministic tools; never recomputes numbers itself
+- 🔄 **PLANNED:** Support for comparison period and RFM window queries
+- 🔄 **PLANNED:** Context-aware responses based on user's configuration
+- Result: Conversational interface for advanced analysis
 
 ---
 
@@ -473,7 +438,7 @@ JSON DATA:
 
 ---
 
-## 7) Configuration & Security (UPDATED)
+## 7) Configuration & Security (COMPLETED)
 
 **Current Config (COMPLETED)**
 ```env
@@ -527,17 +492,18 @@ CHROME_PATH=/usr/bin/google-chrome
 - ✅ Improved data presentation and user experience
 - ✅ Fixed all UI issues (double arrows, spacing, color mismatches)
 - ✅ Better visual hierarchy and consistent styling
-- ✅ Modern UI/UX with professional card-based layouts
-- ✅ Enhanced customer movement logic with accurate calculations
-- ✅ Improved data presentation and user experience
-- ✅ Fixed all UI issues (double arrows, spacing, color mismatches)
-- ✅ Better visual hierarchy and consistent styling
+- ✅ PDF generation works correctly with DomPDF
+- ✅ Comprehensive business intelligence reports in both HTML and PDF
+- ✅ Professional report templates with proper styling
+- ✅ Risk assessment and growth opportunities in reports
+- ✅ Customer movement analysis in reports
+- ✅ Historical trends in reports
 
 ### 🔄 **NEEDS IMPLEMENTATION**
-- PDF renders in ≤ 10s; HTML in ≤ 1s (typical data volumes)
-- Charts render correctly in PDF via Browsershot
-- With deterministic driver, narrative contains no LLM‑specific phrasing
-- With OpenAI driver, any numeric references match KPI JSON (or are auto‑corrected)
+- 🔄 PDF renders in ≤ 10s; HTML in ≤ 1s (typical data volumes)
+- 🔄 Charts render correctly in PDF via Browsershot (Phase 2)
+- 🔄 With deterministic driver, narrative contains no LLM‑specific phrasing
+- 🔄 With OpenAI driver, any numeric references match KPI JSON (or are auto‑corrected)
 
 ---
 
@@ -631,14 +597,15 @@ CHROME_PATH=/usr/bin/google-chrome
 - ✅ Historical trends edge cases: handled with proper date sorting
 - ✅ UI responsiveness: tested across different screen sizes
 - ✅ Data accuracy: comprehensive testing and validation
+- ✅ PDF generation edge cases: proper error handling and fallbacks
 
 ### 🔄 **NEEDS IMPLEMENTATION**
-- No comparison snapshot: render "baseline" view with N/A deltas
-- Browsershot setup: ensure Chrome/Chromium is installed on server
-- Data volume: add the indexes above; paginate Top‑N lists if needed
-- Comparison period edge cases: handle month-end vs quarter-end date logic
-- OpenAI rate limits: implement exponential backoff and fallback to deterministic
-- Chart rendering: ensure Chart.js renders correctly in headless Chrome
+- 🔄 No comparison snapshot: render "baseline" view with N/A deltas
+- 🔄 Browsershot setup: ensure Chrome/Chromium is installed on server (Phase 2)
+- 🔄 Data volume: add the indexes above; paginate Top‑N lists if needed
+- 🔄 Comparison period edge cases: handle month-end vs quarter-end date logic
+- 🔄 OpenAI rate limits: implement exponential backoff and fallback to deterministic
+- 🔄 Chart rendering: ensure Chart.js renders correctly in headless Chrome (Phase 2)
 
 ---
 
@@ -649,11 +616,13 @@ CHROME_PATH=/usr/bin/google-chrome
 app/Services/Rfm/RfmCalculator.php ✅
 app/Services/Rfm/RfmConfigurationManager.php ✅
 app/Services/Rfm/RfmTools.php ✅
+app/Services/Pdf/RfmPdfService.php ✅
 app/Models/RfmConfiguration.php ✅
 app/Models/RfmReport.php ✅
 app/Http/Controllers/RfmController.php ✅
 app/Http/Controllers/RfmConfigController.php ✅
 app/Http/Controllers/RfmReportsController.php ✅
+app/Http/Controllers/RfmPdfController.php ✅
 database/migrations/2025_08_19_114853_create_rfm_configurations_table.php ✅
 database/migrations/2025_08_19_115527_slim_down_rfm_reports_table.php ✅
 database/migrations/2025_08_19_120213_remove_weights_from_rfm_configurations.php ✅
@@ -663,6 +632,7 @@ resources/views/rfm/index.blade.php ✅
 resources/views/rfm-config/index.blade.php ✅
 resources/views/rfm/reports/index.blade.php ✅
 resources/views/rfm/reports/show.blade.php ✅ (ENHANCED WITH MODERN UI)
+resources/views/pdf/rfm-report.blade.php ✅
 resources/js/rfm-config.js ✅
 vite.config.js ✅ (updated for rfm-config.js)
 ```
@@ -674,10 +644,8 @@ app/Contracts/NarrativeWriter.php
 app/Services/Narrative/DeterministicNarrativeWriter.php
 app/Services/Narrative/OpenAiNarrativeWriter.php
 app/Services/Narrative/LlmNarrativeWriterOllama.php
-app/Http/Controllers/RfmReportController.php
 app/Http/Controllers/RfmAgentController.php
 config/reports.php
-resources/views/reports/rfm.blade.php
 resources/views/reports/sections/
   ├── header.blade.php
   ├── headline.blade.php
@@ -729,19 +697,31 @@ tests/Feature/RfmConfigurationTest.php
 - ✅ Fixed all UI issues (double arrows, spacing, color mismatches)
 - ✅ Improved visual hierarchy and consistent styling
 
-### 🔄 **Phase 1.7: Final Validation & Testing (CURRENT FOCUS)**
+### ✅ **Phase 1.7: PDF Generation & Report Enhancement (COMPLETED)**
+- ✅ Implement DomPDF integration
+- ✅ Create comprehensive PDF report templates
+- ✅ Add business intelligence to PDF reports
+- ✅ Implement risk assessment in PDF format
+- ✅ Add growth opportunities to PDF reports
+- ✅ Include customer movement analysis in PDF
+- ✅ Add historical trends to PDF reports
+- ✅ Professional styling and layout for PDF
+
+### 🔄 **Phase 1.8: Final Validation & Testing (CURRENT FOCUS)**
 - 🔄 Final testing and validation of all calculations
 - 🔄 Edge case testing and error handling
 - 🔄 Performance optimization for large datasets
 - 🔄 Cross-browser compatibility testing
 - 🔄 Mobile responsiveness validation
+- 🔄 PDF generation performance optimization
+- 🔄 Data accuracy validation across all features
 
-### 🔄 **Phase 2: Report Generation (PLANNED)**
-- 🔄 Build enhanced Blade report templates
-- 🔄 Implement Browsershot PDF generation
+### 🔄 **Phase 2: Enhanced Visualizations (PLANNED)**
+- 🔄 Replace DomPDF with Browsershot
 - 🔄 Add Chart.js integration for visualizations
-- 🔄 Create `DeterministicNarrativeWriter`
-- 🔄 Implement report caching for performance
+- 🔄 Implement interactive charts in reports
+- 🔄 Enhanced report templates with better visualizations
+- 🔄 Report caching for performance
 
 ### 🔄 **Phase 3: OpenAI Integration (PLANNED)**
 - 🔄 Add OpenAI API configuration
@@ -777,10 +757,11 @@ tests/Feature/RfmConfigurationTest.php
 - ✅ Historical snapshot generation with batching
 - ✅ Optimized KPI calculations with proper data aggregation
 
-### 🔄 **PDF Generation (PLANNED)**
-- 🔄 Async PDF generation for large reports
-- 🔄 PDF caching to avoid regeneration
-- 🔄 Optimized Chart.js rendering for headless Chrome
+### ✅ **PDF Generation (COMPLETED)**
+- ✅ DomPDF integration for reliable PDF generation
+- ✅ PDF caching to avoid regeneration
+- ✅ Optimized templates for fast rendering
+- ✅ Professional styling and layout
 
 ### 🔄 **OpenAI API (PLANNED)**
 - 🔄 Request batching where possible
@@ -803,18 +784,19 @@ tests/Feature/RfmConfigurationTest.php
 - ✅ KPI calculation performance and accuracy
 - ✅ Business intelligence feature usage
 - ✅ UI/UX performance and user satisfaction
+- ✅ PDF generation success rates and performance
 
 ### 🔄 **Key Metrics to Track (PLANNED)**
 - 🔄 Report generation time (HTML vs PDF)
 - 🔄 OpenAI API response times and costs
 - 🔄 User engagement with different comparison periods
 - 🔄 Most popular RFM window configurations
-- 🔄 Chart rendering success rates
-- 🔄 PDF generation success rates
+- 🔄 Chart rendering success rates (Phase 2)
+- 🔄 Browsershot rendering success rates (Phase 2)
 
 ### 🔄 **Error Tracking (PLANNED)**
 - 🔄 OpenAI API failures and fallbacks
-- 🔄 Browsershot rendering errors
+- 🔄 Browsershot rendering errors (Phase 2)
 - 🔄 Database query performance
 - 🔄 Memory usage during report generation
 
@@ -832,6 +814,7 @@ tests/Feature/RfmConfigurationTest.php
 7. **Advanced Business Intelligence** - Implemented comprehensive KPI system with risk assessment and growth opportunities
 8. **Significantly Enhanced UI/UX** - Modern card-based layouts, improved logic, better user experience
 9. **Improved Data Accuracy** - Fixed customer movement calculations and edge case handling
+10. **DomPDF Instead of Browsershot** - Using DomPDF for more reliable PDF generation
 
 ### **Current Status:**
 - ✅ **Core RFM System:** Fully implemented and functional
@@ -844,18 +827,16 @@ tests/Feature/RfmConfigurationTest.php
 - ✅ **Data Accuracy:** Comprehensive testing and validation completed
 - ✅ **Enhanced Customer Movement Logic:** Clear definitions and accurate calculations
 - ✅ **Improved User Experience:** Fixed UI issues, better spacing, professional appearance
-- 🔄 **PDF Generation:** Needs Browsershot integration
-- 🔄 **AI Narrative:** Needs OpenAI integration
+- ✅ **PDF Generation:** Complete with DomPDF and professional templates
+- ✅ **Comprehensive Business Intelligence:** Risk assessment, growth opportunities, customer movement analysis
+- 🔄 **Final Validation:** Currently in progress
+- 🔄 **Browsershot Integration:** Planned for Phase 2
+- 🔄 **AI Narrative:** Planned for Phase 3
 
 ### **Next Steps:**
-1. **Final Validation** - Complete testing and edge case handling
-2. **PDF Export** - Integrate Browsershot for PDF generation
-3. **Chart Integration** - Add visualizations to reports
-4. **Implement AI Narrative** - Add OpenAI-powered insights
-5. **Advanced Features** - Add Q&A system and advanced analytics
-2. **PDF Export** - Integrate Browsershot for PDF generation
-3. **Chart Integration** - Add visualizations to reports
-4. **Implement AI Narrative** - Add OpenAI-powered insights
-5. **Advanced Features** - Add Q&A system and advanced analytics
+1. **Complete Phase 1.8** - Final validation and testing
+2. **Phase 2** - Replace DomPDF with Browsershot and add Chart.js visualizations
+3. **Phase 3** - Implement OpenAI-powered insights and explanations
+4. **Phase 4** - Add Q&A system and advanced analytics
 
-This comprehensive plan provides a complete roadmap for implementing advanced RFM reporting with flexible configuration, enhanced analytics, and OpenAI-powered insights, building upon the solid foundation already established with significant UI/UX improvements and enhanced business intelligence features.
+This comprehensive plan provides a complete roadmap for implementing advanced RFM reporting with flexible configuration, enhanced analytics, and AI-powered insights, building upon the solid foundation already established with significant UI/UX improvements and enhanced business intelligence features.
