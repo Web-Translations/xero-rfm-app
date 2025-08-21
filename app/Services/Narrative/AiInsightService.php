@@ -2,6 +2,8 @@
 
 namespace App\Services\Narrative;
 
+use Illuminate\Support\Facades\Log;
+
 class AiInsightService
 {
     public function generateInsight(string $section, array $data): string
@@ -18,7 +20,7 @@ class AiInsightService
                 return $this->callOpenAI($prompt);
             } catch (\Exception $e) {
                 // Log the error for debugging
-                \Log::warning('OpenAI API call failed, falling back to deterministic text: ' . $e->getMessage());
+                Log::warning('OpenAI API call failed, falling back to deterministic text: ' . $e->getMessage());
                 return $this->getDeterministicInsight($section, $data);
             }
         } else {

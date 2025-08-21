@@ -5,6 +5,7 @@ namespace App\Services\Xero;
 use App\Models\XeroConnection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use Webfox\Xero\Oauth2CredentialManagers\BaseCredentialManager;
 use Webfox\Xero\OauthCredentialManager;
@@ -29,7 +30,7 @@ class DatabaseCredentialManager extends BaseCredentialManager implements OauthCr
                 ->where('is_active', true)
                 ->first();
                 
-            \Log::info('loadActiveConnection called', [
+            Log::info('loadActiveConnection called', [
                 'user_id' => Auth::id(),
                 'active_connection_id' => $this->activeConnection->id ?? null,
                 'active_connection_expires_at' => $this->activeConnection->expires_at ?? null,
@@ -121,7 +122,7 @@ class DatabaseCredentialManager extends BaseCredentialManager implements OauthCr
         }
 
         try {
-            \Log::info('Starting manual token refresh', [
+            Log::info('Starting manual token refresh', [
                 'user_id' => $this->activeConnection->user_id ?? null,
                 'connection_id' => $this->activeConnection->id ?? null,
                 'current_expires_at' => $this->activeConnection->expires_at ?? null,
@@ -133,7 +134,7 @@ class DatabaseCredentialManager extends BaseCredentialManager implements OauthCr
                 'refresh_token' => $this->getRefreshToken(),
             ]);
 
-            \Log::info('Got new access token from Xero', [
+            Log::info('Got new access token from Xero', [
                 'new_expires_at' => $newAccessToken->getExpires(),
                 'has_refresh_token' => !empty($newAccessToken->getRefreshToken()),
             ]);
@@ -147,7 +148,7 @@ class DatabaseCredentialManager extends BaseCredentialManager implements OauthCr
                 'expires_at' => $newExpiresAt, // Store raw UTC timestamp
             ]);
 
-            \Log::info('Database update result', [
+            Log::info('Database update result', [
                 'update_successful' => $updated,
                 'new_expires_at_stored' => $newExpiresAt,
                 'connection_id' => $this->activeConnection->id,
@@ -157,7 +158,7 @@ class DatabaseCredentialManager extends BaseCredentialManager implements OauthCr
             // Reload the connection
             $this->loadActiveConnection();
             
-            \Log::info('Connection reloaded after update', [
+            Log::info('Connection reloaded after update', [
                 'new_expires_at_in_db' => $this->activeConnection->expires_at ?? null,
                 'is_expired_after_update' => $this->activeConnection->isExpired(),
                 'connection_id' => $this->activeConnection->id ?? null,
@@ -165,13 +166,13 @@ class DatabaseCredentialManager extends BaseCredentialManager implements OauthCr
             
             // Also verify the database was actually updated by querying it directly
             $freshConnection = XeroConnection::find($this->activeConnection->id);
-            \Log::info('Direct database query result', [
+            Log::info('Direct database query result', [
                 'fresh_expires_at' => $freshConnection->expires_at ?? null,
                 'fresh_is_expired' => $freshConnection->isExpired(),
             ]);
         } catch (\Exception $e) {
             // Log the error for debugging
-            \Log::error('Token refresh failed', [
+            Log::error('Token refresh failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $this->activeConnection->user_id ?? null,
                 'connection_id' => $this->activeConnection->id ?? null,
