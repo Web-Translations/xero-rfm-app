@@ -89,15 +89,55 @@
 
         <!-- Executive Summary -->
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
-                    <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Executive Summary</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Key performance indicators and business metrics</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Executive Summary</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Key performance indicators and business metrics</p>
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-executive-summary"
+                    data-section="executive-summary"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- Hidden KPIs Data for AI -->
+            <script type="application/json" id="kpis-data">
+                {!! json_encode($kpis, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
+            </script>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-executive-summary" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-executive-summary" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -286,15 +326,50 @@
 
         <!-- Customer Segments -->
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Customer Segments</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Breakdown of your customer base by RFM value</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Customer Segments</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Breakdown of your customer base by RFM value</p>
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-customer-segments"
+                    data-section="customer-segments"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-customer-segments" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-customer-segments" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="space-y-6">
@@ -357,15 +432,50 @@
 
         <!-- Revenue Concentration -->
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Revenue Concentration</h2>
+                        <p class="text-gray-600 dark:text-gray-400">How your revenue is distributed across customers</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Revenue Concentration</h2>
-                    <p class="text-gray-600 dark:text-gray-400">How your revenue is distributed across customers</p>
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-revenue-concentration"
+                    data-section="revenue-concentration"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-revenue-concentration" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-revenue-concentration" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -390,21 +500,56 @@
         <!-- Customer Movement -->
         @if($comparisonSnapshotDate)
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                    <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Customer Movement</h2>
+                        <p class="text-gray-600 dark:text-gray-400">How your customer base has changed over time</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Based on active customers (RFM > 0)</span>
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Customer Movement</h2>
-                    <p class="text-gray-600 dark:text-gray-400">How your customer base has changed over time</p>
-                </div>
-                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-customer-movement"
+                    data-section="customer-movement"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                     </svg>
-                    <span>Based on active customers (RFM > 0)</span>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-customer-movement" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-customer-movement" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -564,15 +709,50 @@
         <!-- Risk Analysis -->
         @if(!empty($kpis['risk_analysis']))
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Risk Assessment</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Identify potential business risks and areas of concern</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Risk Assessment</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Identify potential business risks and areas of concern</p>
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-risk-assessment"
+                    data-section="risk-assessment"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-risk-assessment" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-risk-assessment" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -619,15 +799,50 @@
         <!-- Growth Opportunities -->
         @if(!empty($kpis['opportunities']))
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Growth Opportunities</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Identify areas for business growth and improvement</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Growth Opportunities</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Identify areas for business growth and improvement</p>
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-growth-opportunities"
+                    data-section="growth-opportunities"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-growth-opportunities" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-growth-opportunities" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -758,15 +973,50 @@
         <!-- Historical Trends -->
         @if(!empty($kpis['historical_trends']))
         <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-200 dark:border-gray-700 p-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Historical Trends</h2>
+                        <p class="text-gray-600 dark:text-gray-400">Track performance over the last 6 periods</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Historical Trends</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Track performance over the last 6 periods</p>
+                <!-- AI Insight Button -->
+                <button 
+                    id="ai-insights-btn-historical-trends"
+                    data-section="historical-trends"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    AI Insights
+                </button>
+            </div>
+            
+            <!-- AI Insight Display Area -->
+            <div id="ai-insight-historical-trends" class="hidden mb-6">
+                <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-full">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-blue-900 dark:text-blue-100 mb-2">AI-Generated Insights</h4>
+                            <div id="ai-content-historical-trends" class="text-blue-800 dark:text-blue-200">
+                                <div class="animate-pulse">
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded mb-2 w-3/4"></div>
+                                    <div class="h-4 bg-blue-200 dark:bg-blue-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
