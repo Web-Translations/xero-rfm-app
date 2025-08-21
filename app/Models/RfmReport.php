@@ -143,4 +143,35 @@ class RfmReport extends Model
             
         return $dates;
     }
+
+    /**
+     * Get available snapshot dates for report builder (only 1st of month dates for comparison compatibility)
+     */
+    public static function getReportBuilderSnapshotDates(int $userId, string $tenantId = null)
+    {
+        $query = self::where('rfm_reports.user_id', $userId)
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id');
+            
+        if ($tenantId) {
+            $query->where('clients.tenant_id', $tenantId);
+        }
+        
+        // Use raw SQL to get distinct dates and avoid any timezone/format issues
+        $dates = $query->selectRaw('DISTINCT DATE(rfm_reports.snapshot_date) as date_only')
+            ->pluck('date_only')
+            ->map(function($date) {
+                return date('Y-m-d', strtotime($date));
+            })
+            ->unique()
+            ->filter(function($date) {
+                // Only include dates that are the 1st of the month
+                $day = (int) date('j', strtotime($date));
+                return $day === 1;
+            })
+            ->sort()
+            ->reverse()
+            ->values();
+            
+        return $dates;
+    }
 } 

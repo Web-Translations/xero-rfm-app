@@ -89,7 +89,10 @@ class RfmController extends Controller
             $historicalResults = $calculator->computeHistoricalSnapshots($user->id, 36, $config);
             $totalHistorical = array_sum(array_column($historicalResults, 'computed'));
             
-            $status = "Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created.";
+            // Clean up old snapshots that aren't on 1st of month
+            $cleanedUp = $calculator->cleanupOldSnapshots($user->id);
+            
+            $status = "Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created. Cleaned up {$cleanedUp} old snapshots.";
         } else {
             // Fallback for old actions (if needed)
             if ($action === 'current') {

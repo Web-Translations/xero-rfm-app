@@ -25,8 +25,8 @@ class RfmReportsController extends Controller
         // Get current RFM configuration
         $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
 
-        // Get available snapshot dates for comparison
-        $availableSnapshots = RfmReport::getAvailableSnapshotDates($user->id, $activeConnection->tenant_id);
+        // Get available snapshot dates for report builder (1st of month only for comparison compatibility)
+        $availableSnapshots = RfmReport::getReportBuilderSnapshotDates($user->id, $activeConnection->tenant_id);
 
         return view('rfm.reports.index', [
             'activeConnection' => $activeConnection,
@@ -46,7 +46,7 @@ class RfmReportsController extends Controller
         }
 
         // Get parameters
-        $snapshotDate = $request->get('snapshot_date', 'current');
+        $snapshotDate = $request->get('snapshot_date');
         $comparisonPeriod = $request->get('comparison_period', 'monthly');
         $rfmWindow = $request->get('rfm_window', 12);
 
@@ -56,9 +56,10 @@ class RfmReportsController extends Controller
         // Initialize RFM Tools service
         $rfmTools = new RfmTools();
 
-        // Determine snapshot dates
-        if ($snapshotDate === 'current') {
-            $currentSnapshotDate = Carbon::now()->toDateString();
+        // Determine snapshot dates - default to most recent 1st-of-month snapshot
+        if (!$snapshotDate) {
+            $availableSnapshots = RfmReport::getReportBuilderSnapshotDates($user->id, $activeConnection->tenant_id);
+            $currentSnapshotDate = $availableSnapshots->first();
         } else {
             $currentSnapshotDate = $snapshotDate;
         }

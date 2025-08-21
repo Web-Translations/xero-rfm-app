@@ -99,12 +99,13 @@
                                     </span>
                                 </label>
                                 <select name="snapshot_date" class="w-full border rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="current">Latest Data (Current)</option>
-                                    @foreach($availableSnapshots as $date)
-                                        <option value="{{ $date }}">
-                                            {{ \Carbon\Carbon::parse($date)->format('F j, Y') }} Snapshot
-                                        </option>
-                                    @endforeach
+                                    @if($availableSnapshots->isNotEmpty())
+                                        @foreach($availableSnapshots as $date)
+                                            <option value="{{ $date }}">
+                                                {{ \Carbon\Carbon::parse($date)->format('F j, Y') }} Snapshot
+                                            </option>
+                                        @endforeach
+                                    @endif
                                 </select>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Choose which data snapshot to analyze</p>
                             </div>

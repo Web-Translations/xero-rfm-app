@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\XeroInvoice;
 use App\Models\ExcludedInvoice;
 use App\Models\RfmConfiguration;
+use App\Models\RfmReport;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +16,15 @@ class RfmCalculator
     /**
      * Compute RFM scores for all clients using configurable parameters.
      * Stores snapshot with timestamp for historical analysis.
+     * Only creates new snapshots on 1st of month, otherwise updates current snapshot.
      */
     public function computeSnapshot(int $userId, Carbon $snapshotDate = null, ?RfmConfiguration $config = null): array
     {
         $snapshotDate = $snapshotDate ?? Carbon::now();
+        
+        // For current calculations (when no specific date provided), always use today
+        // For historical calculations (when specific date provided), use that date
+        $effectiveSnapshotDate = $snapshotDate;
         
         // Get the active connection for this user
         $activeConnection = \App\Models\XeroConnection::getActiveForUser($userId);
@@ -36,9 +42,9 @@ class RfmCalculator
         }
 
         // Calculate windows for each component
-        $recencyWindowStart = (clone $snapshotDate)->subMonths($config->recency_window_months)->startOfDay();
-        $frequencyWindowStart = (clone $snapshotDate)->subMonths($config->frequency_period_months)->startOfDay();
-        $monetaryWindowStart = (clone $snapshotDate)->subMonths($config->monetary_window_months)->startOfDay();
+        $recencyWindowStart = (clone $effectiveSnapshotDate)->subMonths($config->recency_window_months)->startOfDay();
+        $frequencyWindowStart = (clone $effectiveSnapshotDate)->subMonths($config->frequency_period_months)->startOfDay();
+        $monetaryWindowStart = (clone $effectiveSnapshotDate)->subMonths($config->monetary_window_months)->startOfDay();
 
 
 
@@ -61,7 +67,7 @@ class RfmCalculator
 
         if ($allInvoices->isEmpty()) {
             return [
-                'snapshot_date' => $snapshotDate->toDateString(),
+                'snapshot_date' => $effectiveSnapshotDate->toDateString(),
                 'window_start' => min($recencyWindowStart, $frequencyWindowStart, $monetaryWindowStart)->toDateString(),
                 'computed' => 0,
             ];
@@ -98,6 +104,7 @@ class RfmCalculator
             $clients,
             $invoicesByContact,
             $snapshotDate,
+            $effectiveSnapshotDate,
             $userId,
             &$computedCount,
             $activeConnection,
@@ -149,7 +156,7 @@ class RfmCalculator
                 $insertData = [
                     'user_id' => $userId,
                     'client_id' => $client->id,
-                    'snapshot_date' => $snapshotDate->toDateString(),
+                    'snapshot_date' => $effectiveSnapshotDate->toDateString(),
                     'rfm_configuration_id' => $config->id,
                 ];
                 
@@ -168,7 +175,7 @@ class RfmCalculator
         });
 
         return [
-            'snapshot_date' => $snapshotDate->toDateString(),
+            'snapshot_date' => $effectiveSnapshotDate->toDateString(),
             'window_start' => min($recencyWindowStart, $frequencyWindowStart, $monetaryWindowStart)->toDateString(),
             'computed' => $computedCount,
         ];
@@ -290,6 +297,23 @@ class RfmCalculator
         }
 
         return $results;
+    }
+
+    /**
+     * Clean up old snapshots that aren't on the 1st of the month
+     * This helps keep the database clean and only maintain monthly snapshots
+     * But keeps today's snapshot even if it's not the 1st
+     */
+    public function cleanupOldSnapshots(int $userId): int
+    {
+        $today = Carbon::now()->toDateString();
+        
+        $deleted = RfmReport::where('user_id', $userId)
+            ->whereRaw("CAST(strftime('%d', snapshot_date) AS INTEGER) != 1")
+            ->where('snapshot_date', '!=', $today)
+            ->delete();
+            
+        return $deleted;
     }
 
     /**
