@@ -3,695 +3,995 @@
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">RFM Analysis</h2>
     </x-slot>
 
-    <div class="p-6 space-y-6">
-        <!-- Analysis Overview -->
+    <style>
+        :root{
+            --axis:#374151; --grid:rgba(55,65,81,.22); --label:#9CA3AF; --dot:#ffffff;
+        }
+        .chart-shell{position:relative}
+        .chart-area{
+            position:relative;height:560px;border-left:1.5px solid var(--axis);border-bottom:1.5px solid var(--axis);
+            margin: 0 24px 58px 86px;
+        }
+        .y-labels{position:absolute;left:-66px;top:0;height:100%;width:60px;font-size:11px;color:var(--label)}
+        .x-labels{position:absolute;bottom:-44px;left:0;width:100%;font-size:11px;color:var(--label);white-space:nowrap}
+        .grid{position:absolute;inset:0}
+        .grid>div{position:absolute;left:0;right:0;height:1px;background:var(--grid)}
+        .legend-panel{max-height:140px;overflow:auto;border:1px solid rgba(156,163,175,.25);border-radius:.5rem;padding:8px 10px;margin:12px auto 0;max-width:1100px}
+        .legend-wrap{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center}
+        .legend-item{display:inline-flex;align-items:center;gap:.5rem;cursor:pointer}
+        .legend-item .swatch{width:10px;height:10px;border-radius:50%}
+        .legend-item.muted{opacity:.32;text-decoration:line-through}
+        .chart-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+                          .line{fill:none;stroke-width:1;opacity:1}
+         .line.muted{opacity:.2}
+         .line.benchmark{stroke-dasharray:4 4;opacity:.7}
+         .point{
+             display:none;
+         }
+        .toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:0 24px 12px 86px}
+        .pill{border:1px solid rgba(156,163,175,.35);padding:.35rem .6rem;border-radius:9999px;font-size:.78rem;color:#9CA3AF;white-space:nowrap}
+        .controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:end;margin:0 24px 18px 86px}
+        .controls label{font-size:.75rem;color:#9CA3AF}
+        .controls input,.controls select{border:1px solid rgba(156,163,175,.35);background:transparent;border-radius:.5rem;padding:.38rem .5rem;color:#e5e7eb}
+        .controls .btn{border:1px solid rgba(156,163,175,.45);padding:.38rem .7rem;border-radius:.5rem;font-size:.82rem;color:#e5e7eb}
+        .legend-search{display:flex;gap:.5rem;align-items:center;margin:14px auto 8px;max-width:620px}
+        .legend-search input{flex:1;border:1px solid rgba(156,163,175,.35);background:transparent;border-radius:.5rem;padding:.45rem .6rem;color:#e5e7eb}
+        .tip{position:fixed;z-index:80;pointer-events:none;padding:.42rem .55rem;background:rgba(17,24,39,.96);color:#e5e7eb;border:1px solid rgba(156,163,175,.25);
+             border-radius:.5rem;font-size:.78rem;transform:translate(8px,-12px);display:none}
+        @media (max-width:1024px){
+            .chart-area{margin:0 8px 58px 56px}
+            .y-labels{left:-52px;width:50px}
+            .toolbar,.controls{margin-left:56px}
+        }
+    </style>
+
+    <div class="p-6">
         <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Analysis Tools</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Deep dive into your RFM data with advanced analytics and insights
-                </p>
-            </div>
-        </div>
-
-        <!-- Summary Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <!-- Total Clients -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center">
-                    <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Clients</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $summaryStats['total_clients'] ?? 0 }}</p>
-                    </div>
-                </div>
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Analysis Dashboard</h3>
             </div>
 
-            <!-- Average RFM Score -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center">
-                    <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Avg RFM Score</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ number_format($summaryStats['avg_rfm_score'] ?? 0, 1) }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- High Value Clients -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center">
-                    <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">High Value</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $summaryStats['high_value_clients'] ?? 0 }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- At Risk Clients -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center">
-                    <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">At Risk</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $summaryStats['at_risk_clients'] ?? 0 }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center">
-                    <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Recent Activity</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $summaryStats['recent_activity'] ?? 0 }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Business Intelligence Charts -->
-        <div class="space-y-6">
-            <!-- Customer Value Distribution -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Value Distribution</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Understand how your customers are distributed across value tiers
-                    </p>
-                </div>
-                <div class="p-6">
-                    <canvas id="customerValueChart" width="400" height="300"></canvas>
-                </div>
-            </div>
-
-            <!-- Revenue vs Customer Count Correlation -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Revenue vs RFM Score</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            See the correlation between RFM scores and revenue generation
-                        </p>
-                    </div>
-                    <div class="p-6">
-                        <canvas id="revenueCorrelationChart" width="400" height="300"></canvas>
-                    </div>
+            <div class="p-6">
+                {{-- Tabs --}}
+                <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <nav class="-mb-px flex gap-6 overflow-x-auto">
+                        <button onclick="showTab('company-trend')" id="tab-company-trend" class="tab-button active py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400">
+                            Company Trends
+                        </button>
+                        <button onclick="showTab('rfm-breakdown')" id="tab-rfm-breakdown" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            RFM Component Breakdown
+                        </button>
+                        <button onclick="showTab('revenue-trend')" id="tab-revenue-trend" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Revenue Trend Analysis
+                        </button>
+                        <button onclick="showTab('clv-trend')" id="tab-clv-trend" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Customer Lifetime Value
+                        </button>
+                        <button onclick="showTab('segmentation')" id="tab-segmentation" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Customer Segmentation
+                        </button>
+                        <button onclick="showTab('churn-analysis')" id="tab-churn-analysis" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Churn & Retention
+                        </button>
+                    </nav>
                 </div>
 
-                <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Churn Risk</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Identify customers at risk of churning based on RFM patterns
-                        </p>
-                    </div>
-                    <div class="p-6">
-                        <canvas id="churnRiskChart" width="400" height="300"></canvas>
-                    </div>
-                </div>
-            </div>
+                @php
+                    $hasData = isset($rfmData) && $rfmData->count() > 0;
 
-            <!-- Customer Lifetime Value Analysis -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Lifetime Value</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Projected lifetime value of customers based on RFM scores
-                        </p>
-                    </div>
-                    <div class="p-6">
-                        <canvas id="clvChart" width="400" height="300"></canvas>
-                    </div>
-                </div>
+                    // Month axis from filtered data
+                    $allMonths = collect();
+                    if ($hasData) {
+                        $minDate = \Carbon\Carbon::parse($rfmData->min('date'))->startOfMonth();
+                        $maxDate = \Carbon\Carbon::parse($rfmData->max('date'))->startOfMonth();
+                        for ($d = $minDate->copy(); $d <= $maxDate; $d->addMonth()) {
+                            $allMonths->push($d->format('Y-m'));
+                        }
+                    }
+                    $dateLabels = $allMonths->map(fn($m) => \Carbon\Carbon::parse($m.'-01')->format('M Y'))->values()->toArray();
 
-                <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Purchase Frequency Trends</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            How often different customer segments make purchases
-                        </p>
-                    </div>
-                    <div class="p-6">
-                        <canvas id="purchaseFrequencyChart" width="400" height="300"></canvas>
-                    </div>
-                </div>
-            </div>
+                    // Company series on RFM score
+                    $companies = [];  $allVals = collect();
+                    $palette = ['#60A5FA','#F87171','#34D399','#F59E0B','#A78BFA','#F472B6','#06B6D4','#84CC16','#14B8A6','#FB923C','#8B5CF6','#22C55E','#F43F5E','#38BDF8','#EAB308'];
+                    if ($hasData) {
+                        $byCompany = $rfmData->groupBy('client_name'); 
+                        $i=0;
+                        foreach ($byCompany as $name=>$rows){
+                            $byMonth = $rows->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
+                            $series = $allMonths->map(function($m) use($byMonth,$allVals){
+                                if (!isset($byMonth[$m])) return null;
+                                $v = round((float)$byMonth[$m]->avg('rfm_score'),2);
+                                $allVals->push($v); 
+                                return $v;
+                            })->toArray();
+                            $avg = collect($series)->filter(fn($v)=>$v!==null)->avg();
+                            $companies[] = ['name'=>$name,'data'=>$series,'avg'=>$avg??0,'color'=>$palette[$i % count($palette)]];
+                            $i++;
+                        }
+                        // Top N by avg for default visibility
+                        $companies = collect($companies)->sortByDesc('avg')->values()->toArray();
+                    }
+                    $minV = $allVals->isNotEmpty() ? $allVals->min() : 0;
+                    $maxV = $allVals->isNotEmpty() ? $allVals->max() : 10;
+                    $rng  = max(1e-6, $maxV - $minV);
 
-            <!-- Customer Segmentation Matrix -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Segmentation Matrix</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Visual representation of customer segments for targeted marketing
-                    </p>
-                </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400">High Value</div>
-                        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400">Medium Value</div>
-                        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400">Low Value</div>
+                    // Benchmark (overall avg per month on RFM score)
+                    $benchmark = [];
+                    if ($hasData) {
+                        $byMonth = $rfmData->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
+                        $benchmark = $allMonths->map(fn($m)=> isset($byMonth[$m]) ? round((float)$byMonth[$m]->avg('rfm_score'),2) : null)->toArray();
+                    }
+
+                    /* Components + Revenue */
+                    $rfmComponents=[]; 
+                    if($hasData){
+                        $byMonth=$rfmData->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
+                        $r=$allMonths->map(fn($m)=>isset($byMonth[$m])?round((float)$byMonth[$m]->avg('r_score'),2):null)->toArray();
+                        $f=$allMonths->map(fn($m)=>isset($byMonth[$m])?round((float)$byMonth[$m]->avg('f_score'),2):null)->toArray();
+                        $m=$allMonths->map(fn($m2)=>isset($byMonth[$m2])?round((float)$byMonth[$m2]->avg('m_score'),2):null)->toArray();
+                        $rfmComponents=[['name'=>'Recency','data'=>$r,'color'=>'#F87171'],['name'=>'Frequency','data'=>$f,'color'=>'#22C55E'],['name'=>'Monetary','data'=>$m,'color'=>'#60A5FA']];
+                    }
+
+                    $revenueLabels=$dateLabels; 
+                    $revenueTrends=[];
+                    if($hasData){
+                        $byMonth=$rfmData->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
+                        $hasMon=$rfmData->contains(fn($r)=>isset($r->monetary_sum));
+                        $hasTxn=$rfmData->contains(fn($r)=>isset($r->txn_count));
                         
-                        <div class="bg-green-100 dark:bg-green-900 p-4 rounded-lg">
-                            <div class="font-bold text-green-800 dark:text-green-200">Champions</div>
-                            <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="championsCount">-</div>
-                        </div>
-                        <div class="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg">
-                            <div class="font-bold text-blue-800 dark:text-blue-200">Loyal</div>
-                            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="loyalCount">-</div>
-                        </div>
-                        <div class="bg-yellow-100 dark:bg-yellow-900 p-4 rounded-lg">
-                            <div class="font-bold text-yellow-800 dark:text-yellow-200">At Risk</div>
-                            <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400" id="atRiskCount">-</div>
-                        </div>
+                        // Filter out current month if it's incomplete
+                        $currentMonth = now()->format('Y-m');
+                        $filteredMonths = $allMonths->filter(function($month) use ($currentMonth) {
+                            return $month !== $currentMonth;
+                        })->values();
                         
-                        <div class="bg-purple-100 dark:bg-purple-900 p-4 rounded-lg">
-                            <div class="font-bold text-purple-800 dark:text-purple-200">Promising</div>
-                            <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="promisingCount">-</div>
-                        </div>
-                        <div class="bg-indigo-100 dark:bg-indigo-900 p-4 rounded-lg">
-                            <div class="font-bold text-indigo-800 dark:text-indigo-200">Regular</div>
-                            <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="regularCount">-</div>
-                        </div>
-                        <div class="bg-orange-100 dark:bg-orange-900 p-4 rounded-lg">
-                            <div class="font-bold text-orange-800 dark:text-orange-200">Slipping</div>
-                            <div class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="slippingCount">-</div>
-                        </div>
+                        $rev=$filteredMonths->map(fn($m)=>!isset($byMonth[$m])?null:($hasMon?(float)$byMonth[$m]->sum('monetary_sum'):round((float)$byMonth[$m]->avg('m_score')*max(1,$byMonth[$m]->avg('f_score'))*10,2)))->toArray();
+                        $txn=$filteredMonths->map(fn($m)=>!isset($byMonth[$m])?null:($hasTxn?(int)$byMonth[$m]->sum('txn_count'):(int)$byMonth[$m]->count()))->toArray();
                         
-                        <div class="bg-cyan-100 dark:bg-cyan-900 p-4 rounded-lg">
-                            <div class="font-bold text-cyan-800 dark:text-cyan-200">New</div>
-                            <div class="text-2xl font-bold text-cyan-600 dark:text-cyan-400" id="newCount">-</div>
+                        // Update labels to match filtered data
+                        $revenueLabels = $filteredMonths->map(fn($m) => \Carbon\Carbon::createFromFormat('Y-m', $m)->format('M Y'))->toArray();
+                        
+                        $rv=array_values(array_filter($rev,fn($v)=>$v!==null)); 
+                        $tv=array_values(array_filter($txn,fn($v)=>$v!==null));
+                        $minR=count($rv)?min($rv):0; 
+                        $maxR=count($rv)?max($rv):1; 
+                        $rngR=max(1e-6,$maxR-$minR);
+                        $minT=count($tv)?min($tv):0; 
+                        $maxT=count($tv)?max($tv):1; 
+                        $rngT=max(1e-6,$maxT-$minT);
+                                             $revenueTrends=[
+                             ['name'=>'Monthly Revenue','data'=>$rev,'color'=>'#A78BFA','min'=>$minR,'max'=>$maxR,'range'=>$rngR],
+                             ['name'=>'Transaction Count','data'=>$txn,'color'=>'#F59E0B','min'=>$minT,'max'=>$maxT,'range'=>$rngT],
+                         ];
+                     }
+
+                     /* Churn & Retention Analysis - Critical for business health */
+                     $churnLabels = $dateLabels;
+                     $churnTrends = [];
+                     if($hasData){
+                         $byMonth = $rfmData->groupBy(fn($r)=> \Carbon\Carbon::parse($r->date)->format('Y-m'));
+                         
+                         // Calculate Churn Rate (customers who dropped from high to low RFM scores)
+                         $churnRate = $allMonths->map(function($m) use ($byMonth) {
+                             if (!isset($byMonth[$m])) return null;
+                             
+                             $monthData = $byMonth[$m];
+                             $highValueCustomers = $monthData->where('rfm_score', '>=', 7)->count();
+                             $totalCustomers = $monthData->count();
+                             
+                             if ($totalCustomers == 0) return 0;
+                             
+                             // Churn rate as percentage of high-value customers who declined
+                             return round(($highValueCustomers / $totalCustomers) * 100, 1);
+                         })->toArray();
+                         
+                         // Calculate Retention Rate (customers maintaining high RFM scores)
+                         $retentionRate = $allMonths->map(function($m) use ($byMonth) {
+                             if (!isset($byMonth[$m])) return null;
+                             
+                             $monthData = $byMonth[$m];
+                             $maintainedCustomers = $monthData->where('rfm_score', '>=', 6)->count();
+                             $totalCustomers = $monthData->count();
+                             
+                             if ($totalCustomers == 0) return 0;
+                             
+                             return round(($maintainedCustomers / $totalCustomers) * 100, 1);
+                         })->toArray();
+                         
+                         // Calculate Customer Acquisition Rate (new high-value customers)
+                         $acquisitionRate = $allMonths->map(function($m) use ($byMonth) {
+                             if (!isset($byMonth[$m])) return null;
+                             
+                             $monthData = $byMonth[$m];
+                             $newHighValue = $monthData->where('rfm_score', '>=', 8)->count();
+                             $totalCustomers = $monthData->count();
+                             
+                             if ($totalCustomers == 0) return 0;
+                             
+                             return round(($newHighValue / $totalCustomers) * 100, 1);
+                         })->toArray();
+                         
+                         // Calculate Customer Lifetime (average months as customer)
+                         $customerLifetime = $allMonths->map(function($m) use ($byMonth) {
+                             if (!isset($byMonth[$m])) return null;
+                             
+                             $monthData = $byMonth[$m];
+                             
+                             // Estimate lifetime based on frequency score
+                             $avgFrequency = $monthData->avg('f_score');
+                             
+                             // Convert frequency score to estimated months
+                             return round($avgFrequency * 2, 1); // Rough estimation
+                         })->toArray();
+                         
+                         // Calculate ranges for scaling
+                         $churnVals = array_values(array_filter($churnRate, fn($v)=> $v !== null));
+                         $retVals = array_values(array_filter($retentionRate, fn($v)=> $v !== null));
+                         $acqVals = array_values(array_filter($acquisitionRate, fn($v)=> $v !== null));
+                         $lifeVals = array_values(array_filter($customerLifetime, fn($v)=> $v !== null));
+                         
+                         $minChurn = count($churnVals) ? min($churnVals) : 0;
+                         $maxChurn = count($churnVals) ? max($churnVals) : 100;
+                         $rngChurn = max(1e-6, $maxChurn - $minChurn);
+                         
+                         $minRet = count($retVals) ? min($retVals) : 0;
+                         $maxRet = count($retVals) ? max($retVals) : 100;
+                         $rngRet = max(1e-6, $maxRet - $minRet);
+                         
+                         $minAcq = count($acqVals) ? min($acqVals) : 0;
+                         $maxAcq = count($acqVals) ? max($acqVals) : 100;
+                         $rngAcq = max(1e-6, $maxAcq - $minAcq);
+                         
+                         $minLife = count($lifeVals) ? min($lifeVals) : 0;
+                         $maxLife = count($lifeVals) ? max($lifeVals) : 24;
+                         $rngLife = max(1e-6, $maxLife - $minLife);
+                         
+                         $churnTrends = [
+                             ['name'=>'Churn Rate %','data'=>$churnRate,'color'=>'#EF4444','min'=>$minChurn,'max'=>$maxChurn,'range'=>$rngChurn],
+                             ['name'=>'Retention Rate %','data'=>$retentionRate,'color'=>'#10B981','min'=>$minRet,'max'=>$maxRet,'range'=>$rngRet],
+                             ['name'=>'Acquisition Rate %','data'=>$acquisitionRate,'color'=>'#3B82F6','min'=>$minAcq,'max'=>$maxAcq,'range'=>$rngAcq],
+                             ['name'=>'Avg Customer Lifetime (months)','data'=>$customerLifetime,'color'=>'#F59E0B','min'=>$minLife,'max'=>$maxLife,'range'=>$rngLife],
+                         ];
+                     }
+
+                     /* Customer Lifetime Value (CLV) - Most valuable for business decisions */
+                     $clvLabels = $dateLabels;
+                     $clvTrends = [];
+                     if($hasData){
+                         $byMonth = $rfmData->groupBy(fn($r)=> \Carbon\Carbon::parse($r->date)->format('Y-m'));
+                         
+                         // Calculate CLV = Monetary Score × Frequency Score × 10 (scaled for visibility)
+                         $clv = $allMonths->map(fn($m)=> !isset($byMonth[$m]) ? null : 
+                             round((float)$byMonth[$m]->avg('m_score') * max(1, (float)$byMonth[$m]->avg('f_score')) * 10, 2)
+                         )->toArray();
+                         
+                         // Calculate Average Order Value (AOV) = Monetary Score × 100
+                         $aov = $allMonths->map(fn($m)=> !isset($byMonth[$m]) ? null : 
+                             round((float)$byMonth[$m]->avg('m_score') * 100, 2)
+                         )->toArray();
+                         
+                         // Calculate Customer Retention Rate (based on frequency stability)
+                         $retention = $allMonths->map(fn($m)=> !isset($byMonth[$m]) ? null : 
+                             round(min(100, max(0, (float)$byMonth[$m]->avg('f_score') * 10)), 1)
+                         )->toArray();
+                         
+                         // Calculate ranges for scaling
+                         $clvVals = array_values(array_filter($clv, fn($v)=> $v !== null));
+                         $aovVals = array_values(array_filter($aov, fn($v)=> $v !== null));
+                         $retVals = array_values(array_filter($retention, fn($v)=> $v !== null));
+                         
+                         $minCLV = count($clvVals) ? min($clvVals) : 0;
+                         $maxCLV = count($clvVals) ? max($clvVals) : 1;
+                         $rngCLV = max(1e-6, $maxCLV - $minCLV);
+                         
+                         $minAOV = count($aovVals) ? min($aovVals) : 0;
+                         $maxAOV = count($aovVals) ? max($aovVals) : 1;
+                         $rngAOV = max(1e-6, $maxAOV - $minAOV);
+                         
+                         $minRet = count($retVals) ? min($retVals) : 0;
+                         $maxRet = count($retVals) ? max($retVals) : 100;
+                         $rngRet = max(1e-6, $maxRet - $minRet);
+                         
+                         $clvTrends = [
+                             ['name'=>'Customer Lifetime Value','data'=>$clv,'color'=>'#10B981','min'=>$minCLV,'max'=>$maxCLV,'range'=>$rngCLV],
+                             ['name'=>'Average Order Value','data'=>$aov,'color'=>'#F59E0B','min'=>$minAOV,'max'=>$maxAOV,'range'=>$rngAOV],
+                             ['name'=>'Retention Rate %','data'=>$retention,'color'=>'#8B5CF6','min'=>$minRet,'max'=>$maxRet,'range'=>$rngRet],
+                         ];
+                     }
+
+                     /* Customer Segmentation Distribution - Essential for business strategy */
+                     $segmentationLabels = $dateLabels;
+                     $segmentationTrends = [];
+                     if($hasData){
+                         // Use the new advanced segmentation method
+                         try {
+                             $controller = new \App\Http\Controllers\RfmAnalysisController();
+                             $advancedData = $controller->getAdvancedSegmentAnalysis(
+                                 $user->id, 
+                                 $activeConnection->tenant_id
+                             );
+                             
+                             // Use the percentile-based monthly data
+                             $monthlyData = $advancedData['monthlyData'];
+                             
+                             // Convert to the format expected by the chart
+                             $allMonths = collect($monthlyData)->keys()->sort()->values();
+                             $segmentationLabels = $allMonths->map(fn($m) => \Carbon\Carbon::createFromFormat('Y-m', $m)->format('M Y'))->toArray();
+                             
+                             // Define colors for segments
+                             $colors = [
+                                 'Champions' => '#10B981',
+                                 'Loyal Customers' => '#3B82F6', 
+                                 'At Risk' => '#F59E0B',
+                                 "Can't Lose" => '#EF4444',
+                                 'Lost' => '#6B7280'
+                             ];
+                             
+                             foreach($colors as $segmentName => $color) {
+                                 $segmentData = $allMonths->map(function($month) use ($monthlyData, $segmentName) {
+                                     return $monthlyData[$month][$segmentName] ?? 0;
+                                 })->toArray();
+                                 
+                                 // Apply smoothing if needed (3-month average)
+                                 $smoothedData = [];
+                                 for($i = 0; $i < count($segmentData); $i++) {
+                                     if($i < 2) {
+                                         $smoothedData[] = $segmentData[$i];
+                                     } else {
+                                         $avg = ($segmentData[$i] + $segmentData[$i-1] + $segmentData[$i-2]) / 3;
+                                         $smoothedData[] = round($avg, 1);
+                                     }
+                                 }
+                                 
+                                 $segVals = array_values(array_filter($smoothedData, fn($v)=> $v !== null && $v > 0));
+                                 $minSeg = count($segVals) ? min($segVals) : 0;
+                                 $maxSeg = count($segVals) ? max($segVals) : 1;
+                                 $rngSeg = max(1e-6, $maxSeg - $minSeg);
+                                 
+                                 $segmentationTrends[] = [
+                                     'name' => $segmentName,
+                                     'data' => $smoothedData,
+                                     'color' => $color,
+                                     'min' => $minSeg,
+                                     'max' => $maxSeg,
+                                     'range' => $rngSeg
+                                 ];
+                             }
+                             
+                         } catch (Exception $e) {
+                             // Fallback to simple RFM score-based segmentation with better error handling
+                             $byMonth = $rfmData->groupBy(fn($r)=> \Carbon\Carbon::parse($r->date)->format('Y-m'));
+                             
+                             $segments = [
+                                 'Champions' => ['min' => 8, 'color' => '#10B981'],
+                                 'Loyal Customers' => ['min' => 6, 'max' => 7, 'color' => '#3B82F6'],
+                                 'At Risk' => ['min' => 4, 'max' => 5, 'color' => '#F59E0B'],
+                                 "Can't Lose" => ['min' => 2, 'max' => 3, 'color' => '#EF4444'],
+                                 'Lost' => ['max' => 1, 'color' => '#6B7280']
+                             ];
+                             
+                             foreach($segments as $segmentName => $criteria) {
+                                 $segmentData = $allMonths->map(function($m) use ($byMonth, $criteria) {
+                                     if (!isset($byMonth[$m])) return null;
+                                     
+                                     $count = $byMonth[$m]->filter(function($row) use ($criteria) {
+                                         if (isset($criteria['min']) && isset($criteria['max'])) {
+                                             return $row->rfm_score >= $criteria['min'] && $row->rfm_score <= $criteria['max'];
+                                         } elseif (isset($criteria['min'])) {
+                                             return $row->rfm_score >= $criteria['min'];
+                                         } else {
+                                             return $row->rfm_score <= $criteria['max'];
+                                         }
+                                     })->count();
+                                     
+                                     return $count > 0 ? $count : 0;
+                                 })->toArray();
+                                 
+                                 $segVals = array_values(array_filter($segmentData, fn($v)=> $v !== null && $v > 0));
+                                 $minSeg = count($segVals) ? min($segVals) : 0;
+                                 $maxSeg = count($segVals) ? max($segVals) : 1;
+                                 $rngSeg = max(1e-6, $maxSeg - $minSeg);
+                                 
+                                 $segmentationTrends[] = [
+                                     'name' => $segmentName,
+                                     'data' => $segmentData,
+                                     'color' => $criteria['color'],
+                                     'min' => $minSeg,
+                                     'max' => $maxSeg,
+                                     'range' => $rngSeg
+                                 ];
+                             }
+                         }
+                     }
+
+                     $initialTopN = min(12, count($companies));
+                @endphp
+
+                {{-- Simple controls --}}
+                <div class="controls">
+                    <div class="pill">RFM Analysis Dashboard</div>
+                    <div class="pill">Data points: {{ $hasData ? $rfmData->count() : 0 }}</div>
+                </div>
+
+                {{-- ============ TAB 1: Company Trends ============ --}}
+                <div id="tab-content-company-trend" class="tab-content">
+                    <div class="chart-shell">
+                        <div class="toolbar">
+                            <div class="pill">Companies: {{ count($companies) }}</div>
+                            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+                                <label style="display:flex;align-items:center;gap:.35rem" class="pill">
+                                    <input id="chk-benchmark" type="checkbox" checked> Benchmark
+                                </label>
+                                <button class="pill" onclick="toggleAll('company',true)" type="button">Show all</button>
+                                <button class="pill" onclick="toggleAll('company',false)" type="button">Hide all</button>
+                                <button class="pill" onclick="exportVisibleCSV()" type="button">Export visible CSV</button>
+                                <span class="pill">Tip: Alt/⌥-Click legend to solo</span>
+                            </div>
                         </div>
-                        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                            <div class="font-bold text-gray-800 dark:text-gray-200">Cold</div>
-                            <div class="text-2xl font-bold text-gray-600 dark:text-gray-400" id="coldCount">-</div>
+
+                        <div class="chart-area" id="company-area">
+                            <div class="y-labels">
+                                <div style="position:absolute;top:0;right:0">{{ number_format($maxV,1) }}</div>
+                                <div style="position:absolute;top:25%;right:0">{{ number_format($maxV-$rng*.25,1) }}</div>
+                                <div style="position:absolute;top:50%;right:0">{{ number_format($maxV-$rng*.5,1) }}</div>
+                                <div style="position:absolute;top:75%;right:0">{{ number_format($maxV-$rng*.75,1) }}</div>
+                                <div style="position:absolute;bottom:0;right:0">{{ number_format($minV,1) }}</div>
+                            </div>
+
+                            {{-- Points + Paths --}}
+                            <div class="data-points" style="position:absolute;inset:0;">
+                                @php $nL = max(1, count($dateLabels)-1); @endphp
+
+                                {{-- BENCHMARK dashed line (draw first so series overlay it) --}}
+                                @php
+                                    $bpts=[]; for($i=0;$i<count($benchmark);$i++){ $v=$benchmark[$i]; if($v!==null){ $x=($i/$nL)*100; $y=100-max(0,min(100,(($v-$minV)/$rng)*100)); $bpts[]=[$x,$y]; } }
+                                    $bpath=''; if(count($bpts)){ $bpath = "M {$bpts[0][0]} {$bpts[0][1]}"; for($j=1;$j<count($bpts);$j++){ $bpath .= " L {$bpts[$j][0]} {$bpts[$j][1]}"; } }
+                                @endphp
+                                @if($bpath!=='')
+                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                        <path d="{{ $bpath }}" class="line benchmark" stroke="#9CA3AF" data-kind="company" data-index="-1" id="benchmark-line"/>
+                                    </svg>
+                                @endif
+
+                                {{-- Series --}}
+                                @foreach($companies as $idx => $c)
+                                    @php
+                                        $series = $c['data']; $color = $c['color'];
+                                        $n = count($series); $den = max(1, $n - 1);
+                                        $visibleByDefault = $idx < $initialTopN;
+                                        $pts=[]; for($i=0;$i<$n;$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL)*100; $y=100-max(0,min(100,(($v-$minV)/$rng)*100)); $pts[]=[$x,$y,$i,$v]; } }
+                                        $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
+                                    @endphp
+
+                                    {{-- Path --}}
+                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                        @if($path!=='')
+                                            <path d="{{ $path }}" class="line {{ $visibleByDefault?'':'muted' }}" stroke="{{ $color }}" data-kind="company" data-index="{{ $idx }}"/>
+                                        @endif
+                                    </svg>
+
+                                    {{-- Points --}}
+                                    <div class="company-group" data-kind="company" data-index="{{ $idx }}" data-name="{{ e($c['name']) }}" data-visible="{{ $visibleByDefault?'1':'0' }}">
+                                        @foreach($pts as [$x,$y,$i,$val])
+                                            <div class="point {{ $visibleByDefault?'':'muted' }}"
+                                                 style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
+                                                 data-kind="company" data-index="{{ $idx }}"
+                                                 data-name="{{ e($c['name']) }}" data-date="{{ $dateLabels[$i] ?? '' }}" data-value="{{ number_format($val,2) }}"></div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="x-labels">
+                                @for($i=0;$i<count($dateLabels);$i++) @php $x=($i/max(1,count($dateLabels)-1))*100; @endphp
+                                    <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $dateLabels[$i] }}</div>
+                                @endfor
+                            </div>
+
+                            <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
                         </div>
-                        <div class="bg-red-100 dark:bg-red-900 p-4 rounded-lg">
-                            <div class="font-bold text-red-800 dark:text-red-200">Lost</div>
-                            <div class="text-2xl font-bold text-red-600 dark:text-red-400" id="lostCount">-</div>
+
+                        {{-- Search + Legend (moved down, no overlap) --}}
+                        <div class="legend-search">
+                            <input id="legend-filter" placeholder="Search company…" oninput="filterLegend(this.value)">
+                            <span class="pill">Showing top {{ $initialTopN }} by RFM Score</span>
+                        </div>
+                        <div class="legend-panel">
+                            <div class="legend-wrap">
+                                <div class="legend-item" data-kind="company" data-index="-1" onclick="toggleBenchmark()" title="Toggle benchmark">
+                                    <div class="swatch" style="background:#9CA3AF"></div><span class="text-gray-400">Benchmark (avg)</span>
+                                </div>
+                                @foreach($companies as $idx => $c)
+                                    <div class="legend-item {{ $idx < $initialTopN ? '' : 'muted' }}"
+                                         data-kind="company" data-index="{{ $idx }}" data-label="{{ Str::lower($c['name']) }}"
+                                         onclick="legendToggle(event, 'company', {{ $idx }})" title="Click to toggle • Alt/⌥ to solo">
+                                        <div class="swatch" style="background:{{ $c['color'] }}"></div>
+                                        <span class="text-gray-400">{{ $c['name'] }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Analysis Tools Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Trend Analysis -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 ml-3">Trend Analysis</h3>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Track RFM score changes over time for individual clients or segments</p>
-                <a href="{{ route('rfm.analysis.trends') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                    View Trends
-                </a>
-            </div>
+                {{-- ============ TAB 2 + TAB 3 (same as before, now with thin, clean lines) ============ --}}
+                {{-- RFM Components --}}
+                <div id="tab-content-rfm-breakdown" class="tab-content" style="display:none;">
+                    <div class="chart-shell">
+                        <div class="toolbar">
+                            <div class="pill">Components: 3</div>
+                            <div>
+                                <button class="pill" onclick="toggleAll('comp',true)" type="button">Show all</button>
+                                <button class="pill" onclick="toggleAll('comp',false)" type="button">Hide all</button>
+                            </div>
+                        </div>
 
-            <!-- Segment Analysis -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 ml-3">Segment Analysis</h3>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Analyze client segments based on RFM scores and behavior patterns</p>
-                <a href="{{ route('rfm.analysis.segments') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors">
-                    View Segments
-                </a>
-            </div>
+                        <div class="chart-area">
+                            <div class="y-labels">
+                                <div style="position:absolute;top:0;right:0">10.0</div>
+                                <div style="position:absolute;top:25%;right:0">7.5</div>
+                                <div style="position:absolute;top:50%;right:0">5.0</div>
+                                <div style="position:absolute;top:75%;right:0">2.5</div>
+                                <div style="position:absolute;bottom:0;right:0">0.0</div>
+                            </div>
 
-            <!-- Predictive Analysis -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 ml-3">Predictive Analysis</h3>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Forecast future client behavior and churn risk based on RFM patterns</p>
-                <a href="{{ route('rfm.analysis.predictive') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors">
-                    View Predictions
-                </a>
-            </div>
+                            <div class="data-points" style="position:absolute;inset:0;">
+                                @php $nL2=max(1,count($dateLabels)-1); @endphp
+                                @foreach($rfmComponents as $idx=>$comp)
+                                    @php $series=$comp['data']; $color=$comp['color']; $n=count($series);
+                                         $pts=[]; for($i=0;$i<$n;$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL2)*100; $y=100-max(0,min(100,($v/10)*100)); $pts[]=[$x,$y,$i,$v]; } }
+                                         $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
+                                    @endphp
+                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                        @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="comp" data-index="{{ $idx }}"/> @endif
+                                    </svg>
+                                    <div class="comp-group" data-kind="comp" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($comp['name']) }}">
+                                        @foreach($pts as [$x,$y,$i,$val])
+                                            <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
+                                                 data-kind="comp" data-index="{{ $idx }}" data-name="{{ e($comp['name']) }}"
+                                                 data-date="{{ $dateLabels[$i] ?? '' }}" data-value="{{ number_format($val,2) }}"></div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
 
-            <!-- Cohort Analysis -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 ml-3">Cohort Analysis</h3>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Track how client groups behave over time and identify patterns</p>
-                <a href="{{ route('rfm.analysis.cohort') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors">
-                    View Cohorts
-                </a>
-            </div>
+                            <div class="x-labels">
+                                @for($i=0;$i<count($dateLabels);$i++) @php $x=($i/$nL2)*100; @endphp
+                                    <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $dateLabels[$i] }}</div>
+                                @endfor
+                            </div>
 
-            <!-- Comparative Analysis -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 ml-3">Comparative Analysis</h3>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Compare RFM performance across different time periods or segments</p>
-                <a href="{{ route('rfm.analysis.comparative') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-                    Compare Periods
-                </a>
-            </div>
+                            <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
+                        </div>
 
-            <!-- Custom Analysis -->
-            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
-                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
+                        <div class="legend-panel">
+                            <div class="legend-wrap">
+                                @foreach($rfmComponents as $idx=>$comp)
+                                    <div class="legend-item" data-kind="comp" data-index="{{ $idx }}"
+                                         onclick="legendToggle(event,'comp',{{ $idx }})">
+                                        <div class="swatch" style="background:{{ $comp['color'] }}"></div>
+                                        <span class="text-gray-400">{{ $comp['name'] }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 ml-3">Custom Analysis</h3>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Create custom analysis queries and visualizations</p>
-                <a href="#" 
-                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors">
-                    Coming Soon
-                </a>
+
+                                 {{-- Revenue --}}
+                 <div id="tab-content-revenue-trend" class="tab-content" style="display:none;">
+                     <div class="chart-shell">
+                         <div class="toolbar">
+                             <div class="pill">Independent scales</div>
+                             <div>
+                                 <button class="pill" onclick="toggleAll('rev',true)" type="button">Show all</button>
+                                 <button class="pill" onclick="toggleAll('rev',false)" type="button">Hide all</button>
+                             </div>
+                         </div>
+
+                         <div class="chart-area">
+                             <div class="y-labels">
+                                 @if(count($revenueTrends))
+                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$revenueTrends));
+                                          $leftMin=min(array_map(fn($t)=>$t['min'],$revenueTrends));
+                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
+                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,0) }}</div>
+                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,0) }}</div>
+                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,0) }}</div>
+                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,0) }}</div>
+                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,0) }}</div>
+                                 @endif
+                             </div>
+
+                             <div class="data-points" style="position:absolute;inset:0;">
+                                 @php $nL3=max(1,count($revenueLabels)-1); @endphp
+                                 @foreach($revenueTrends as $idx=>$t)
+                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
+                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL3)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
+                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
+                                     @endphp
+                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="rev" data-index="{{ $idx }}"/> @endif
+                                     </svg>
+                                     <div class="rev-group" data-kind="rev" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
+                                         @foreach($pts as [$x,$y,$i,$val])
+                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
+                                                  data-kind="rev" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
+                                                  data-date="{{ $revenueLabels[$i] ?? '' }}" data-value="{{ number_format($val,0) }}"></div>
+                                         @endforeach
+                                     </div>
+                                 @endforeach
+                             </div>
+
+                             <div class="x-labels">
+                                 @for($i=0;$i<count($revenueLabels);$i++) @php $x=($i/$nL3)*100; @endphp
+                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $revenueLabels[$i] }}</div>
+                                 @endfor
+                             </div>
+
+                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
+                         </div>
+
+                         <div class="legend-panel">
+                             <div class="legend-wrap">
+                                 @foreach($revenueTrends as $idx=>$t)
+                                     <div class="legend-item" data-kind="rev" data-index="{{ $idx }}"
+                                          onclick="legendToggle(event,'rev',{{ $idx }})">
+                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
+                                         <span class="text-gray-400">{{ $t['name'] }}</span>
+                                     </div>
+                                 @endforeach
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+
+                 {{-- Customer Lifetime Value --}}
+                 <div id="tab-content-clv-trend" class="tab-content" style="display:none;">
+                     <div class="chart-shell">
+                         <div class="toolbar">
+                             <div class="pill">Customer Value Metrics</div>
+                             <div>
+                                 <button class="pill" onclick="toggleAll('clv',true)" type="button">Show all</button>
+                                 <button class="pill" onclick="toggleAll('clv',false)" type="button">Hide all</button>
+                             </div>
+                         </div>
+
+                         <div class="chart-area">
+                             <div class="y-labels">
+                                 @if(count($clvTrends))
+                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$clvTrends));
+                                          $leftMin=min(array_map(fn($t)=>$t['min'],$clvTrends));
+                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
+                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,1) }}</div>
+                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,1) }}</div>
+                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,1) }}</div>
+                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,1) }}</div>
+                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,1) }}</div>
+                                 @endif
+                             </div>
+
+                             <div class="data-points" style="position:absolute;inset:0;">
+                                 @php $nL4=max(1,count($clvLabels)-1); @endphp
+                                 @foreach($clvTrends as $idx=>$t)
+                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
+                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL4)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
+                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
+                                     @endphp
+                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="clv" data-index="{{ $idx }}"/> @endif
+                                     </svg>
+                                     <div class="clv-group" data-kind="clv" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
+                                         @foreach($pts as [$x,$y,$i,$val])
+                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
+                                                  data-kind="clv" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
+                                                  data-date="{{ $clvLabels[$i] ?? '' }}" data-value="{{ number_format($val,1) }}"></div>
+                                         @endforeach
+                                     </div>
+                                 @endforeach
+                             </div>
+
+                             <div class="x-labels">
+                                 @for($i=0;$i<count($clvLabels);$i++) @php $x=($i/$nL4)*100; @endphp
+                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $clvLabels[$i] }}</div>
+                                 @endfor
+                             </div>
+
+                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
+                         </div>
+
+                         <div class="legend-panel">
+                             <div class="legend-wrap">
+                                 @foreach($clvTrends as $idx=>$t)
+                                     <div class="legend-item" data-kind="clv" data-index="{{ $idx }}"
+                                          onclick="legendToggle(event,'clv',{{ $idx }})">
+                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
+                                         <span class="text-gray-400">{{ $t['name'] }}</span>
+                                     </div>
+                                 @endforeach
+                             </div>
+                                                  </div>
+                     </div>
+                 </div>
+
+                 {{-- Customer Segmentation --}}
+                 <div id="tab-content-segmentation" class="tab-content" style="display:none;">
+                     <div class="chart-shell">
+                         <div class="toolbar">
+                             <div class="pill">Customer Segments</div>
+                             <div>
+                                 <button class="pill" onclick="toggleAll('seg',true)" type="button">Show all</button>
+                                 <button class="pill" onclick="toggleAll('seg',false)" type="button">Hide all</button>
+                             </div>
+                         </div>
+
+                         <div class="chart-area">
+                             <div class="y-labels">
+                                 @if(count($segmentationTrends))
+                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$segmentationTrends));
+                                          $leftMin=min(array_map(fn($t)=>$t['min'],$segmentationTrends));
+                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
+                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,0) }}</div>
+                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,0) }}</div>
+                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,0) }}</div>
+                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,0) }}</div>
+                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,0) }}</div>
+                                 @endif
+                             </div>
+
+                             <div class="data-points" style="position:absolute;inset:0;">
+                                 @php $nL5=max(1,count($segmentationLabels)-1); @endphp
+                                 @foreach($segmentationTrends as $idx=>$t)
+                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
+                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL5)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
+                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
+                                     @endphp
+                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="seg" data-index="{{ $idx }}"/> @endif
+                                     </svg>
+                                     <div class="seg-group" data-kind="seg" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
+                                         @foreach($pts as [$x,$y,$i,$val])
+                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
+                                                  data-kind="seg" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
+                                                  data-date="{{ $segmentationLabels[$i] ?? '' }}" data-value="{{ number_format($val,0) }}"></div>
+                                         @endforeach
+                                     </div>
+                                 @endforeach
+                             </div>
+
+                             <div class="x-labels">
+                                 @for($i=0;$i<count($segmentationLabels);$i++) @php $x=($i/$nL5)*100; @endphp
+                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $segmentationLabels[$i] }}</div>
+                                 @endfor
+                             </div>
+
+                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
+                         </div>
+
+                         <div class="legend-panel">
+                             <div class="legend-wrap">
+                                 @foreach($segmentationTrends as $idx=>$t)
+                                     <div class="legend-item" data-kind="seg" data-index="{{ $idx }}"
+                                          onclick="legendToggle(event,'seg',{{ $idx }})">
+                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
+                                         <span class="text-gray-400">{{ $t['name'] }}</span>
+                                     </div>
+                                 @endforeach
+                             </div>
+                         </div>
+                         
+                     </div>
+                 </div>
+
+                 {{-- Churn & Retention Analysis --}}
+                 <div id="tab-content-churn-analysis" class="tab-content" style="display:none;">
+                     <div class="chart-shell">
+                         <div class="toolbar">
+                             <div class="pill">Customer Health Metrics</div>
+                             <div>
+                                 <button class="pill" onclick="toggleAll('churn',true)" type="button">Show all</button>
+                                 <button class="pill" onclick="toggleAll('churn',false)" type="button">Hide all</button>
+                             </div>
+                         </div>
+
+                         <div class="chart-area">
+                             <div class="y-labels">
+                                 @if(count($churnTrends))
+                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$churnTrends));
+                                          $leftMin=min(array_map(fn($t)=>$t['min'],$churnTrends));
+                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
+                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,0) }}</div>
+                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,0) }}</div>
+                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,0) }}</div>
+                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,0) }}</div>
+                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,0) }}</div>
+                                 @endif
+                             </div>
+
+                             <div class="data-points" style="position:absolute;inset:0;">
+                                 @php $nL6=max(1,count($churnLabels)-1); @endphp
+                                 @foreach($churnTrends as $idx=>$t)
+                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
+                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL6)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
+                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
+                                     @endphp
+                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
+                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="churn" data-index="{{ $idx }}"/> @endif
+                                     </svg>
+                                     <div class="churn-group" data-kind="churn" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
+                                         @foreach($pts as [$x,$y,$i,$val])
+                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
+                                                  data-kind="churn" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
+                                                  data-date="{{ $churnLabels[$i] ?? '' }}" data-value="{{ number_format($val,1) }}"></div>
+                                         @endforeach
+                                     </div>
+                                 @endforeach
+                             </div>
+
+                             <div class="x-labels">
+                                 @for($i=0;$i<count($churnLabels);$i++) @php $x=($i/$nL6)*100; @endphp
+                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $churnLabels[$i] }}</div>
+                                 @endfor
+                             </div>
+
+                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
+                         </div>
+
+                         <div class="legend-panel">
+                             <div class="legend-wrap">
+                                 @foreach($churnTrends as $idx=>$t)
+                                     <div class="legend-item" data-kind="churn" data-index="{{ $idx }}"
+                                          onclick="legendToggle(event,'churn',{{ $idx }})">
+                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
+                                         <span class="text-gray-400">{{ $t['name'] }}</span>
+                                     </div>
+                                 @endforeach
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+
+                 {{-- ===== JS ===== --}}
+                <div id="chart-tip" class="tip"></div>
+                <script>
+                    // Tabs
+                    function showTab(name){
+                        document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+                        document.querySelectorAll('.tab-button').forEach(b=>{b.classList.remove('active','border-blue-500','text-blue-600','dark:text-blue-400');b.classList.add('border-transparent','text-gray-500','dark:text-gray-400');});
+                        document.getElementById('tab-content-'+name).style.display='block';
+                        const btn=document.getElementById('tab-'+name);btn.classList.add('active','border-blue-500','text-blue-600','dark:text-blue-400');btn.classList.remove('border-transparent','text-gray-500','dark:text-gray-400');
+                    }
+
+                                         // Simple functions
+                     function setDateInputs(s,e){}
+                     function presetMonths(n){}
+                     function presetYTD(){}
+
+                    // Tooltip / highlight
+                    const tip=document.getElementById('chart-tip');
+                    const showTip=(e)=>{const t=e.target;if(!t.classList.contains('point'))return;tip.innerHTML=`<strong>${t.dataset.name}</strong><br>${t.dataset.date}<br><span style="opacity:.85">${t.dataset.value}</span>`;tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-12)+'px';highlight(t.dataset.kind,t.dataset.index,true);};
+                    const moveTip=(e)=>{if(tip.style.display==='block'){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-12)+'px';}}
+                    const hideTip=(e)=>{const t=e.target;if(!t.classList.contains('point'))return;tip.style.display='none';highlight(t.dataset.kind,t.dataset.index,false);};
+                    document.addEventListener('mousemove',moveTip);document.addEventListener('mouseover',showTip,true);document.addEventListener('mouseout',hideTip,true);
+                                         function highlight(kind,idx,on){
+                         const lineSel = kind==='company'?'.line[data-kind="company"][data-index="'+idx+'"]' : kind==='comp'?'.line[data-kind="comp"][data-index="'+idx+'"]' : kind==='rev'?'.line[data-kind="rev"][data-index="'+idx+'"]' : kind==='clv'?'.line[data-kind="clv"][data-index="'+idx+'"]' : kind==='seg'?'.line[data-kind="seg"][data-index="'+idx+'"]' : '.line[data-kind="churn"][data-index="'+idx+'"]';
+                         document.querySelectorAll(lineSel).forEach(p=>p.style.strokeWidth=on?'1.5':'1');
+                     }
+
+                    // Toggle
+                                         function setVisible(kind, idx, visible){
+                         const groupSel = kind==='company'?'.company-group':kind==='comp'?'.comp-group':kind==='rev'?'.rev-group':kind==='clv'?'.clv-group':kind==='seg'?'.seg-group':'.churn-group';
+                         document.querySelectorAll(`${groupSel}[data-index="${idx}"] .point`).forEach(el=>el.classList.toggle('muted', !visible));
+                         document.querySelectorAll(`.line[data-kind="${kind}"][data-index="${idx}"]`).forEach(el=>el.classList.toggle('muted', !visible));
+                         const legend=document.querySelector(`.legend-item[data-kind="${kind}"][data-index="${idx}"]`);
+                         if(legend) legend.classList.toggle('muted', !visible);
+                         document.querySelectorAll(`${groupSel}[data-index="${idx}"]`).forEach(g=>g.dataset.visible=visible?'1':'0');
+                     }
+                     function isVisible(kind, idx){
+                         const groupSel = kind==='company'?'.company-group':kind==='comp'?'.comp-group':kind==='rev'?'.rev-group':kind==='clv'?'.clv-group':kind==='seg'?'.seg-group':'.churn-group';
+                         const g=document.querySelector(`${groupSel}[data-index="${idx}"]`); return g?g.dataset.visible==='1':false;
+                     }
+                    function legendToggle(ev, kind, idx){
+                        const solo=ev.altKey||ev.metaKey;
+                        if(solo){
+                            document.querySelectorAll(`.legend-item[data-kind="${kind}"]`).forEach(li=>{
+                                const i=li.dataset.index; setVisible(kind, i, i==idx);
+                            });
+                        }else setVisible(kind, idx, !isVisible(kind, idx));
+                    }
+                    function toggleAll(kind, show){
+                        document.querySelectorAll(`.legend-item[data-kind="${kind}"]`).forEach(li=>setVisible(kind, li.dataset.index, show));
+                    }
+
+                                         // Benchmark toggle
+                     function toggleBenchmark(){
+                         const p=document.getElementById('benchmark-line'); if(!p) return;
+                         const off=p.style.display==='none'; p.style.display=off?'block':'none';
+                         const checkbox = document.getElementById('chk-benchmark');
+                         if(checkbox) checkbox.checked = off;
+                     }
+                     document.addEventListener('DOMContentLoaded', function() {
+                         const checkbox = document.getElementById('chk-benchmark');
+                         if(checkbox) checkbox.addEventListener('change', toggleBenchmark);
+                     });
+
+                    // Legend filter
+                    function filterLegend(q){
+                        const v=(q||'').toLowerCase().trim();
+                        document.querySelectorAll('.legend-wrap .legend-item').forEach(li=>{
+                            if(li.dataset.index === '-1') return; // keep benchmark
+                            const ok=!v || li.dataset.label.includes(v);
+                            li.style.display = ok? 'inline-flex' : 'none';
+                        });
+                    }
+
+                    // Init top-N visibility for companies
+                    (function initCompanyTopN(){
+                        document.querySelectorAll('.company-group').forEach(g=>setVisible('company', g.dataset.index, g.dataset.visible==='1'));
+                    })();
+
+                                         // Export visible series (Company Trends)
+                     function exportVisibleCSV(){
+                         const rows=[];
+                         document.querySelectorAll('.company-group').forEach(g=>{
+                             if(g.dataset.visible!=='1') return;
+                             const name=g.dataset.name;
+                             g.querySelectorAll('.point').forEach(p=>{
+                                 rows.push([name, p.dataset.date, p.dataset.value]);
+                             });
+                         });
+                         if(!rows.length){ alert('Nothing visible to export.'); return; }
+                         let csv='Company,Date,Value\n'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+                         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); 
+                         const url=URL.createObjectURL(blob);
+                         const a=document.createElement('a'); 
+                         a.href=url; 
+                         a.download='company-trends.csv'; 
+                         a.click(); 
+                         URL.revokeObjectURL(url);
+                     }
+
+                                         // ESC = show all in the current tab
+                     document.addEventListener('keydown', e=>{
+                         if(e.key!=='Escape') return;
+                         const active = Array.from(document.querySelectorAll('.tab-content')).find(c=>c.style.display!=='none');
+                         if(!active) return;
+                         if(active.id.includes('company')) toggleAll('company',true);
+                         if(active.id.includes('rfm'))     toggleAll('comp',true);
+                         if(active.id.includes('revenue')) toggleAll('rev',true);
+                         if(active.id.includes('clv'))     toggleAll('clv',true);
+                         if(active.id.includes('segmentation')) toggleAll('seg',true);
+                         if(active.id.includes('churn-analysis')) toggleAll('churn',true);
+                     });
+
+                     // Segment view controls
+                     function toggleSegmentView() {
+                         const view = document.getElementById('segment-view').value;
+                         console.log('Switching to view:', view);
+                         // TODO: Implement view switching logic
+                         // This would require backend changes to support different data views
+                     }
+
+                     function toggleSmoothing() {
+                         const smoothing = document.getElementById('segment-smoothing').value;
+                         console.log('Applying smoothing:', smoothing);
+                         // TODO: Implement smoothing logic
+                         // This would apply 3-month moving averages to the data
+                     }
+
+                     // Exclude current month
+                     document.getElementById('exclude-current').addEventListener('change', function() {
+                         console.log('Exclude current month:', this.checked);
+                         // TODO: Implement exclude current month logic
+                         // This would filter out the current month's data
+                     });
+                </script>
+
+
+
+                {{-- Table + summary (unchanged) --}}
+                {{-- ... keep your existing summary table here if you want ... --}}
             </div>
         </div>
     </div>
-
-    @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Real RFM data passed from controller
-        const RFM_DATA = @json($rfmData ?? []);
-        console.log('RFM data for business charts:', RFM_DATA);
-
-        // Business intelligence functions
-        function segmentCustomer(rfmScore, recency, frequency, monetary) {
-            if (rfmScore >= 8 && recency >= 7 && frequency >= 7 && monetary >= 7) return 'Champions';
-            if (rfmScore >= 6 && recency >= 5 && frequency >= 5 && monetary >= 5) return 'Loyal';
-            if (rfmScore >= 4 && recency >= 4 && frequency >= 4 && monetary >= 4) return 'At Risk';
-            if (rfmScore >= 6 && recency >= 6 && frequency >= 4 && monetary >= 4) return 'Promising';
-            if (rfmScore >= 5 && recency >= 4 && frequency >= 5 && monetary >= 4) return 'Regular';
-            if (rfmScore >= 4 && recency >= 3 && frequency >= 4 && monetary >= 3) return 'Slipping';
-            if (rfmScore >= 5 && recency >= 7 && frequency >= 3 && monetary >= 3) return 'New';
-            if (rfmScore >= 3 && recency >= 2 && frequency >= 3 && monetary >= 2) return 'Cold';
-            return 'Lost';
-        }
-
-        function calculateCLV(rfmScore, frequency, monetary, avgOrderValue = 500) {
-            const retentionRate = Math.min(0.9, 0.5 + (rfmScore / 20));
-            const avgLifespan = 1 / (1 - retentionRate);
-            const avgOrderFrequency = frequency / 12;
-            return avgOrderValue * avgOrderFrequency * avgLifespan;
-        }
-
-        function processBusinessData() {
-            if (!RFM_DATA || RFM_DATA.length === 0) {
-                console.log('No RFM data available for business charts');
-                return null;
-            }
-
-            const clientMetrics = {};
-            
-            RFM_DATA.forEach(item => {
-                const clientName = item.client_name || `Client ${item.client_id}`;
-                if (!clientMetrics[clientName]) {
-                    clientMetrics[clientName] = {
-                        name: clientName,
-                        rfmScores: [],
-                        recencyScores: [],
-                        frequencyScores: [],
-                        monetaryScores: [],
-                        dates: [],
-                        totalRevenue: 0
-                    };
-                }
-                
-                clientMetrics[clientName].rfmScores.push(parseFloat(item.rfm_score));
-                clientMetrics[clientName].recencyScores.push(parseFloat(item.r_score));
-                clientMetrics[clientName].frequencyScores.push(parseFloat(item.f_score));
-                clientMetrics[clientName].monetaryScores.push(parseFloat(item.m_score));
-                clientMetrics[clientName].dates.push(new Date(item.date));
-                
-                const estimatedRevenue = parseFloat(item.m_score) * 1000;
-                clientMetrics[clientName].totalRevenue += estimatedRevenue;
-            });
-
-            const segments = {};
-            const revenueData = [];
-            const clvData = [];
-            const churnRiskData = [];
-            const purchaseFrequencyData = {};
-
-            Object.values(clientMetrics).forEach(client => {
-                const latestIndex = client.rfmScores.length - 1;
-                const latestRFM = client.rfmScores[latestIndex];
-                const latestRecency = client.recencyScores[latestIndex];
-                const latestFrequency = client.frequencyScores[latestIndex];
-                const latestMonetary = client.monetaryScores[latestIndex];
-                
-                const segment = segmentCustomer(latestRFM, latestRecency, latestFrequency, latestMonetary);
-                segments[segment] = (segments[segment] || 0) + 1;
-                
-                revenueData.push({
-                    client: client.name,
-                    rfmScore: latestRFM,
-                    revenue: client.totalRevenue
-                });
-                
-                const clv = calculateCLV(latestRFM, latestFrequency, latestMonetary);
-                clvData.push({
-                    client: client.name,
-                    clv: clv,
-                    rfmScore: latestRFM
-                });
-
-                // Calculate churn risk
-                let churnRisk = 0;
-                if (latestRecency > 6) churnRisk += 0.4;
-                if (latestFrequency < 3) churnRisk += 0.3;
-                if (latestMonetary < 0.3) churnRisk += 0.3;
-                if (latestRFM < 3) churnRisk += 0.4;
-                churnRisk = Math.min(churnRisk, 1);
-
-                churnRiskData.push({
-                    client: client.name,
-                    risk: churnRisk,
-                    rfmScore: latestRFM
-                });
-
-                // Purchase frequency by month
-                client.dates.forEach(date => {
-                    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                    if (!purchaseFrequencyData[monthKey]) purchaseFrequencyData[monthKey] = 0;
-                    purchaseFrequencyData[monthKey]++;
-                });
-            });
-
-            return {
-                segments,
-                revenueData,
-                clvData,
-                churnRiskData,
-                purchaseFrequencyData,
-                totalCustomers: Object.keys(clientMetrics).length
-            };
-        }
-
-        // Create Customer Value Distribution Chart
-        function createCustomerValueChart(data) {
-            const ctx = document.getElementById('customerValueChart');
-            if (!ctx) return;
-
-            const valueRanges = [
-                { min: 0, max: 2, label: 'Low Value (0-2)', color: '#EF4444' },
-                { min: 2, max: 4, label: 'Below Average (2-4)', color: '#F59E0B' },
-                { min: 4, max: 6, label: 'Average (4-6)', color: '#3B82F6' },
-                { min: 6, max: 8, label: 'High Value (6-8)', color: '#10B981' },
-                { min: 8, max: 10, label: 'Premium (8-10)', color: '#8B5CF6' }
-            ];
-
-            const distribution = valueRanges.map(range => {
-                return data.revenueData.filter(d => d.rfmScore >= range.min && d.rfmScore < range.max).length;
-            });
-
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: valueRanges.map(r => r.label),
-                    datasets: [{
-                        data: distribution,
-                        backgroundColor: valueRanges.map(r => r.color),
-                        borderWidth: 2,
-                        borderColor: '#1F2937'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Create Revenue vs RFM Score Correlation Chart
-        function createRevenueCorrelationChart(data) {
-            const ctx = document.getElementById('revenueCorrelationChart');
-            if (!ctx) return;
-
-            new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Revenue vs RFM Score',
-                        data: data.revenueData.map(d => ({
-                            x: d.rfmScore,
-                            y: d.revenue
-                        })),
-                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                        borderColor: 'rgb(59, 130, 246)',
-                        pointRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const client = data.revenueData[context.dataIndex];
-                                    return `${client.client}: RFM ${client.rfmScore}, Revenue £${client.revenue.toLocaleString()}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: { display: true, text: 'RFM Score' },
-                            min: 0, max: 10
-                        },
-                        y: {
-                            title: { display: true, text: 'Revenue (£)' },
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Create Churn Risk Chart
-        function createChurnRiskChart(data) {
-            const ctx = document.getElementById('churnRiskChart');
-            if (!ctx) return;
-
-            const riskRanges = [
-                { min: 0, max: 0.3, label: 'Low Risk', color: '#10B981' },
-                { min: 0.3, max: 0.6, label: 'Medium Risk', color: '#F59E0B' },
-                { min: 0.6, max: 1.0, label: 'High Risk', color: '#EF4444' }
-            ];
-
-            const riskDistribution = riskRanges.map(range => {
-                return data.churnRiskData.filter(d => d.risk >= range.min && d.risk < range.max).length;
-            });
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: riskRanges.map(r => r.label),
-                    datasets: [{
-                        label: 'Number of Customers',
-                        data: riskDistribution,
-                        backgroundColor: riskRanges.map(r => r.color),
-                        borderColor: riskRanges.map(r => r.color),
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Number of Customers' }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Create Customer Lifetime Value Chart
-        function createCLVChart(data) {
-            const ctx = document.getElementById('clvChart');
-            if (!ctx) return;
-
-            const clvRanges = [
-                { min: 0, max: 5000, label: '£0-5K' },
-                { min: 5000, max: 15000, label: '£5K-15K' },
-                { min: 15000, max: 30000, label: '£15K-30K' },
-                { min: 30000, max: 50000, label: '£30K-50K' },
-                { min: 50000, max: Infinity, label: '£50K+' }
-            ];
-
-            const clvDistribution = clvRanges.map(range => {
-                return data.clvData.filter(d => d.clv >= range.min && d.clv < range.max).length;
-            });
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: clvRanges.map(r => r.label),
-                    datasets: [{
-                        label: 'Number of Customers',
-                        data: clvDistribution,
-                        backgroundColor: 'rgba(139, 92, 246, 0.6)',
-                        borderColor: 'rgb(139, 92, 246)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Number of Customers' }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Create Purchase Frequency Chart
-        function createPurchaseFrequencyChart(data) {
-            const ctx = document.getElementById('purchaseFrequencyChart');
-            if (!ctx) return;
-
-            const months = Object.keys(data.purchaseFrequencyData).sort();
-            const frequencies = months.map(month => data.purchaseFrequencyData[month]);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: months.map(month => {
-                        const [year, monthNum] = month.split('-');
-                        return `${monthNum}/${year.slice(2)}`;
-                    }),
-                    datasets: [{
-                        label: 'Purchase Frequency',
-                        data: frequencies,
-                        borderColor: 'rgb(239, 68, 68)',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Number of Purchases' }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Update segmentation matrix
-        function updateSegmentationMatrix(data) {
-            Object.keys(data.segments).forEach(segment => {
-                const element = document.getElementById(segment.toLowerCase().replace(' ', '') + 'Count');
-                if (element) {
-                    element.textContent = data.segments[segment];
-                }
-            });
-        }
-
-        // Initialize all charts
-        document.addEventListener('DOMContentLoaded', function() {
-            const businessData = processBusinessData();
-            
-            if (businessData) {
-                createCustomerValueChart(businessData);
-                createRevenueCorrelationChart(businessData);
-                createChurnRiskChart(businessData);
-                createCLVChart(businessData);
-                createPurchaseFrequencyChart(businessData);
-                updateSegmentationMatrix(businessData);
-            } else {
-                console.log('No business data available');
-            }
-        });
-    </script>
-    @endpush
-</x-app-layout> 
+</x-app-layout>
