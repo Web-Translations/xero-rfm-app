@@ -437,7 +437,7 @@ class RfmTools
                 'type' => 'growth',
                 'priority' => 'high',
                 'title' => 'Develop More High-Value Customers',
-                'description' => "Only {$highValueCustomers->count()} customers are high-value (RFM ≥ 8). Focus on mid-tier customers with growth potential.",
+                'description' => "Only {$highValueCustomers->count()} customers are high-value (RFM 8-10). Focus on mid-tier customers with growth potential.",
                 'potential_impact' => 'Significant revenue growth',
                 'action_items' => [
                     'Identify mid-tier customers with high potential',
@@ -748,6 +748,11 @@ class RfmTools
 
         $revenues = $customerRevenue->sort()->values();
         $n = $revenues->count();
+        
+        if ($n <= 1) {
+            return 0;
+        }
+        
         $sum = 0;
 
         for ($i = 0; $i < $n; $i++) {
@@ -759,7 +764,13 @@ class RfmTools
             return 0;
         }
 
-        return round((2 * $sum) / ($n * $total) - ($n + 1) / $n, 3);
+        // Calculate Gini coefficient and ensure it's positive
+        $gini = (2 * $sum) / ($n * $total) - ($n + 1) / $n;
+        
+        // Ensure the result is between 0 and 1
+        $gini = max(0, min(1, abs($gini)));
+        
+        return round($gini, 3);
     }
 
     /**
@@ -773,6 +784,11 @@ class RfmTools
 
         $scores = $reports->pluck('rfm_score')->sort()->values();
         $n = $scores->count();
+        
+        if ($n <= 1) {
+            return 0;
+        }
+        
         $sum = 0;
 
         for ($i = 0; $i < $n; $i++) {
@@ -784,7 +800,13 @@ class RfmTools
             return 0;
         }
 
-        return round((2 * $sum) / ($n * $total) - ($n + 1) / $n, 3);
+        // Calculate Gini coefficient and ensure it's positive
+        $gini = (2 * $sum) / ($n * $total) - ($n + 1) / $n;
+        
+        // Ensure the result is between 0 and 1
+        $gini = max(0, min(1, abs($gini)));
+        
+        return round($gini, 3);
     }
 
     /**

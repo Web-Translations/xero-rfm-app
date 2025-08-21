@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Pdf\RfmPdfGenerator;
+use App\Services\Pdf\RfmPdfService;
 use App\Services\Rfm\RfmTools;
 use App\Models\RfmConfiguration;
 use Illuminate\Http\Request;
@@ -10,38 +10,38 @@ use Illuminate\Support\Facades\Auth;
 
 class RfmPdfController extends Controller
 {
-    private $pdfGenerator;
-    private $rfmTools;
+    private RfmPdfService $pdfService;
+    private RfmTools $rfmTools;
     
-    public function __construct(RfmPdfGenerator $pdfGenerator, RfmTools $rfmTools)
+    public function __construct(RfmPdfService $pdfService, RfmTools $rfmTools)
     {
-        $this->pdfGenerator = $pdfGenerator;
+        $this->pdfService = $pdfService;
         $this->rfmTools = $rfmTools;
     }
     
-    public function download(Request $request, $reportId = null)
+    public function download(Request $request)
     {
         try {
-            // Step 1: Get user and connection
+            // Get user and active connection
             $user = Auth::user();
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
             if (!$activeConnection) {
-                return response('Error: No active Xero connection found.', 400);
+                return response()->json(['error' => 'No active Xero connection found.'], 400);
             }
             
-            // Step 2: Get RFM configuration
-            $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
-            
-            // Step 3: Get report parameters
+            // Get report parameters from request
             $snapshotDate = $request->input('snapshot_date', now()->format('Y-m-01'));
             $rfmWindow = $request->input('rfm_window', 12);
             $comparisonPeriod = $request->input('comparison_period', 'monthly');
             
-            // Step 4: Calculate comparison date
+            // Get RFM configuration
+            $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
+            
+            // Calculate comparison date
             $comparisonSnapshotDate = $this->calculateComparisonDate($snapshotDate, $comparisonPeriod);
             
-            // Step 5: Generate report data
+            // Generate comprehensive report data
             $reportData = $this->rfmTools->computeKpis(
                 $user->id,
                 $activeConnection->tenant_id,
@@ -50,52 +50,50 @@ class RfmPdfController extends Controller
                 $config
             );
             
-            // Step 6: Add metadata
+
+            
+            // Add metadata for PDF
             $reportData['date'] = $snapshotDate;
-            $reportData['organization'] = $activeConnection->org_name;
             $reportData['rfm_window'] = $rfmWindow;
             $reportData['comparison_period'] = $comparisonPeriod;
             
-            // Step 7: Generate PDF
-            $pdfPath = $this->pdfGenerator->generate($reportData);
+            // Generate beautiful PDF
+            $pdfPath = $this->pdfService->generateReport($reportData, $activeConnection->org_name);
             
-            // Step 8: Check if PDF was created
+            // Verify PDF was created
             if (!file_exists($pdfPath)) {
-                return response('Error: PDF file was not created at: ' . $pdfPath, 500);
+                return response()->json(['error' => 'Failed to generate PDF report.'], 500);
             }
             
-            // Step 9: Create filename
+            // Create download filename
             $filename = $this->generateFilename($activeConnection->org_name, $snapshotDate);
             
-            // Step 10: Get file size
-            $fileSize = filesize($pdfPath);
-            
-            // Step 11: Return download
+            // Return PDF download
             return response()->download($pdfPath, $filename, [
                 'Content-Type' => 'application/pdf',
-                'Content-Length' => $fileSize,
                 'Cache-Control' => 'no-cache, must-revalidate',
-                'Pragma' => 'no-cache',
-                'X-Debug-PDF-Path' => $pdfPath,
-                'X-Debug-File-Size' => $fileSize
-            ]);
+                'Pragma' => 'no-cache'
+            ])->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
-            return response('Error generating PDF: ' . $e->getMessage() . ' at line ' . $e->getLine(), 500);
+            \Log::error('PDF Generation Error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to generate PDF report. Please try again.'
+            ], 500);
         }
     }
     
     public function generateFromBuilder(Request $request)
     {
         try {
-            // Validate request
-            $request->validate([
+            // Validate the incoming request
+            $validated = $request->validate([
                 'snapshot_date' => 'required|date',
                 'rfm_window' => 'required|integer|min:1|max:60',
                 'comparison_period' => 'required|in:monthly,quarterly,yearly'
             ]);
             
-            // Get the current user and active connection
+            // Get user and active connection
             $user = Auth::user();
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
@@ -106,50 +104,47 @@ class RfmPdfController extends Controller
             // Get RFM configuration
             $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
             
-            // Calculate comparison date based on period
-            $comparisonSnapshotDate = $this->calculateComparisonDate($request->snapshot_date, $request->comparison_period);
+            // Calculate comparison date
+            $comparisonSnapshotDate = $this->calculateComparisonDate(
+                $validated['snapshot_date'], 
+                $validated['comparison_period']
+            );
             
-            // Generate the report data
+            // Generate comprehensive report data
             $reportData = $this->rfmTools->computeKpis(
                 $user->id,
                 $activeConnection->tenant_id,
-                $request->snapshot_date,
+                $validated['snapshot_date'],
                 $comparisonSnapshotDate,
                 $config
             );
             
-            // Add additional metadata for PDF
-            $reportData['date'] = $request->snapshot_date;
-            $reportData['organization'] = $activeConnection->org_name;
-            $reportData['rfm_window'] = $request->rfm_window;
-            $reportData['comparison_period'] = $request->comparison_period;
+            // Add metadata for PDF
+            $reportData['date'] = $validated['snapshot_date'];
+            $reportData['rfm_window'] = $validated['rfm_window'];
+            $reportData['comparison_period'] = $validated['comparison_period'];
             
-            // Generate PDF
-            $pdfPath = $this->pdfGenerator->generate($reportData);
+            // Generate beautiful PDF
+            $pdfPath = $this->pdfService->generateReport($reportData, $activeConnection->org_name);
             
-            // Check if PDF was actually created
+            // Verify PDF was created
             if (!file_exists($pdfPath)) {
-                throw new \Exception('PDF file was not created at: ' . $pdfPath);
+                return back()->with('error', 'Failed to generate PDF report. Please try again.');
             }
             
-            // Create a descriptive filename
-            $filename = $this->generateFilename($activeConnection->org_name, $request->snapshot_date);
+            // Create download filename
+            $filename = $this->generateFilename($activeConnection->org_name, $validated['snapshot_date']);
             
-            // Add debugging info to the response headers
-            $fileSize = filesize($pdfPath);
-            
-            // Return PDF download with custom filename and proper headers
+            // Return PDF download
             return response()->download($pdfPath, $filename, [
                 'Content-Type' => 'application/pdf',
-                'Content-Length' => $fileSize,
                 'Cache-Control' => 'no-cache, must-revalidate',
-                'Pragma' => 'no-cache',
-                'X-Debug-PDF-Path' => $pdfPath,
-                'X-Debug-File-Size' => $fileSize
-            ]);
+                'Pragma' => 'no-cache'
+            ])->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+            \Log::error('PDF Generation Error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to generate PDF report. Please try again.');
         }
     }
     
@@ -166,6 +161,8 @@ class RfmPdfController extends Controller
         };
     }
     
+
+
     private function generateFilename(string $orgName, string $date): string
     {
         // Clean organization name for filename
