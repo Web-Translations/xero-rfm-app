@@ -308,7 +308,9 @@
                              $controller = new \App\Http\Controllers\RfmAnalysisController();
                              $advancedData = $controller->getAdvancedSegmentAnalysis(
                                  $user->id, 
-                                 $activeConnection->tenant_id
+                                 $activeConnection->tenant_id,
+                                 null, // from date (optional)
+                                 null  // to date (optional)
                              );
                              
                              // Use the percentile-based monthly data
