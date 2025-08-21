@@ -17,16 +17,9 @@ class RfmAnalysisController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-<<<<<<< Updated upstream
-        
-        // Get active connection
-        if (!$user->getActiveXeroConnection()) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
-=======
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
             return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
->>>>>>> Stashed changes
         }
 
         $summaryStats = $this->getSummaryStats($user->id, $activeConnection->tenant_id);
@@ -582,5 +575,67 @@ class RfmAnalysisController extends Controller
         }
 
         return $out;
+    }
+
+    /**
+     * Get advanced segment analysis data for the RFM analysis page
+     */
+    public function getAdvancedSegmentAnalysis($userId, $tenantId)
+    {
+        // Get RFM data for the last 12 months
+        $monthsBack = 12;
+        $dateCutoff = now()->subMonths($monthsBack)->startOfDay();
+        
+        $rfmData = RfmReport::select([
+                'rfm_reports.snapshot_date as date',
+                'rfm_reports.r_score',
+                'rfm_reports.f_score',
+                'rfm_reports.m_score',
+                'rfm_reports.rfm_score',
+                'rfm_reports.client_id',
+                'clients.name as client_name',
+            ])
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+            ->where('rfm_reports.user_id', $userId)
+            ->where('clients.tenant_id', $tenantId)
+            ->where('rfm_reports.snapshot_date', '>=', $dateCutoff)
+            ->where('rfm_reports.rfm_score', '>', 0)
+            ->orderBy('rfm_reports.snapshot_date', 'asc')
+            ->get();
+
+        // Group by month and calculate segment distribution
+        $monthlyData = [];
+        
+        foreach ($rfmData as $record) {
+            $month = Carbon::parse($record->date)->format('Y-m');
+            
+            if (!isset($monthlyData[$month])) {
+                $monthlyData[$month] = [
+                    'Champions' => 0,
+                    'Loyal Customers' => 0,
+                    'At Risk' => 0,
+                    "Can't Lose" => 0,
+                    'Lost' => 0
+                ];
+            }
+            
+            // Categorize by RFM score
+            $score = $record->rfm_score;
+            if ($score >= 8) {
+                $monthlyData[$month]['Champions']++;
+            } elseif ($score >= 6) {
+                $monthlyData[$month]['Loyal Customers']++;
+            } elseif ($score >= 4) {
+                $monthlyData[$month]['At Risk']++;
+            } elseif ($score >= 2) {
+                $monthlyData[$month]["Can't Lose"]++;
+            } else {
+                $monthlyData[$month]['Lost']++;
+            }
+        }
+
+        return [
+            'monthlyData' => $monthlyData
+        ];
     }
 }

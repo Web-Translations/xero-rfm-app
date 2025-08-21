@@ -7,6 +7,7 @@ use App\Services\Rfm\RfmTools;
 use App\Models\RfmConfiguration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RfmPdfController extends Controller
 {
@@ -76,7 +77,7 @@ class RfmPdfController extends Controller
             ])->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
-            \Log::error('PDF Generation Error: ' . $e->getMessage());
+            Log::error('PDF Generation Error: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to generate PDF report. Please try again.'
             ], 500);
@@ -143,7 +144,7 @@ class RfmPdfController extends Controller
             ])->deleteFileAfterSend(true);
             
         } catch (\Exception $e) {
-            \Log::error('PDF Generation Error: ' . $e->getMessage());
+            Log::error('PDF Generation Error: ' . $e->getMessage());
             return back()->with('error', 'Failed to generate PDF report. Please try again.');
         }
     }

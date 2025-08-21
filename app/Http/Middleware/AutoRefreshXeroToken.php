@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Services\Xero\DatabaseCredentialManager;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Webfox\Xero\OauthCredentialManager;
 
@@ -42,7 +43,7 @@ class AutoRefreshXeroToken
                     $credentialManager->refresh();
                 } catch (\Exception $e) {
                     // Log the error but don't break the request
-                    \Log::warning('Auto token refresh failed', [
+                    Log::warning('Auto token refresh failed', [
                         'error' => $e->getMessage(),
                         'user_id' => auth()->id(),
                     ]);
@@ -51,7 +52,7 @@ class AutoRefreshXeroToken
 
         } catch (\Exception $e) {
             // Log the error but don't break the request
-            \Log::warning('Token status check failed', [
+            Log::warning('Token status check failed', [
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);

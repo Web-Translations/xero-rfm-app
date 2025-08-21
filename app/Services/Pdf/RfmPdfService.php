@@ -2,6 +2,8 @@
 
 namespace App\Services\Pdf;
 
+use Illuminate\Support\Facades\Log;
+
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -62,15 +64,7 @@ class RfmPdfService
             $reportData['date'] = now()->toDateString();
         }
         
-        // Log the actual data structure we're receiving
-        \Log::info('PDF Report Data Structure:', [
-            'top_level_keys' => array_keys($reportData),
-            'has_customer_movement' => isset($reportData['customer_movement_details']),
-            'customer_movement_keys' => isset($reportData['customer_movement_details']) ? array_keys($reportData['customer_movement_details']) : null,
-            'has_current_period' => isset($reportData['current_period']),
-            'current_period_keys' => isset($reportData['current_period']) ? array_keys($reportData['current_period']) : null,
-            'customer_movement_details_sample' => isset($reportData['customer_movement_details']) ? array_slice($reportData['customer_movement_details'], 0, 3) : null,
-        ]);
+
         
         // The reportData from computeKpis() should already be in the right format
         // Just ensure it has a 'kpis' wrapper for the template
@@ -95,27 +89,9 @@ class RfmPdfService
             'retention_rate' => $customerMovement['retention_rate'] ?? 0,
         ];
 
-        // Debug: Log the calculated values
-        \Log::info('Customer Movement Summary Calculated:', [
-            'retained' => $customerMovementSummary['retained'],
-            'new' => $customerMovementSummary['new'],
-            'returned' => $customerMovementSummary['returned'],
-            'lost' => $customerMovementSummary['lost'],
-            'retention_rate' => $customerMovementSummary['retention_rate'],
-            'current_active_count' => isset($reportData['current_period']['rfm_reports']) ? collect($reportData['current_period']['rfm_reports'])->where('rfm_score', '>', 0)->count() : 0,
-            'previous_active_count' => isset($reportData['comparison_period']['rfm_reports']) ? collect($reportData['comparison_period']['rfm_reports'])->where('rfm_score', '>', 0)->count() : 0,
-        ]);
 
-        // Debug: Log the actual RFM reports data structure
-        \Log::info('RFM Reports Data Structure:', [
-            'current_period_rfm_reports_count' => isset($reportData['current_period']['rfm_reports']) ? $reportData['current_period']['rfm_reports']->count() : 'not set',
-            'comparison_period_rfm_reports_count' => isset($reportData['comparison_period']['rfm_reports']) ? $reportData['comparison_period']['rfm_reports']->count() : 'not set',
-            'current_period_keys' => (isset($reportData['current_period']) && is_array($reportData['current_period'])) ? array_keys($reportData['current_period']) : 'not set or not array',
-            'comparison_period_keys' => (isset($reportData['comparison_period']) && is_array($reportData['comparison_period'])) ? array_keys($reportData['comparison_period']) : 'not set or not array',
-            'sample_current_rfm' => isset($reportData['current_period']['rfm_reports']) ? $reportData['current_period']['rfm_reports']->first() : 'not set',
-            'current_period_type' => isset($reportData['current_period']) ? gettype($reportData['current_period']) : 'not set',
-            'comparison_period_type' => isset($reportData['comparison_period']) ? gettype($reportData['comparison_period']) : 'not set',
-        ]);
+
+
 
         // Add customer movement data to kpis for template access (same as HTML report)
         $reportData['kpis']['customer_movement_details'] = $customerMovementSummary;

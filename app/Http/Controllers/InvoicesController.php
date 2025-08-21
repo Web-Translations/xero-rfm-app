@@ -8,6 +8,7 @@ use App\Models\ExcludedInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Webfox\Xero\OauthCredentialManager;
 use XeroAPI\XeroPHP\Api\AccountingApi;
 
@@ -26,19 +27,13 @@ class InvoicesController extends Controller
 
         // Get active connection
         $activeConnection = $user->getActiveXeroConnection();
-<<<<<<< Updated upstream
-        if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
-=======
         if (! $activeConnection) {
             return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
->>>>>>> Stashed changes
         }
 
         $query = XeroInvoice::query()
             ->where('user_id', $user->id)
             ->where('tenant_id', $activeConnection->tenant_id)
-            ->where('type', 'ACCREC') // sales invoices by default
             ->orderByDesc('date');
 
         // Only apply date filter if user specifically requests it
@@ -47,13 +42,9 @@ class InvoicesController extends Controller
             $query->where('date', '>=', $fromDate);
         }
 
-<<<<<<< Updated upstream
         // Removed type filter since all invoices are ACCREC (sales invoices)
 
-        if (!empty($statuses)) {
-=======
         if (! empty($statuses)) {
->>>>>>> Stashed changes
             $query->whereIn('status', $statuses);
         }
 
@@ -136,7 +127,6 @@ class InvoicesController extends Controller
             ->join('clients', 'clients.contact_id', '=', 'xero_invoices.contact_id')
             ->where('xero_invoices.user_id', $user->id)
             ->where('xero_invoices.tenant_id', $activeConnection->tenant_id)
-            ->where('xero_invoices.type', 'ACCREC')
             ->where('xero_invoices.date', '>=', $dateCutoff)
             ->whereNotNull('xero_invoices.rfm_score');
 
@@ -301,13 +291,7 @@ class InvoicesController extends Controller
         $where = 'Type=="ACCREC"';
         $currentPage = session('sync_current_page', 0) + 1;
 
-<<<<<<< Updated upstream
         try {
-=======
-        $page = 1;
-        $all  = [];
-        do {
->>>>>>> Stashed changes
             $resp = $api->getInvoices(
                 $tenantId,
                 null,
@@ -326,22 +310,9 @@ class InvoicesController extends Controller
                 null
             );
             
-            // Debug: Let's see what's in the response
-            if ($currentPage === 1) {
-                \Log::info('Xero API Response Debug', [
-                    'response_class' => get_class($resp),
-                    'response_methods' => get_class_methods($resp),
-                    'has_getInvoices' => method_exists($resp, 'getInvoices'),
-                    'has_getPagination' => method_exists($resp, 'getPagination'),
-                    'has_getTotalCount' => method_exists($resp, 'getTotalCount'),
-                    'has_getPage' => method_exists($resp, 'getPage'),
-                    'has_getPageSize' => method_exists($resp, 'getPageSize'),
-                    'has_getPageCount' => method_exists($resp, 'getPageCount'),
-                ]);
-            }
+
             
             $batch = $resp?->getInvoices() ?? [];
-<<<<<<< Updated upstream
             $batchSize = count($batch);
 
             if ($batchSize > 0) {
@@ -355,13 +326,6 @@ class InvoicesController extends Controller
                     'sync_processed_invoices' => $processedInvoices,
                     'sync_status' => 'processing'
                 ]);
-=======
-            $all   = array_merge($all, $batch);
-            $page++;
-        } while (count($batch) === 100);
-
-        $invoiceCount = count($all);
->>>>>>> Stashed changes
 
                 // Simple progress tracking - just count invoices processed
                 // No complex estimation needed
@@ -409,7 +373,6 @@ class InvoicesController extends Controller
                 XeroInvoice::updateOrCreate(
                     ['user_id' => $user->id, 'invoice_id' => $inv->getInvoiceId()],
                     [
-<<<<<<< Updated upstream
                         'tenant_id'         => $tenantId,
                         'contact_id'        => optional($contact)->getContactId(),
                         'status'            => $inv->getStatus(),
@@ -422,27 +385,12 @@ class InvoicesController extends Controller
                         'currency'          => $inv->getCurrencyCode(),
                         'updated_date_utc'  => $this->formatDateTimeField($inv->getUpdatedDateUtc()),
                         'fully_paid_at'     => $this->formatDateTimeField($inv->getFullyPaidOnDate()),
-=======
-                        'tenant_id'        => $tenantId,
-                        'contact_id'       => optional($contact)->getContactId(),
-                        'status'           => $inv->getStatus(),
-                        'type'             => $inv->getType(),
-                        'invoice_number'   => $inv->getInvoiceNumber(),
-                        'date'             => $this->extractInvoiceDate($inv),
-                        'due_date'         => $this->formatDateField($inv->getDueDate()),
-                        'subtotal'         => $inv->getSubTotal(),
-                        'total'            => $inv->getTotal(),
-                        'currency'         => $inv->getCurrencyCode(),
-                        'updated_date_utc' => $this->formatDateTimeField($inv->getUpdatedDateUtc()),
-                        'fully_paid_at'    => $this->formatDateTimeField($inv->getFullyPaidOnDate()),
->>>>>>> Stashed changes
                     ]
                 );
             }
         });
     }
 
-<<<<<<< Updated upstream
     private function completeSync($user, $activeConnection)
     {
         $processedInvoices = session('sync_processed_invoices', 0);
@@ -474,13 +422,6 @@ class InvoicesController extends Controller
             'last_sync_at' => now(),
             'last_sync_invoice_count' => $processedInvoices
         ]);
-=======
-        // Calculate RFM scores for each invoice
-        $this->calculateInvoiceRfmScores($user->id, $tenantId);
-
-        $message = "Synced {$invoiceCount} sales invoices from Xero and calculated RFM scores.";
-        return redirect()->route('invoices.index')->with('status', $message);
->>>>>>> Stashed changes
     }
 
     /**
@@ -491,7 +432,6 @@ class InvoicesController extends Controller
         // Get all invoices for this user/tenant, ordered by date
         $invoices = XeroInvoice::where('user_id', $userId)
             ->where('tenant_id', $tenantId)
-            ->where('type', 'ACCREC')
             ->orderBy('date', 'asc')
             ->get();
 
@@ -720,15 +660,9 @@ class InvoicesController extends Controller
     {
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
-<<<<<<< Updated upstream
-        
-        if (!$activeConnection) {
-            return response()->json(['error' => 'No active organisation'], 400);
-=======
 
         if (! $activeConnection) {
             return response()->json(['error' => 'No active organization'], 400);
->>>>>>> Stashed changes
         }
 
         // Verify the invoice exists and belongs to the user
@@ -765,15 +699,9 @@ class InvoicesController extends Controller
     {
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
-<<<<<<< Updated upstream
-        
-        if (!$activeConnection) {
-            return response()->json(['error' => 'No active organisation'], 400);
-=======
 
         if (! $activeConnection) {
             return response()->json(['error' => 'No active organization'], 400);
->>>>>>> Stashed changes
         }
 
         ExcludedInvoice::where('user_id', $user->id)
