@@ -4,8 +4,10 @@ use App\Http\Controllers\XeroController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RfmController;
 use App\Http\Controllers\RfmReportsController;
+use App\Http\Controllers\RfmPdfController;
 use App\Http\Controllers\RfmAnalysisController;
 use App\Http\Controllers\RfmConfigController;
+use App\Http\Controllers\RfmInsightsController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\TokenController;
@@ -66,6 +68,11 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     // RFM Reports
     Route::get('/rfm/reports', [RfmReportsController::class, 'index'])->name('rfm.reports.index');
     Route::get('/rfm/reports/generate', [RfmReportsController::class, 'generate'])->name('rfm.reports.generate');
+    Route::get('/rfm/reports/pdf', [RfmPdfController::class, 'download'])->name('rfm.reports.pdf');
+    Route::post('/rfm/reports/pdf', [RfmPdfController::class, 'generateFromBuilder'])->name('rfm.reports.pdf.generate');
+    
+    // AI Insights
+    Route::post('/rfm/insights/generate', [RfmInsightsController::class, 'generate'])->name('rfm.insights.generate');
     
     // RFM Configuration
     Route::prefix('rfm/config')->name('rfm.config.')->group(function () {

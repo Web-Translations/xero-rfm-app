@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\XeroInvoice;
 use App\Models\ExcludedInvoice;
 use App\Models\RfmConfiguration;
+use App\Models\RfmReport;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +16,15 @@ class RfmCalculator
     /**
      * Compute RFM scores for all clients using configurable parameters.
      * Stores snapshot with timestamp for historical analysis.
+     * Only creates new snapshots on 1st of month, otherwise updates current snapshot.
      */
     public function computeSnapshot(int $userId, Carbon $snapshotDate = null, ?RfmConfiguration $config = null): array
     {
         $snapshotDate = $snapshotDate ?? Carbon::now();
+        
+        // For current calculations (when no specific date provided), always use today
+        // For historical calculations (when specific date provided), use that date
+        $effectiveSnapshotDate = $snapshotDate;
         
         // Get the active connection for this user
         $activeConnection = \App\Models\XeroConnection::getActiveForUser($userId);
@@ -36,9 +42,9 @@ class RfmCalculator
         }
 
         // Calculate windows for each component
-        $recencyWindowStart = (clone $snapshotDate)->subMonths($config->recency_window_months)->startOfDay();
-        $frequencyWindowStart = (clone $snapshotDate)->subMonths($config->frequency_period_months)->startOfDay();
-        $monetaryWindowStart = (clone $snapshotDate)->subMonths($config->monetary_window_months)->startOfDay();
+        $recencyWindowStart = (clone $effectiveSnapshotDate)->subMonths($config->recency_window_months)->startOfDay();
+        $frequencyWindowStart = (clone $effectiveSnapshotDate)->subMonths($config->frequency_period_months)->startOfDay();
+        $monetaryWindowStart = (clone $effectiveSnapshotDate)->subMonths($config->monetary_window_months)->startOfDay();
 
 
 
@@ -61,7 +67,7 @@ class RfmCalculator
 
         if ($allInvoices->isEmpty()) {
             return [
-                'snapshot_date' => $snapshotDate->toDateString(),
+                'snapshot_date' => $effectiveSnapshotDate->toDateString(),
                 'window_start' => min($recencyWindowStart, $frequencyWindowStart, $monetaryWindowStart)->toDateString(),
                 'computed' => 0,
             ];
@@ -98,6 +104,7 @@ class RfmCalculator
             $clients,
             $invoicesByContact,
             $snapshotDate,
+            $effectiveSnapshotDate,
             $userId,
             &$computedCount,
             $activeConnection,
@@ -149,7 +156,7 @@ class RfmCalculator
                 $insertData = [
                     'user_id' => $userId,
                     'client_id' => $client->id,
-                    'snapshot_date' => $snapshotDate->toDateString(),
+                    'snapshot_date' => $effectiveSnapshotDate->toDateString(),
                     'rfm_configuration_id' => $config->id,
                 ];
                 
@@ -168,7 +175,7 @@ class RfmCalculator
         });
 
         return [
-            'snapshot_date' => $snapshotDate->toDateString(),
+            'snapshot_date' => $effectiveSnapshotDate->toDateString(),
             'window_start' => min($recencyWindowStart, $frequencyWindowStart, $monetaryWindowStart)->toDateString(),
             'computed' => $computedCount,
         ];
@@ -198,7 +205,15 @@ class RfmCalculator
     private function calculateMonetaryScore(float $largestInvoice, ?float $benchmark): float
     {
         if (!$benchmark || $benchmark <= 0) {
-            return 0.0;
+            // If no benchmark, use a fallback calculation based on the invoice value
+            // This prevents all customers from getting 0 monetary scores
+            if ($largestInvoice <= 0) {
+                return 0.0;
+            }
+            
+            // Use a simple scale: £1000 = 5 points, £2000 = 10 points
+            $fallbackScore = min(10, ($largestInvoice / 2000) * 10);
+            return round($fallbackScore, 2);
         }
         
         $score = ($largestInvoice / $benchmark) * 10;
@@ -224,7 +239,16 @@ class RfmCalculator
         
         // Calculate the (100 - percentile)th percentile
         $q = max(0, min(1, 1 - ($percentile / 100)));
-        return $this->quantile($sorted, $q);
+        $benchmark = $this->quantile($sorted, $q);
+        
+        // Ensure we have a reasonable benchmark value
+        if (!$benchmark || $benchmark <= 0) {
+            // Fallback to median if percentile calculation fails
+            $median = $sorted->median();
+            return $median > 0 ? $median : null;
+        }
+        
+        return $benchmark;
     }
 
     /**
@@ -273,6 +297,23 @@ class RfmCalculator
         }
 
         return $results;
+    }
+
+    /**
+     * Clean up old snapshots that aren't on the 1st of the month
+     * This helps keep the database clean and only maintain monthly snapshots
+     * But keeps today's snapshot even if it's not the 1st
+     */
+    public function cleanupOldSnapshots(int $userId): int
+    {
+        $today = Carbon::now()->toDateString();
+        
+        $deleted = RfmReport::where('user_id', $userId)
+            ->whereRaw("CAST(strftime('%d', snapshot_date) AS INTEGER) != 1")
+            ->where('snapshot_date', '!=', $today)
+            ->delete();
+            
+        return $deleted;
     }
 
     /**

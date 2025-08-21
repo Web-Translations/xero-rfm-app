@@ -1,11 +1,3 @@
-import './bootstrap';
-
-import Alpine from 'alpinejs';
-
-window.Alpine = Alpine;
-
-Alpine.start();
-
 // AI Insights functionality
 function generateAIInsight(section, data) {
     console.log('generateAIInsight called with:', { section, data });
@@ -14,11 +6,6 @@ function generateAIInsight(section, data) {
     const contentDiv = document.getElementById(`ai-content-${section}`);
     
     console.log('Found elements:', { insightDiv, contentDiv });
-    
-    if (!insightDiv || !contentDiv) {
-        console.error('Required elements not found');
-        return;
-    }
     
     // Show loading state
     insightDiv.classList.remove('hidden');
@@ -32,8 +19,6 @@ function generateAIInsight(section, data) {
     
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    
-    console.log('CSRF Token:', csrfToken);
     
     // Call backend API
     fetch('/rfm/insights/generate', {
@@ -49,14 +34,12 @@ function generateAIInsight(section, data) {
         })
     })
     .then(response => {
-        console.log('Response status:', response.status);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(result => {
-        console.log('API result:', result);
         if (result.success) {
             contentDiv.innerHTML = `<p class="text-blue-800 dark:text-blue-200">${result.insight}</p>`;
         } else {
@@ -74,34 +57,18 @@ function generateAIInsight(section, data) {
     });
 }
 
-// Initialize AI Insights when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('AI Insights: DOM loaded, initializing...');
-    
-    // Get KPIs data from script tag
-    const kpisElement = document.getElementById('kpis-data');
-    let kpisData = {};
-    
-    if (kpisElement) {
-        try {
-            kpisData = JSON.parse(kpisElement.textContent);
-            console.log('KPIs data loaded:', kpisData);
-        } catch (e) {
-            console.error('Failed to parse KPIs data:', e);
-        }
+// Toggle AI insight visibility
+function toggleAIInsight(section) {
+    const insightDiv = document.getElementById(`ai-insight-${section}`);
+    if (insightDiv) {
+        insightDiv.classList.toggle('hidden');
     }
-    
-    // Add event listeners to AI insight buttons
-    const aiButtons = document.querySelectorAll('[id^="ai-insights-btn-"]');
-    console.log('Found AI buttons:', aiButtons.length);
-    
-    aiButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            console.log('AI button clicked:', this.id);
-            const section = this.getAttribute('data-section');
-            if (section) {
-                generateAIInsight(section, kpisData);
-            }
-        });
-    });
-});
+}
+
+// Hide AI insight
+function hideAIInsight(section) {
+    const insightDiv = document.getElementById(`ai-insight-${section}`);
+    if (insightDiv) {
+        insightDiv.classList.add('hidden');
+    }
+}
