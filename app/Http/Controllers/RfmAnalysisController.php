@@ -229,7 +229,7 @@ class RfmAnalysisController extends Controller
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
             if (!$activeConnection) {
-                return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+                return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
             }
 
             // Get RFM data for business analytics - last 12 months
@@ -582,7 +582,7 @@ class RfmAnalysisController extends Controller
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
             if (!$activeConnection) {
-                return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+                return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
             }
 
             $from = $request->string('from')->toString();            // "YYYY-MM" optional
@@ -613,7 +613,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         // JS can also hit predictiveSeries() for fresh data
@@ -630,7 +630,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         $cohortData = $this->getCohortData($user->id, $activeConnection->tenant_id);
@@ -646,7 +646,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return redirect()->route('dashboard')->withErrors('Please connect a Xero organization first.');
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
         }
 
         $period1 = $request->get('period1', now()->subMonths(6)->toDateString());
@@ -673,7 +673,7 @@ class RfmAnalysisController extends Controller
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
             if (!$activeConnection) {
-                return response()->json(['error' => 'No active organization'], 400);
+                return response()->json(['error' => 'No active organisation'], 400);
             }
 
             return response()->json(
@@ -692,7 +692,7 @@ class RfmAnalysisController extends Controller
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
             if (!$activeConnection) {
-                return response()->json(['error' => 'No active organization'], 400);
+                return response()->json(['error' => 'No active organisation'], 400);
             }
 
             $clientId   = $request->get('client_id');
@@ -729,7 +729,7 @@ class RfmAnalysisController extends Controller
             $activeConnection = $user->xeroConnections()->where('is_active', true)->first();
             
             if (!$activeConnection) {
-                return response()->json(['error' => 'No active organization'], 400);
+                return response()->json(['error' => 'No active organisation'], 400);
             }
 
             return response()->json([
@@ -747,7 +747,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         return response()->json(
@@ -760,7 +760,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         return response()->json(
@@ -773,7 +773,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         $period1 = $request->get('period1', now()->subMonths(6)->toDateString());
@@ -789,7 +789,7 @@ class RfmAnalysisController extends Controller
         $user = $request->user();
         $activeConnection = $user->getActiveXeroConnection();
         if (!$activeConnection) {
-            return response()->json(['error' => 'No active organization'], 400);
+            return response()->json(['error' => 'No active organisation'], 400);
         }
 
         $monthsBack = (int) $request->get('months_back', 12);

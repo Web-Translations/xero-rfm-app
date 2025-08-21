@@ -62,7 +62,7 @@
                     <span class="ml-2 font-semibold text-gray-900 dark:text-gray-100">{{ ucfirst($comparisonPeriod) }}</span>
                 </div>
                 <div>
-                    <span class="text-gray-500 dark:text-gray-400">Organization:</span>
+                    <span class="text-gray-500 dark:text-gray-400">Organisation:</span>
                     <span class="ml-2 font-semibold text-gray-900 dark:text-gray-100">{{ $activeConnection->org_name }}</span>
                 </div>
             </div>

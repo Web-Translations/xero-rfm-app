@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFM Analysis Report - {{ $reportData['organization'] ?? 'Company' }}</title>
+    <title>RFM Analysis Report - {{ $reportData['organisation'] ?? 'Company' }}</title>
     <style>
         * {
             margin: 0;
@@ -377,7 +377,7 @@
         <div class="header">
             <div class="header-content">
                 <h1>RFM Analysis Report</h1>
-                <div class="subtitle">{{ $reportData['organization'] ?? 'Company Name' }}</div>
+                <div class="subtitle">{{ $reportData['organisation'] ?? 'Company Name' }}</div>
                 
                 <div class="header-meta">
                     <div class="meta-item">
@@ -400,7 +400,7 @@
             <!-- Report Introduction -->
             <div class="section">
                 <div class="report-intro">
-                    <p><strong>Report Overview:</strong> This comprehensive RFM (Recency, Frequency, Monetary) analysis report provides detailed insights into customer behavior, revenue patterns, and business performance for {{ $reportData['organization'] ?? 'your organization' }}. The analysis covers a {{ $reportData['rfm_window'] ?? 12 }}-month period ending {{ \Carbon\Carbon::parse($reportData['date'] ?? now())->format('F j, Y') }}.</p>
+                    <p><strong>Report Overview:</strong> This comprehensive RFM (Recency, Frequency, Monetary) analysis report provides detailed insights into customer behavior, revenue patterns, and business performance for {{ $reportData['organisation'] ?? 'your organisation' }}. The analysis covers a {{ $reportData['rfm_window'] ?? 12 }}-month period ending {{ \Carbon\Carbon::parse($reportData['date'] ?? now())->format('F j, Y') }}.</p>
                     
                     <p><strong>Methodology:</strong> This report utilizes the RFM framework to segment customers based on their purchasing behavior. Recency measures how recently a customer made a purchase, Frequency tracks how often they purchase, and Monetary value represents the total amount spent. These three dimensions are combined to create a comprehensive customer value score.</p>
                     
@@ -793,7 +793,7 @@
                 <div class="section-subtitle">Summary of key findings and strategic recommendations for business improvement</div>
                 
                 <div class="report-intro">
-                    <p><strong>Executive Summary:</strong> This RFM analysis has identified several critical areas for attention and opportunity within {{ $reportData['organization'] ?? 'your organization' }}'s customer base. The analysis reveals both strengths to leverage and challenges that require strategic intervention.</p>
+                    <p><strong>Executive Summary:</strong> This RFM analysis has identified several critical areas for attention and opportunity within {{ $reportData['organisation'] ?? 'your organisation' }}'s customer base. The analysis reveals both strengths to leverage and challenges that require strategic intervention.</p>
                     
                     <p><strong>Key Recommendations:</strong></p>
                     <ul style="margin-left: 20px; margin-top: 10px;">

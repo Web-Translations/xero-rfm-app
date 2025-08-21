@@ -13,10 +13,10 @@ class RfmPdfService
     /**
      * Generate a beautiful RFM report PDF from report data
      */
-    public function generateReport(array $reportData, string $organizationName): string
+    public function generateReport(array $reportData, string $organisationName): string
     {
         // Ensure the data has all required fields
-        $reportData = $this->prepareReportData($reportData, $organizationName);
+        $reportData = $this->prepareReportData($reportData, $organisationName);
         
         // Generate PDF from the beautiful template
         $pdf = Pdf::loadView('pdf.rfm-report', ['reportData' => $reportData])
@@ -33,7 +33,7 @@ class RfmPdfService
 
         // Create filename with timestamp
         $timestamp = Carbon::now()->format('Y-m-d_H-i-s');
-        $safeOrgName = $this->sanitizeFilename($organizationName);
+        $safeOrgName = $this->sanitizeFilename($organisationName);
         $filename = "RFM_Report_{$safeOrgName}_{$timestamp}.pdf";
         
         // Create temporary file path
@@ -54,10 +54,10 @@ class RfmPdfService
     /**
      * Prepare and normalize report data for PDF generation
      */
-    private function prepareReportData(array $reportData, string $organizationName): array
+    private function prepareReportData(array $reportData, string $organisationName): array
     {
-        // Set organization name
-        $reportData['organization'] = $organizationName;
+        // Set organisation name
+        $reportData['organisation'] = $organisationName;
         
         // Ensure date is properly formatted
         if (!isset($reportData['date'])) {
