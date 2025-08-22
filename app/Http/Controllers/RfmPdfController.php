@@ -166,7 +166,7 @@ class RfmPdfController extends Controller
 
     private function generateFilename(string $orgName, string $date): string
     {
-        // Clean organization name for filename
+                    // Clean organisation name for filename
         $cleanOrgName = preg_replace('/[^a-zA-Z0-9\s-]/', '', $orgName);
         $cleanOrgName = str_replace([' ', '/', '\\'], '_', $cleanOrgName);
         $cleanOrgName = trim($cleanOrgName, '_');

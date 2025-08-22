@@ -1,999 +1,1107 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">RFM Analysis</h2>
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">RFM Analysis Dashboard</h2>
     </x-slot>
 
-    <style>
-        :root{
-            --axis:#374151; --grid:rgba(55,65,81,.22); --label:#9CA3AF; --dot:#ffffff;
-        }
-        .chart-shell{position:relative}
-        .chart-area{
-            position:relative;height:560px;border-left:1.5px solid var(--axis);border-bottom:1.5px solid var(--axis);
-            margin: 0 24px 58px 86px;
-        }
-        .y-labels{position:absolute;left:-66px;top:0;height:100%;width:60px;font-size:11px;color:var(--label)}
-        .x-labels{position:absolute;bottom:-44px;left:0;width:100%;font-size:11px;color:var(--label);white-space:nowrap}
-        .grid{position:absolute;inset:0}
-        .grid>div{position:absolute;left:0;right:0;height:1px;background:var(--grid)}
-        .legend-panel{max-height:140px;overflow:auto;border:1px solid rgba(156,163,175,.25);border-radius:.5rem;padding:8px 10px;margin:12px auto 0;max-width:1100px}
-        .legend-wrap{display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center}
-        .legend-item{display:inline-flex;align-items:center;gap:.5rem;cursor:pointer}
-        .legend-item .swatch{width:10px;height:10px;border-radius:50%}
-        .legend-item.muted{opacity:.32;text-decoration:line-through}
-        .chart-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-                          .line{fill:none;stroke-width:1;opacity:1}
-         .line.muted{opacity:.2}
-         .line.benchmark{stroke-dasharray:4 4;opacity:.7}
-         .point{
-             display:none;
-         }
-        .toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:0 24px 12px 86px}
-        .pill{border:1px solid rgba(156,163,175,.35);padding:.35rem .6rem;border-radius:9999px;font-size:.78rem;color:#9CA3AF;white-space:nowrap}
-        .controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:end;margin:0 24px 18px 86px}
-        .controls label{font-size:.75rem;color:#9CA3AF}
-        .controls input,.controls select{border:1px solid rgba(156,163,175,.35);background:transparent;border-radius:.5rem;padding:.38rem .5rem;color:#e5e7eb}
-        .controls .btn{border:1px solid rgba(156,163,175,.45);padding:.38rem .7rem;border-radius:.5rem;font-size:.82rem;color:#e5e7eb}
-        .legend-search{display:flex;gap:.5rem;align-items:center;margin:14px auto 8px;max-width:620px}
-        .legend-search input{flex:1;border:1px solid rgba(156,163,175,.35);background:transparent;border-radius:.5rem;padding:.45rem .6rem;color:#e5e7eb}
-        .tip{position:fixed;z-index:80;pointer-events:none;padding:.42rem .55rem;background:rgba(17,24,39,.96);color:#e5e7eb;border:1px solid rgba(156,163,175,.25);
-             border-radius:.5rem;font-size:.78rem;transform:translate(8px,-12px);display:none}
-        @media (max-width:1024px){
-            .chart-area{margin:0 8px 58px 56px}
-            .y-labels{left:-52px;width:50px}
-            .toolbar,.controls{margin-left:56px}
-        }
-    </style>
-
-    <div class="p-6">
-        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Analysis Dashboard</h3>
+    <div class="py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="mb-8">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">RFM Analysis</h1>
+                            <p class="text-gray-600 dark:text-gray-400 mt-1">Comprehensive customer behavior analysis and insights</p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-sm text-gray-500">
+                                <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-6">
-                {{-- Tabs --}}
-                <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
-                    <nav class="-mb-px flex gap-6 overflow-x-auto">
-                        <button onclick="showTab('company-trend')" id="tab-company-trend" class="tab-button active py-2 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400">
-                            Company Trends
+            <!-- Navigation Tabs -->
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
+                <div class="border-b border-gray-200 dark:border-gray-700">
+                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                        <button onclick="showTab('overview')" id="tab-overview" 
+                                class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400">
+                            Overview
                         </button>
-                        <button onclick="showTab('rfm-breakdown')" id="tab-rfm-breakdown" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
-                            RFM Component Breakdown
+                        <button onclick="showTab('client-trends')" id="tab-client-trends" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Client RFM Trends
                         </button>
-                        <button onclick="showTab('revenue-trend')" id="tab-revenue-trend" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
-                            Revenue Trend Analysis
+                        <button onclick="showTab('rfm-breakdown')" id="tab-rfm-breakdown" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Overall RFM Breakdown
                         </button>
-                        <button onclick="showTab('clv-trend')" id="tab-clv-trend" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
-                            Customer Lifetime Value
+
+                        <button onclick="showTab('customer-value')" id="tab-customer-value" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Customer Value
                         </button>
-                        <button onclick="showTab('segmentation')" id="tab-segmentation" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
-                            Customer Segmentation
+                        <button onclick="showTab('segmentation')" id="tab-segmentation" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Segmentation
                         </button>
-                        <button onclick="showTab('churn-analysis')" id="tab-churn-analysis" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                        <button onclick="showTab('churn-retention')" id="tab-churn-retention" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                             Churn & Retention
                         </button>
+                        <a href="{{ route('rfm.analysis.business') }}" 
+                           class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Business Analytics
+                        </a>
                     </nav>
                 </div>
+            </div>
 
+            <!-- Content Area -->
+            <div class="space-y-6">
                 @php
                     $hasData = isset($rfmData) && $rfmData->count() > 0;
-
-                    // Month axis from filtered data
-                    $allMonths = collect();
+                    
+                    // Process RFM data for charts
                     if ($hasData) {
-                        $minDate = \Carbon\Carbon::parse($rfmData->min('date'))->startOfMonth();
-                        $maxDate = \Carbon\Carbon::parse($rfmData->max('date'))->startOfMonth();
-                        for ($d = $minDate->copy(); $d <= $maxDate; $d->addMonth()) {
-                            $allMonths->push($d->format('Y-m'));
-                        }
-                    }
-                    $dateLabels = $allMonths->map(fn($m) => \Carbon\Carbon::parse($m.'-01')->format('M Y'))->values()->toArray();
-
-                    // Company series on RFM score
-                    $companies = [];  $allVals = collect();
-                    $palette = ['#60A5FA','#F87171','#34D399','#F59E0B','#A78BFA','#F472B6','#06B6D4','#84CC16','#14B8A6','#FB923C','#8B5CF6','#22C55E','#F43F5E','#38BDF8','#EAB308'];
-                    if ($hasData) {
-                        $byCompany = $rfmData->groupBy('client_name'); 
-                        $i=0;
-                        foreach ($byCompany as $name=>$rows){
-                            $byMonth = $rows->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
-                            $series = $allMonths->map(function($m) use($byMonth,$allVals){
-                                if (!isset($byMonth[$m])) return null;
-                                $v = round((float)$byMonth[$m]->avg('rfm_score'),2);
-                                $allVals->push($v); 
-                                return $v;
+                        // Get all unique dates (1st of each month)
+                        $allDates = $rfmData->pluck('date')
+                            ->map(function($date) {
+                                return \Carbon\Carbon::parse($date)->startOfMonth()->format('Y-m-01');
+                            })
+                            ->unique()
+                            ->sort()
+                            ->values();
+                        
+                        // Get all unique clients
+                        $allClients = $rfmData->pluck('client_name')->unique()->values();
+                        
+                        // Group data by client and date
+                        $clientData = [];
+                        $palette = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#06B6D4','#84CC16','#F97316','#EC4899','#6366F1'];
+                        
+                        foreach ($allClients as $idx => $clientName) {
+                            $clientRecords = $rfmData->where('client_name', $clientName);
+                            $byDate = $clientRecords->groupBy(function($record) {
+                                return \Carbon\Carbon::parse($record->date)->startOfMonth()->format('Y-m-01');
+                            });
+                            
+                            $series = $allDates->map(function($date) use ($byDate) {
+                                return isset($byDate[$date]) ? round($byDate[$date]->avg('rfm_score'), 2) : null;
                             })->toArray();
-                            $avg = collect($series)->filter(fn($v)=>$v!==null)->avg();
-                            $companies[] = ['name'=>$name,'data'=>$series,'avg'=>$avg??0,'color'=>$palette[$i % count($palette)]];
-                            $i++;
+                            
+                            $avgScore = collect($series)->filter(fn($v) => $v !== null)->avg();
+                            
+                            $clientData[] = [
+                                'name' => $clientName,
+                                'data' => $series,
+                                'avg' => $avgScore ?? 0,
+                                'color' => $palette[$idx % count($palette)]
+                            ];
                         }
-                        // Top N by avg for default visibility
-                        $companies = collect($companies)->sortByDesc('avg')->values()->toArray();
+                        
+                        // Sort by average score (top performers first)
+                        $clientData = collect($clientData)->sortByDesc('avg')->values()->toArray();
                     }
-                    $minV = $allVals->isNotEmpty() ? $allVals->min() : 0;
-                    $maxV = $allVals->isNotEmpty() ? $allVals->max() : 10;
-                    $rng  = max(1e-6, $maxV - $minV);
-
-                    // Benchmark (overall avg per month on RFM score)
-                    $benchmark = [];
-                    if ($hasData) {
-                        $byMonth = $rfmData->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
-                        $benchmark = $allMonths->map(fn($m)=> isset($byMonth[$m]) ? round((float)$byMonth[$m]->avg('rfm_score'),2) : null)->toArray();
-                    }
-
-                    /* Components + Revenue */
-                    $rfmComponents=[]; 
-                    if($hasData){
-                        $byMonth=$rfmData->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
-                        $r=$allMonths->map(fn($m)=>isset($byMonth[$m])?round((float)$byMonth[$m]->avg('r_score'),2):null)->toArray();
-                        $f=$allMonths->map(fn($m)=>isset($byMonth[$m])?round((float)$byMonth[$m]->avg('f_score'),2):null)->toArray();
-                        $m=$allMonths->map(fn($m2)=>isset($byMonth[$m2])?round((float)$byMonth[$m2]->avg('m_score'),2):null)->toArray();
-                        $rfmComponents=[['name'=>'Recency','data'=>$r,'color'=>'#F87171'],['name'=>'Frequency','data'=>$f,'color'=>'#22C55E'],['name'=>'Monetary','data'=>$m,'color'=>'#60A5FA']];
-                    }
-
-                    $revenueLabels=$dateLabels; 
-                    $revenueTrends=[];
-                    if($hasData){
-                        $byMonth=$rfmData->groupBy(fn($r)=>\Carbon\Carbon::parse($r->date)->format('Y-m'));
-                        $hasMon=$rfmData->contains(fn($r)=>isset($r->monetary_sum));
-                        $hasTxn=$rfmData->contains(fn($r)=>isset($r->txn_count));
-                        
-                        // Filter out current month if it's incomplete
-                        $currentMonth = now()->format('Y-m');
-                        $filteredMonths = $allMonths->filter(function($month) use ($currentMonth) {
-                            return $month !== $currentMonth;
-                        })->values();
-                        
-                        $rev=$filteredMonths->map(fn($m)=>!isset($byMonth[$m])?null:($hasMon?(float)$byMonth[$m]->sum('monetary_sum'):round((float)$byMonth[$m]->avg('m_score')*max(1,$byMonth[$m]->avg('f_score'))*10,2)))->toArray();
-                        $txn=$filteredMonths->map(fn($m)=>!isset($byMonth[$m])?null:($hasTxn?(int)$byMonth[$m]->sum('txn_count'):(int)$byMonth[$m]->count()))->toArray();
-                        
-                        // Update labels to match filtered data
-                        $revenueLabels = $filteredMonths->map(fn($m) => \Carbon\Carbon::createFromFormat('Y-m', $m)->format('M Y'))->toArray();
-                        
-                        $rv=array_values(array_filter($rev,fn($v)=>$v!==null)); 
-                        $tv=array_values(array_filter($txn,fn($v)=>$v!==null));
-                        $minR=count($rv)?min($rv):0; 
-                        $maxR=count($rv)?max($rv):1; 
-                        $rngR=max(1e-6,$maxR-$minR);
-                        $minT=count($tv)?min($tv):0; 
-                        $maxT=count($tv)?max($tv):1; 
-                        $rngT=max(1e-6,$maxT-$minT);
-                                             $revenueTrends=[
-                             ['name'=>'Monthly Revenue','data'=>$rev,'color'=>'#A78BFA','min'=>$minR,'max'=>$maxR,'range'=>$rngR],
-                             ['name'=>'Transaction Count','data'=>$txn,'color'=>'#F59E0B','min'=>$minT,'max'=>$maxT,'range'=>$rngT],
-                         ];
-                     }
-
-                     /* Churn & Retention Analysis - Critical for business health */
-                     $churnLabels = $dateLabels;
-                     $churnTrends = [];
-                     if($hasData){
-                         $byMonth = $rfmData->groupBy(fn($r)=> \Carbon\Carbon::parse($r->date)->format('Y-m'));
-                         
-                         // Calculate Churn Rate (customers who dropped from high to low RFM scores)
-                         $churnRate = $allMonths->map(function($m) use ($byMonth) {
-                             if (!isset($byMonth[$m])) return null;
-                             
-                             $monthData = $byMonth[$m];
-                             $highValueCustomers = $monthData->where('rfm_score', '>=', 7)->count();
-                             $totalCustomers = $monthData->count();
-                             
-                             if ($totalCustomers == 0) return 0;
-                             
-                             // Churn rate as percentage of high-value customers who declined
-                             return round(($highValueCustomers / $totalCustomers) * 100, 1);
-                         })->toArray();
-                         
-                         // Calculate Retention Rate (customers maintaining high RFM scores)
-                         $retentionRate = $allMonths->map(function($m) use ($byMonth) {
-                             if (!isset($byMonth[$m])) return null;
-                             
-                             $monthData = $byMonth[$m];
-                             $maintainedCustomers = $monthData->where('rfm_score', '>=', 6)->count();
-                             $totalCustomers = $monthData->count();
-                             
-                             if ($totalCustomers == 0) return 0;
-                             
-                             return round(($maintainedCustomers / $totalCustomers) * 100, 1);
-                         })->toArray();
-                         
-                         // Calculate Customer Acquisition Rate (new high-value customers)
-                         $acquisitionRate = $allMonths->map(function($m) use ($byMonth) {
-                             if (!isset($byMonth[$m])) return null;
-                             
-                             $monthData = $byMonth[$m];
-                             $newHighValue = $monthData->where('rfm_score', '>=', 8)->count();
-                             $totalCustomers = $monthData->count();
-                             
-                             if ($totalCustomers == 0) return 0;
-                             
-                             return round(($newHighValue / $totalCustomers) * 100, 1);
-                         })->toArray();
-                         
-                         // Calculate Customer Lifetime (average months as customer)
-                         $customerLifetime = $allMonths->map(function($m) use ($byMonth) {
-                             if (!isset($byMonth[$m])) return null;
-                             
-                             $monthData = $byMonth[$m];
-                             
-                             // Estimate lifetime based on frequency score
-                             $avgFrequency = $monthData->avg('f_score');
-                             
-                             // Convert frequency score to estimated months
-                             return round($avgFrequency * 2, 1); // Rough estimation
-                         })->toArray();
-                         
-                         // Calculate ranges for scaling
-                         $churnVals = array_values(array_filter($churnRate, fn($v)=> $v !== null));
-                         $retVals = array_values(array_filter($retentionRate, fn($v)=> $v !== null));
-                         $acqVals = array_values(array_filter($acquisitionRate, fn($v)=> $v !== null));
-                         $lifeVals = array_values(array_filter($customerLifetime, fn($v)=> $v !== null));
-                         
-                         $minChurn = count($churnVals) ? min($churnVals) : 0;
-                         $maxChurn = count($churnVals) ? max($churnVals) : 100;
-                         $rngChurn = max(1e-6, $maxChurn - $minChurn);
-                         
-                         $minRet = count($retVals) ? min($retVals) : 0;
-                         $maxRet = count($retVals) ? max($retVals) : 100;
-                         $rngRet = max(1e-6, $maxRet - $minRet);
-                         
-                         $minAcq = count($acqVals) ? min($acqVals) : 0;
-                         $maxAcq = count($acqVals) ? max($acqVals) : 100;
-                         $rngAcq = max(1e-6, $maxAcq - $minAcq);
-                         
-                         $minLife = count($lifeVals) ? min($lifeVals) : 0;
-                         $maxLife = count($lifeVals) ? max($lifeVals) : 24;
-                         $rngLife = max(1e-6, $maxLife - $minLife);
-                         
-                         $churnTrends = [
-                             ['name'=>'Churn Rate %','data'=>$churnRate,'color'=>'#EF4444','min'=>$minChurn,'max'=>$maxChurn,'range'=>$rngChurn],
-                             ['name'=>'Retention Rate %','data'=>$retentionRate,'color'=>'#10B981','min'=>$minRet,'max'=>$maxRet,'range'=>$rngRet],
-                             ['name'=>'Acquisition Rate %','data'=>$acquisitionRate,'color'=>'#3B82F6','min'=>$minAcq,'max'=>$maxAcq,'range'=>$rngAcq],
-                             ['name'=>'Avg Customer Lifetime (months)','data'=>$customerLifetime,'color'=>'#F59E0B','min'=>$minLife,'max'=>$maxLife,'range'=>$rngLife],
-                         ];
-                     }
-
-                     /* Customer Lifetime Value (CLV) - Most valuable for business decisions */
-                     $clvLabels = $dateLabels;
-                     $clvTrends = [];
-                     if($hasData){
-                         $byMonth = $rfmData->groupBy(fn($r)=> \Carbon\Carbon::parse($r->date)->format('Y-m'));
-                         
-                         // Calculate CLV = Monetary Score × Frequency Score × 10 (scaled for visibility)
-                         $clv = $allMonths->map(fn($m)=> !isset($byMonth[$m]) ? null : 
-                             round((float)$byMonth[$m]->avg('m_score') * max(1, (float)$byMonth[$m]->avg('f_score')) * 10, 2)
-                         )->toArray();
-                         
-                         // Calculate Average Order Value (AOV) = Monetary Score × 100
-                         $aov = $allMonths->map(fn($m)=> !isset($byMonth[$m]) ? null : 
-                             round((float)$byMonth[$m]->avg('m_score') * 100, 2)
-                         )->toArray();
-                         
-                         // Calculate Customer Retention Rate (based on frequency stability)
-                         $retention = $allMonths->map(fn($m)=> !isset($byMonth[$m]) ? null : 
-                             round(min(100, max(0, (float)$byMonth[$m]->avg('f_score') * 10)), 1)
-                         )->toArray();
-                         
-                         // Calculate ranges for scaling
-                         $clvVals = array_values(array_filter($clv, fn($v)=> $v !== null));
-                         $aovVals = array_values(array_filter($aov, fn($v)=> $v !== null));
-                         $retVals = array_values(array_filter($retention, fn($v)=> $v !== null));
-                         
-                         $minCLV = count($clvVals) ? min($clvVals) : 0;
-                         $maxCLV = count($clvVals) ? max($clvVals) : 1;
-                         $rngCLV = max(1e-6, $maxCLV - $minCLV);
-                         
-                         $minAOV = count($aovVals) ? min($aovVals) : 0;
-                         $maxAOV = count($aovVals) ? max($aovVals) : 1;
-                         $rngAOV = max(1e-6, $maxAOV - $minAOV);
-                         
-                         $minRet = count($retVals) ? min($retVals) : 0;
-                         $maxRet = count($retVals) ? max($retVals) : 100;
-                         $rngRet = max(1e-6, $maxRet - $minRet);
-                         
-                         $clvTrends = [
-                             ['name'=>'Customer Lifetime Value','data'=>$clv,'color'=>'#10B981','min'=>$minCLV,'max'=>$maxCLV,'range'=>$rngCLV],
-                             ['name'=>'Average Order Value','data'=>$aov,'color'=>'#F59E0B','min'=>$minAOV,'max'=>$maxAOV,'range'=>$rngAOV],
-                             ['name'=>'Retention Rate %','data'=>$retention,'color'=>'#8B5CF6','min'=>$minRet,'max'=>$maxRet,'range'=>$rngRet],
-                         ];
-                     }
-
-                     /* Customer Segmentation Distribution - Essential for business strategy */
-                     $segmentationLabels = $dateLabels;
-                     $segmentationTrends = [];
-                     if($hasData){
-                         // Use the new advanced segmentation method
-                         try {
-                             $controller = new \App\Http\Controllers\RfmAnalysisController();
-                             $advancedData = $controller->getAdvancedSegmentAnalysis(
-                                 $user->id, 
-                                 $activeConnection->tenant_id,
-                                 null, // from date (optional)
-                                 null  // to date (optional)
-                             );
-                             
-                             // Use the percentile-based monthly data
-                             $monthlyData = $advancedData['monthlyData'];
-                             
-                             // Convert to the format expected by the chart
-                             $allMonths = collect($monthlyData)->keys()->sort()->values();
-                             $segmentationLabels = $allMonths->map(fn($m) => \Carbon\Carbon::createFromFormat('Y-m', $m)->format('M Y'))->toArray();
-                             
-                             // Define colors for segments
-                             $colors = [
-                                 'Champions' => '#10B981',
-                                 'Loyal Customers' => '#3B82F6', 
-                                 'At Risk' => '#F59E0B',
-                                 "Can't Lose" => '#EF4444',
-                                 'Lost' => '#6B7280'
-                             ];
-                             
-                             foreach($colors as $segmentName => $color) {
-                                 $segmentData = $allMonths->map(function($month) use ($monthlyData, $segmentName) {
-                                     return $monthlyData[$month][$segmentName] ?? 0;
-                                 })->toArray();
-                                 
-                                 // Apply smoothing if needed (3-month average)
-                                 $smoothedData = [];
-                                 for($i = 0; $i < count($segmentData); $i++) {
-                                     if($i < 2) {
-                                         $smoothedData[] = $segmentData[$i];
-                                     } else {
-                                         $avg = ($segmentData[$i] + $segmentData[$i-1] + $segmentData[$i-2]) / 3;
-                                         $smoothedData[] = round($avg, 1);
-                                     }
-                                 }
-                                 
-                                 $segVals = array_values(array_filter($smoothedData, fn($v)=> $v !== null && $v > 0));
-                                 $minSeg = count($segVals) ? min($segVals) : 0;
-                                 $maxSeg = count($segVals) ? max($segVals) : 1;
-                                 $rngSeg = max(1e-6, $maxSeg - $minSeg);
-                                 
-                                 $segmentationTrends[] = [
-                                     'name' => $segmentName,
-                                     'data' => $smoothedData,
-                                     'color' => $color,
-                                     'min' => $minSeg,
-                                     'max' => $maxSeg,
-                                     'range' => $rngSeg
-                                 ];
-                             }
-                             
-                         } catch (Exception $e) {
-                             // Fallback to simple RFM score-based segmentation with better error handling
-                             $byMonth = $rfmData->groupBy(fn($r)=> \Carbon\Carbon::parse($r->date)->format('Y-m'));
-                             
-                             $segments = [
-                                 'Champions' => ['min' => 8, 'color' => '#10B981'],
-                                 'Loyal Customers' => ['min' => 6, 'max' => 7, 'color' => '#3B82F6'],
-                                 'At Risk' => ['min' => 4, 'max' => 5, 'color' => '#F59E0B'],
-                                 "Can't Lose" => ['min' => 2, 'max' => 3, 'color' => '#EF4444'],
-                                 'Lost' => ['max' => 1, 'color' => '#6B7280']
-                             ];
-                             
-                             foreach($segments as $segmentName => $criteria) {
-                                 $segmentData = $allMonths->map(function($m) use ($byMonth, $criteria) {
-                                     if (!isset($byMonth[$m])) return null;
-                                     
-                                     $count = $byMonth[$m]->filter(function($row) use ($criteria) {
-                                         if (isset($criteria['min']) && isset($criteria['max'])) {
-                                             return $row->rfm_score >= $criteria['min'] && $row->rfm_score <= $criteria['max'];
-                                         } elseif (isset($criteria['min'])) {
-                                             return $row->rfm_score >= $criteria['min'];
-                                         } else {
-                                             return $row->rfm_score <= $criteria['max'];
-                                         }
-                                     })->count();
-                                     
-                                     return $count > 0 ? $count : 0;
-                                 })->toArray();
-                                 
-                                 $segVals = array_values(array_filter($segmentData, fn($v)=> $v !== null && $v > 0));
-                                 $minSeg = count($segVals) ? min($segVals) : 0;
-                                 $maxSeg = count($segVals) ? max($segVals) : 1;
-                                 $rngSeg = max(1e-6, $maxSeg - $minSeg);
-                                 
-                                 $segmentationTrends[] = [
-                                     'name' => $segmentName,
-                                     'data' => $segmentData,
-                                     'color' => $criteria['color'],
-                                     'min' => $minSeg,
-                                     'max' => $maxSeg,
-                                     'range' => $rngSeg
-                                 ];
-                             }
-                         }
-                     }
-
-                     $initialTopN = min(12, count($companies));
                 @endphp
 
-                {{-- Simple controls --}}
-                <div class="controls">
-                    <div class="pill">RFM Analysis Dashboard</div>
-                    <div class="pill">Data points: {{ $hasData ? $rfmData->count() : 0 }}</div>
-                </div>
-
-                {{-- ============ TAB 1: Company Trends ============ --}}
-                <div id="tab-content-company-trend" class="tab-content">
-                    <div class="chart-shell">
-                        <div class="toolbar">
-                            <div class="pill">Companies: {{ count($companies) }}</div>
-                            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-                                <label style="display:flex;align-items:center;gap:.35rem" class="pill">
-                                    <input id="chk-benchmark" type="checkbox" checked> Benchmark
-                                </label>
-                                <button class="pill" onclick="toggleAll('company',true)" type="button">Show all</button>
-                                <button class="pill" onclick="toggleAll('company',false)" type="button">Hide all</button>
-                                <button class="pill" onclick="exportVisibleCSV()" type="button">Export visible CSV</button>
-                                <span class="pill">Tip: Alt/⌥-Click legend to solo</span>
-                            </div>
-                        </div>
-
-                        <div class="chart-area" id="company-area">
-                            <div class="y-labels">
-                                <div style="position:absolute;top:0;right:0">{{ number_format($maxV,1) }}</div>
-                                <div style="position:absolute;top:25%;right:0">{{ number_format($maxV-$rng*.25,1) }}</div>
-                                <div style="position:absolute;top:50%;right:0">{{ number_format($maxV-$rng*.5,1) }}</div>
-                                <div style="position:absolute;top:75%;right:0">{{ number_format($maxV-$rng*.75,1) }}</div>
-                                <div style="position:absolute;bottom:0;right:0">{{ number_format($minV,1) }}</div>
-                            </div>
-
-                            {{-- Points + Paths --}}
-                            <div class="data-points" style="position:absolute;inset:0;">
-                                @php $nL = max(1, count($dateLabels)-1); @endphp
-
-                                {{-- BENCHMARK dashed line (draw first so series overlay it) --}}
-                                @php
-                                    $bpts=[]; for($i=0;$i<count($benchmark);$i++){ $v=$benchmark[$i]; if($v!==null){ $x=($i/$nL)*100; $y=100-max(0,min(100,(($v-$minV)/$rng)*100)); $bpts[]=[$x,$y]; } }
-                                    $bpath=''; if(count($bpts)){ $bpath = "M {$bpts[0][0]} {$bpts[0][1]}"; for($j=1;$j<count($bpts);$j++){ $bpath .= " L {$bpts[$j][0]} {$bpts[$j][1]}"; } }
-                                @endphp
-                                @if($bpath!=='')
-                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                        <path d="{{ $bpath }}" class="line benchmark" stroke="#9CA3AF" data-kind="company" data-index="-1" id="benchmark-line"/>
-                                    </svg>
-                                @endif
-
-                                {{-- Series --}}
-                                @foreach($companies as $idx => $c)
-                                    @php
-                                        $series = $c['data']; $color = $c['color'];
-                                        $n = count($series); $den = max(1, $n - 1);
-                                        $visibleByDefault = $idx < $initialTopN;
-                                        $pts=[]; for($i=0;$i<$n;$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL)*100; $y=100-max(0,min(100,(($v-$minV)/$rng)*100)); $pts[]=[$x,$y,$i,$v]; } }
-                                        $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
-                                    @endphp
-
-                                    {{-- Path --}}
-                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                        @if($path!=='')
-                                            <path d="{{ $path }}" class="line {{ $visibleByDefault?'':'muted' }}" stroke="{{ $color }}" data-kind="company" data-index="{{ $idx }}"/>
-                                        @endif
-                                    </svg>
-
-                                    {{-- Points --}}
-                                    <div class="company-group" data-kind="company" data-index="{{ $idx }}" data-name="{{ e($c['name']) }}" data-visible="{{ $visibleByDefault?'1':'0' }}">
-                                        @foreach($pts as [$x,$y,$i,$val])
-                                            <div class="point {{ $visibleByDefault?'':'muted' }}"
-                                                 style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
-                                                 data-kind="company" data-index="{{ $idx }}"
-                                                 data-name="{{ e($c['name']) }}" data-date="{{ $dateLabels[$i] ?? '' }}" data-value="{{ number_format($val,2) }}"></div>
-                                        @endforeach
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div class="x-labels">
-                                @for($i=0;$i<count($dateLabels);$i++) @php $x=($i/max(1,count($dateLabels)-1))*100; @endphp
-                                    <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $dateLabels[$i] }}</div>
-                                @endfor
-                            </div>
-
-                            <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
-                        </div>
-
-                        {{-- Search + Legend (moved down, no overlap) --}}
-                        <div class="legend-search">
-                            <input id="legend-filter" placeholder="Search company…" oninput="filterLegend(this.value)">
-                            <span class="pill">Showing top {{ $initialTopN }} by RFM Score</span>
-                        </div>
-                        <div class="legend-panel">
-                            <div class="legend-wrap">
-                                <div class="legend-item" data-kind="company" data-index="-1" onclick="toggleBenchmark()" title="Toggle benchmark">
-                                    <div class="swatch" style="background:#9CA3AF"></div><span class="text-gray-400">Benchmark (avg)</span>
+                <!-- Overview Tab -->
+                <div id="tab-content-overview" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Summary Cards -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Data Summary</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Total Data Points:</span>
+                                    <span class="font-semibold">{{ $hasData ? $rfmData->count() : 0 }}</span>
                                 </div>
-                                @foreach($companies as $idx => $c)
-                                    <div class="legend-item {{ $idx < $initialTopN ? '' : 'muted' }}"
-                                         data-kind="company" data-index="{{ $idx }}" data-label="{{ Str::lower($c['name']) }}"
-                                         onclick="legendToggle(event, 'company', {{ $idx }})" title="Click to toggle • Alt/⌥ to solo">
-                                        <div class="swatch" style="background:{{ $c['color'] }}"></div>
-                                        <span class="text-gray-400">{{ $c['name'] }}</span>
-                                    </div>
-                                @endforeach
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Unique Clients:</span>
+                                    <span class="font-semibold">{{ $hasData ? $allClients->count() : 0 }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Date Range:</span>
+                                    <span class="font-semibold">{{ $hasData ? $allDates->first() . ' - ' . $allDates->last() : 'No data' }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Average RFM Score:</span>
+                                    <span class="font-semibold">{{ $hasData ? round($rfmData->avg('rfm_score'), 2) : 0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button onclick="showTab('client-trends')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
+                                    View Client RFM Trends
+                                </button>
+                                <button onclick="showTab('rfm-breakdown')" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors">
+                                    Analyze RFM Breakdown
+                                </button>
+
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- ============ TAB 2 + TAB 3 (same as before, now with thin, clean lines) ============ --}}
-                {{-- RFM Components --}}
-                <div id="tab-content-rfm-breakdown" class="tab-content" style="display:none;">
-                    <div class="chart-shell">
-                        <div class="toolbar">
-                            <div class="pill">Components: 3</div>
-                            <div>
-                                <button class="pill" onclick="toggleAll('comp',true)" type="button">Show all</button>
-                                <button class="pill" onclick="toggleAll('comp',false)" type="button">Hide all</button>
+                <!-- Client RFM Trends Tab -->
+                <div id="tab-content-client-trends" class="tab-content" style="display: none;">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Client RFM Trends</h3>
+                            <div class="flex space-x-4">
+                                <!-- Date Range Controls -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Start Date:</label>
+                                    <input type="date" id="startDate" onchange="updateDateRange()" 
+                                           class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                           min="{{ $hasData ? $allDates->first() : '' }}" 
+                                           max="{{ $hasData ? $allDates->last() : '' }}"
+                                           value="{{ $hasData ? $allDates->first() : '' }}">
+                                </div>
+                                
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">End Date:</label>
+                                    <input type="date" id="endDate" onchange="updateDateRange()" 
+                                           class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                           min="{{ $hasData ? $allDates->first() : '' }}" 
+                                           max="{{ $hasData ? $allDates->last() : '' }}"
+                                           value="{{ $hasData ? $allDates->last() : '' }}">
+                                </div>
+                                
+                                <!-- Quick Preset Buttons -->
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="setDateRange('6m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                        6M
+                                    </button>
+                                    <button onclick="setDateRange('12m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                        12M
+                                    </button>
+                                    <button onclick="setDateRange('24m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                        24M
+                                    </button>
+                                    <button onclick="setDateRange('all')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                        All
+                                    </button>
+                                </div>
+                                
+                                <!-- Client Selection -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Show:</label>
+                                                                         <select id="clientLimit" onchange="updateClientLimit()" class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                         <option value="5">Top 5</option>
+                                         <option value="10" selected>Top 10</option>
+                                         <option value="15">Top 15</option>
+                                         <option value="20">Top 20</option>
+                                         <option value="all">All clients</option>
+                                         <option value="custom">Custom selection</option>
+                                     </select>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="chart-area">
-                            <div class="y-labels">
-                                <div style="position:absolute;top:0;right:0">10.0</div>
-                                <div style="position:absolute;top:25%;right:0">7.5</div>
-                                <div style="position:absolute;top:50%;right:0">5.0</div>
-                                <div style="position:absolute;top:75%;right:0">2.5</div>
-                                <div style="position:absolute;bottom:0;right:0">0.0</div>
-                            </div>
-
-                            <div class="data-points" style="position:absolute;inset:0;">
-                                @php $nL2=max(1,count($dateLabels)-1); @endphp
-                                @foreach($rfmComponents as $idx=>$comp)
-                                    @php $series=$comp['data']; $color=$comp['color']; $n=count($series);
-                                         $pts=[]; for($i=0;$i<$n;$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL2)*100; $y=100-max(0,min(100,($v/10)*100)); $pts[]=[$x,$y,$i,$v]; } }
-                                         $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
-                                    @endphp
-                                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                        @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="comp" data-index="{{ $idx }}"/> @endif
-                                    </svg>
-                                    <div class="comp-group" data-kind="comp" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($comp['name']) }}">
-                                        @foreach($pts as [$x,$y,$i,$val])
-                                            <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
-                                                 data-kind="comp" data-index="{{ $idx }}" data-name="{{ e($comp['name']) }}"
-                                                 data-date="{{ $dateLabels[$i] ?? '' }}" data-value="{{ number_format($val,2) }}"></div>
-                                        @endforeach
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div class="x-labels">
-                                @for($i=0;$i<count($dateLabels);$i++) @php $x=($i/$nL2)*100; @endphp
-                                    <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $dateLabels[$i] }}</div>
-                                @endfor
-                            </div>
-
-                            <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
+                        
+                        <div class="chart-container" style="height: 400px; position: relative;">
+                            <canvas id="clientTrendsChart"></canvas>
                         </div>
-
-                        <div class="legend-panel">
-                            <div class="legend-wrap">
-                                @foreach($rfmComponents as $idx=>$comp)
-                                    <div class="legend-item" data-kind="comp" data-index="{{ $idx }}"
-                                         onclick="legendToggle(event,'comp',{{ $idx }})">
-                                        <div class="swatch" style="background:{{ $comp['color'] }}"></div>
-                                        <span class="text-gray-400">{{ $comp['name'] }}</span>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                                 {{-- Revenue --}}
-                 <div id="tab-content-revenue-trend" class="tab-content" style="display:none;">
-                     <div class="chart-shell">
-                         <div class="toolbar">
-                             <div class="pill">Independent scales</div>
-                             <div>
-                                 <button class="pill" onclick="toggleAll('rev',true)" type="button">Show all</button>
-                                 <button class="pill" onclick="toggleAll('rev',false)" type="button">Hide all</button>
-                             </div>
-                         </div>
-
-                         <div class="chart-area">
-                             <div class="y-labels">
-                                 @if(count($revenueTrends))
-                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$revenueTrends));
-                                          $leftMin=min(array_map(fn($t)=>$t['min'],$revenueTrends));
-                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
-                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,0) }}</div>
-                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,0) }}</div>
-                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,0) }}</div>
-                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,0) }}</div>
-                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,0) }}</div>
-                                 @endif
-                             </div>
-
-                             <div class="data-points" style="position:absolute;inset:0;">
-                                 @php $nL3=max(1,count($revenueLabels)-1); @endphp
-                                 @foreach($revenueTrends as $idx=>$t)
-                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
-                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL3)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
-                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
-                                     @endphp
-                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="rev" data-index="{{ $idx }}"/> @endif
-                                     </svg>
-                                     <div class="rev-group" data-kind="rev" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
-                                         @foreach($pts as [$x,$y,$i,$val])
-                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
-                                                  data-kind="rev" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
-                                                  data-date="{{ $revenueLabels[$i] ?? '' }}" data-value="{{ number_format($val,0) }}"></div>
-                                         @endforeach
-                                     </div>
-                                 @endforeach
-                             </div>
-
-                             <div class="x-labels">
-                                 @for($i=0;$i<count($revenueLabels);$i++) @php $x=($i/$nL3)*100; @endphp
-                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $revenueLabels[$i] }}</div>
-                                 @endfor
-                             </div>
-
-                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
-                         </div>
-
-                         <div class="legend-panel">
-                             <div class="legend-wrap">
-                                 @foreach($revenueTrends as $idx=>$t)
-                                     <div class="legend-item" data-kind="rev" data-index="{{ $idx }}"
-                                          onclick="legendToggle(event,'rev',{{ $idx }})">
-                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
-                                         <span class="text-gray-400">{{ $t['name'] }}</span>
-                                     </div>
-                                 @endforeach
-                             </div>
-                         </div>
-                     </div>
-                 </div>
-
-                 {{-- Customer Lifetime Value --}}
-                 <div id="tab-content-clv-trend" class="tab-content" style="display:none;">
-                     <div class="chart-shell">
-                         <div class="toolbar">
-                             <div class="pill">Customer Value Metrics</div>
-                             <div>
-                                 <button class="pill" onclick="toggleAll('clv',true)" type="button">Show all</button>
-                                 <button class="pill" onclick="toggleAll('clv',false)" type="button">Hide all</button>
-                             </div>
-                         </div>
-
-                         <div class="chart-area">
-                             <div class="y-labels">
-                                 @if(count($clvTrends))
-                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$clvTrends));
-                                          $leftMin=min(array_map(fn($t)=>$t['min'],$clvTrends));
-                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
-                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,1) }}</div>
-                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,1) }}</div>
-                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,1) }}</div>
-                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,1) }}</div>
-                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,1) }}</div>
-                                 @endif
-                             </div>
-
-                             <div class="data-points" style="position:absolute;inset:0;">
-                                 @php $nL4=max(1,count($clvLabels)-1); @endphp
-                                 @foreach($clvTrends as $idx=>$t)
-                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
-                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL4)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
-                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
-                                     @endphp
-                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="clv" data-index="{{ $idx }}"/> @endif
-                                     </svg>
-                                     <div class="clv-group" data-kind="clv" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
-                                         @foreach($pts as [$x,$y,$i,$val])
-                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
-                                                  data-kind="clv" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
-                                                  data-date="{{ $clvLabels[$i] ?? '' }}" data-value="{{ number_format($val,1) }}"></div>
-                                         @endforeach
-                                     </div>
-                                 @endforeach
-                             </div>
-
-                             <div class="x-labels">
-                                 @for($i=0;$i<count($clvLabels);$i++) @php $x=($i/$nL4)*100; @endphp
-                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $clvLabels[$i] }}</div>
-                                 @endfor
-                             </div>
-
-                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
-                         </div>
-
-                         <div class="legend-panel">
-                             <div class="legend-wrap">
-                                 @foreach($clvTrends as $idx=>$t)
-                                     <div class="legend-item" data-kind="clv" data-index="{{ $idx }}"
-                                          onclick="legendToggle(event,'clv',{{ $idx }})">
-                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
-                                         <span class="text-gray-400">{{ $t['name'] }}</span>
-                                     </div>
-                                 @endforeach
-                             </div>
-                                                  </div>
-                     </div>
-                 </div>
-
-                 {{-- Customer Segmentation --}}
-                 <div id="tab-content-segmentation" class="tab-content" style="display:none;">
-                     <div class="chart-shell">
-                         <div class="toolbar">
-                             <div class="pill">Customer Segments</div>
-                             <div>
-                                 <button class="pill" onclick="toggleAll('seg',true)" type="button">Show all</button>
-                                 <button class="pill" onclick="toggleAll('seg',false)" type="button">Hide all</button>
-                             </div>
-                         </div>
-
-                         <div class="chart-area">
-                             <div class="y-labels">
-                                 @if(count($segmentationTrends))
-                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$segmentationTrends));
-                                          $leftMin=min(array_map(fn($t)=>$t['min'],$segmentationTrends));
-                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
-                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,0) }}</div>
-                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,0) }}</div>
-                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,0) }}</div>
-                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,0) }}</div>
-                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,0) }}</div>
-                                 @endif
-                             </div>
-
-                             <div class="data-points" style="position:absolute;inset:0;">
-                                 @php $nL5=max(1,count($segmentationLabels)-1); @endphp
-                                 @foreach($segmentationTrends as $idx=>$t)
-                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
-                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL5)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
-                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
-                                     @endphp
-                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="seg" data-index="{{ $idx }}"/> @endif
-                                     </svg>
-                                     <div class="seg-group" data-kind="seg" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
-                                         @foreach($pts as [$x,$y,$i,$val])
-                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
-                                                  data-kind="seg" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
-                                                  data-date="{{ $segmentationLabels[$i] ?? '' }}" data-value="{{ number_format($val,0) }}"></div>
-                                         @endforeach
-                                     </div>
-                                 @endforeach
-                             </div>
-
-                             <div class="x-labels">
-                                 @for($i=0;$i<count($segmentationLabels);$i++) @php $x=($i/$nL5)*100; @endphp
-                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $segmentationLabels[$i] }}</div>
-                                 @endfor
-                             </div>
-
-                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
-                         </div>
-
-                         <div class="legend-panel">
-                             <div class="legend-wrap">
-                                 @foreach($segmentationTrends as $idx=>$t)
-                                     <div class="legend-item" data-kind="seg" data-index="{{ $idx }}"
-                                          onclick="legendToggle(event,'seg',{{ $idx }})">
-                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
-                                         <span class="text-gray-400">{{ $t['name'] }}</span>
-                                     </div>
-                                 @endforeach
+                        
+                                                 <!-- Client Legend -->
+                         <div class="mt-6">
+                             <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Client Legend</h4>
+                             <div id="clientLegend" class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                 <!-- Legend items will be populated by JavaScript -->
                              </div>
                          </div>
                          
+                         <!-- Client Selection Panel -->
+                         <div class="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                             <div class="flex items-center justify-between mb-4">
+                                 <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100">Client Selection</h4>
+                                 <button onclick="toggleClientPanel()" id="toggleClientPanel" 
+                                         class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                                     Show Advanced Selection
+                                 </button>
+                             </div>
+                             
+                             <!-- Advanced Client Selection (Hidden by default) -->
+                             <div id="advancedClientPanel" class="hidden">
+                                 <!-- Search and Filter Controls -->
+                                 <div class="flex flex-wrap gap-4 mb-4">
+                                     <!-- Search Box -->
+                                     <div class="flex-1 min-w-64">
+                                         <input type="text" id="clientSearch" placeholder="Search clients..." 
+                                                class="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                                onkeyup="filterClientList()">
+                                     </div>
+                                     
+                                     <!-- Quick Actions -->
+                                     <div class="flex gap-2">
+                                         <button onclick="selectAllClients()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm">
+                                             Select All
+                                         </button>
+                                         <button onclick="deselectAllClients()" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm">
+                                             Deselect All
+                                         </button>
+                                         <button onclick="selectTopClients()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">
+                                             Top 10
+                                         </button>
+                                     </div>
+                                 </div>
+                                 
+                                 <!-- Client List -->
+                                 <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 max-h-64 overflow-y-auto">
+                                     <div id="clientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                         <!-- Client checkboxes will be populated by JavaScript -->
+                                     </div>
+                                 </div>
+                                 
+                                 <!-- Selected Count -->
+                                 <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                                     <span id="selectedCount">0</span> of <span id="totalCount">0</span> clients selected
+                                 </div>
+                             </div>
+                         </div>
+                    </div>
+                </div>
+
+                                 <!-- Overall RFM Breakdown Tab -->
+                 <div id="tab-content-rfm-breakdown" class="tab-content" style="display: none;">
+                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                         <div class="flex justify-between items-center mb-6">
+                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Overall RFM Breakdown</h3>
+                             <div class="flex space-x-4">
+                                 <!-- Date Range Controls -->
+                                 <div class="flex items-center space-x-2">
+                                     <label class="text-sm text-gray-600 dark:text-gray-400">Start Date:</label>
+                                     <input type="date" id="rfmStartDate" onchange="updateRfmDateRange()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                            min="{{ $hasData ? $allDates->first() : '' }}" 
+                                            max="{{ $hasData ? $allDates->last() : '' }}"
+                                            value="{{ $hasData ? $allDates->first() : '' }}">
+                                 </div>
+                                 
+                                 <div class="flex items-center space-x-2">
+                                     <label class="text-sm text-gray-600 dark:text-gray-400">End Date:</label>
+                                     <input type="date" id="rfmEndDate" onchange="updateRfmDateRange()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                            min="{{ $hasData ? $allDates->first() : '' }}" 
+                                            max="{{ $hasData ? $allDates->last() : '' }}"
+                                            value="{{ $hasData ? $allDates->last() : '' }}">
+                                 </div>
+                                 
+                                 <!-- Quick Preset Buttons -->
+                                 <div class="flex items-center space-x-1">
+                                     <button onclick="setRfmDateRange('6m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                         6M
+                                     </button>
+                                     <button onclick="setRfmDateRange('12m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                         12M
+                                     </button>
+                                     <button onclick="setRfmDateRange('24m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                         24M
+                                     </button>
+                                     <button onclick="setRfmDateRange('all')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                                         All
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="chart-container" style="height: 400px; position: relative;">
+                             <canvas id="rfmBreakdownChart"></canvas>
+                         </div>
                      </div>
                  </div>
 
-                 {{-- Churn & Retention Analysis --}}
-                 <div id="tab-content-churn-analysis" class="tab-content" style="display:none;">
-                     <div class="chart-shell">
-                         <div class="toolbar">
-                             <div class="pill">Customer Health Metrics</div>
-                             <div>
-                                 <button class="pill" onclick="toggleAll('churn',true)" type="button">Show all</button>
-                                 <button class="pill" onclick="toggleAll('churn',false)" type="button">Hide all</button>
-                             </div>
-                         </div>
-
-                         <div class="chart-area">
-                             <div class="y-labels">
-                                 @if(count($churnTrends))
-                                     @php $leftMax=max(array_map(fn($t)=>$t['max'],$churnTrends));
-                                          $leftMin=min(array_map(fn($t)=>$t['min'],$churnTrends));
-                                          $leftR=max(1e-6,$leftMax-$leftMin); @endphp
-                                     <div style="position:absolute;top:0;right:0">{{ number_format($leftMax,0) }}</div>
-                                     <div style="position:absolute;top:25%;right:0">{{ number_format($leftMax-$leftR*.25,0) }}</div>
-                                     <div style="position:absolute;top:50%;right:0">{{ number_format($leftMax-$leftR*.5,0) }}</div>
-                                     <div style="position:absolute;top:75%;right:0">{{ number_format($leftMax-$leftR*.75,0) }}</div>
-                                     <div style="position:absolute;bottom:0;right:0">{{ number_format($leftMin,0) }}</div>
-                                 @endif
-                             </div>
-
-                             <div class="data-points" style="position:absolute;inset:0;">
-                                 @php $nL6=max(1,count($churnLabels)-1); @endphp
-                                 @foreach($churnTrends as $idx=>$t)
-                                     @php $series=$t['data']; $color=$t['color']; $tMin=$t['min']; $tRange=$t['range'];
-                                          $pts=[]; for($i=0;$i<count($series);$i++){ $v=$series[$i]; if($v!==null){ $x=($i/$nL6)*100; $y=100-max(0,min(100,(($v-$tMin)/$tRange)*100)); $pts[]=[$x,$y,$i,$v]; } }
-                                          $path=''; if(count($pts)){ $path="M {$pts[0][0]} {$pts[0][1]}"; for($j=1;$j<count($pts);$j++){ $path.=" L {$pts[$j][0]} {$pts[$j][1]}"; } }
-                                     @endphp
-                                     <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="chart-svg">
-                                         @if($path!=='') <path d="{{ $path }}" class="line" stroke="{{ $color }}" data-kind="churn" data-index="{{ $idx }}"/> @endif
-                                     </svg>
-                                     <div class="churn-group" data-kind="churn" data-index="{{ $idx }}" data-visible="1" data-name="{{ e($t['name']) }}">
-                                         @foreach($pts as [$x,$y,$i,$val])
-                                             <div class="point" style="left:{{ $x }}%;top:{{ $y }}%;background:{{ $color }}"
-                                                  data-kind="churn" data-index="{{ $idx }}" data-name="{{ e($t['name']) }}"
-                                                  data-date="{{ $churnLabels[$i] ?? '' }}" data-value="{{ number_format($val,1) }}"></div>
-                                         @endforeach
-                                     </div>
-                                 @endforeach
-                             </div>
-
-                             <div class="x-labels">
-                                 @for($i=0;$i<count($churnLabels);$i++) @php $x=($i/$nL6)*100; @endphp
-                                     <div style="position:absolute;left:{{ $x }}%;transform:translateX(-50%)">{{ $churnLabels[$i] }}</div>
-                                 @endfor
-                             </div>
-
-                             <div class="grid"><div style="top:25%"></div><div style="top:50%"></div><div style="top:75%"></div></div>
-                         </div>
-
-                         <div class="legend-panel">
-                             <div class="legend-wrap">
-                                 @foreach($churnTrends as $idx=>$t)
-                                     <div class="legend-item" data-kind="churn" data-index="{{ $idx }}"
-                                          onclick="legendToggle(event,'churn',{{ $idx }})">
-                                         <div class="swatch" style="background:{{ $t['color'] }}"></div>
-                                         <span class="text-gray-400">{{ $t['name'] }}</span>
-                                     </div>
-                                 @endforeach
-                             </div>
-                         </div>
-                     </div>
-                 </div>
-
-                 {{-- ===== JS ===== --}}
-                <div id="chart-tip" class="tip"></div>
-                <script>
-                    // Tabs
-                    function showTab(name){
-                        document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
-                        document.querySelectorAll('.tab-button').forEach(b=>{b.classList.remove('active','border-blue-500','text-blue-600','dark:text-blue-400');b.classList.add('border-transparent','text-gray-500','dark:text-gray-400');});
-                        document.getElementById('tab-content-'+name).style.display='block';
-                        const btn=document.getElementById('tab-'+name);btn.classList.add('active','border-blue-500','text-blue-600','dark:text-blue-400');btn.classList.remove('border-transparent','text-gray-500','dark:text-gray-400');
-                    }
-
-                                         // Simple functions
-                     function setDateInputs(s,e){}
-                     function presetMonths(n){}
-                     function presetYTD(){}
-
-                    // Tooltip / highlight
-                    const tip=document.getElementById('chart-tip');
-                    const showTip=(e)=>{const t=e.target;if(!t.classList.contains('point'))return;tip.innerHTML=`<strong>${t.dataset.name}</strong><br>${t.dataset.date}<br><span style="opacity:.85">${t.dataset.value}</span>`;tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-12)+'px';highlight(t.dataset.kind,t.dataset.index,true);};
-                    const moveTip=(e)=>{if(tip.style.display==='block'){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-12)+'px';}}
-                    const hideTip=(e)=>{const t=e.target;if(!t.classList.contains('point'))return;tip.style.display='none';highlight(t.dataset.kind,t.dataset.index,false);};
-                    document.addEventListener('mousemove',moveTip);document.addEventListener('mouseover',showTip,true);document.addEventListener('mouseout',hideTip,true);
-                                         function highlight(kind,idx,on){
-                         const lineSel = kind==='company'?'.line[data-kind="company"][data-index="'+idx+'"]' : kind==='comp'?'.line[data-kind="comp"][data-index="'+idx+'"]' : kind==='rev'?'.line[data-kind="rev"][data-index="'+idx+'"]' : kind==='clv'?'.line[data-kind="clv"][data-index="'+idx+'"]' : kind==='seg'?'.line[data-kind="seg"][data-index="'+idx+'"]' : '.line[data-kind="churn"][data-index="'+idx+'"]';
-                         document.querySelectorAll(lineSel).forEach(p=>p.style.strokeWidth=on?'1.5':'1');
-                     }
-
-                    // Toggle
-                                         function setVisible(kind, idx, visible){
-                         const groupSel = kind==='company'?'.company-group':kind==='comp'?'.comp-group':kind==='rev'?'.rev-group':kind==='clv'?'.clv-group':kind==='seg'?'.seg-group':'.churn-group';
-                         document.querySelectorAll(`${groupSel}[data-index="${idx}"] .point`).forEach(el=>el.classList.toggle('muted', !visible));
-                         document.querySelectorAll(`.line[data-kind="${kind}"][data-index="${idx}"]`).forEach(el=>el.classList.toggle('muted', !visible));
-                         const legend=document.querySelector(`.legend-item[data-kind="${kind}"][data-index="${idx}"]`);
-                         if(legend) legend.classList.toggle('muted', !visible);
-                         document.querySelectorAll(`${groupSel}[data-index="${idx}"]`).forEach(g=>g.dataset.visible=visible?'1':'0');
-                     }
-                     function isVisible(kind, idx){
-                         const groupSel = kind==='company'?'.company-group':kind==='comp'?'.comp-group':kind==='rev'?'.rev-group':kind==='clv'?'.clv-group':kind==='seg'?'.seg-group':'.churn-group';
-                         const g=document.querySelector(`${groupSel}[data-index="${idx}"]`); return g?g.dataset.visible==='1':false;
-                     }
-                    function legendToggle(ev, kind, idx){
-                        const solo=ev.altKey||ev.metaKey;
-                        if(solo){
-                            document.querySelectorAll(`.legend-item[data-kind="${kind}"]`).forEach(li=>{
-                                const i=li.dataset.index; setVisible(kind, i, i==idx);
-                            });
-                        }else setVisible(kind, idx, !isVisible(kind, idx));
-                    }
-                    function toggleAll(kind, show){
-                        document.querySelectorAll(`.legend-item[data-kind="${kind}"]`).forEach(li=>setVisible(kind, li.dataset.index, show));
-                    }
-
-                                         // Benchmark toggle
-                     function toggleBenchmark(){
-                         const p=document.getElementById('benchmark-line'); if(!p) return;
-                         const off=p.style.display==='none'; p.style.display=off?'block':'none';
-                         const checkbox = document.getElementById('chk-benchmark');
-                         if(checkbox) checkbox.checked = off;
-                     }
-                     document.addEventListener('DOMContentLoaded', function() {
-                         const checkbox = document.getElementById('chk-benchmark');
-                         if(checkbox) checkbox.addEventListener('change', toggleBenchmark);
-                     });
-
-                    // Legend filter
-                    function filterLegend(q){
-                        const v=(q||'').toLowerCase().trim();
-                        document.querySelectorAll('.legend-wrap .legend-item').forEach(li=>{
-                            if(li.dataset.index === '-1') return; // keep benchmark
-                            const ok=!v || li.dataset.label.includes(v);
-                            li.style.display = ok? 'inline-flex' : 'none';
-                        });
-                    }
-
-                    // Init top-N visibility for companies
-                    (function initCompanyTopN(){
-                        document.querySelectorAll('.company-group').forEach(g=>setVisible('company', g.dataset.index, g.dataset.visible==='1'));
-                    })();
-
-                                         // Export visible series (Company Trends)
-                     function exportVisibleCSV(){
-                         const rows=[];
-                         document.querySelectorAll('.company-group').forEach(g=>{
-                             if(g.dataset.visible!=='1') return;
-                             const name=g.dataset.name;
-                             g.querySelectorAll('.point').forEach(p=>{
-                                 rows.push([name, p.dataset.date, p.dataset.value]);
-                             });
-                         });
-                         if(!rows.length){ alert('Nothing visible to export.'); return; }
-                         let csv='Company,Date,Value\n'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
-                         const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); 
-                         const url=URL.createObjectURL(blob);
-                         const a=document.createElement('a'); 
-                         a.href=url; 
-                         a.download='company-trends.csv'; 
-                         a.click(); 
-                         URL.revokeObjectURL(url);
-                     }
-
-                                         // ESC = show all in the current tab
-                     document.addEventListener('keydown', e=>{
-                         if(e.key!=='Escape') return;
-                         const active = Array.from(document.querySelectorAll('.tab-content')).find(c=>c.style.display!=='none');
-                         if(!active) return;
-                         if(active.id.includes('company')) toggleAll('company',true);
-                         if(active.id.includes('rfm'))     toggleAll('comp',true);
-                         if(active.id.includes('revenue')) toggleAll('rev',true);
-                         if(active.id.includes('clv'))     toggleAll('clv',true);
-                         if(active.id.includes('segmentation')) toggleAll('seg',true);
-                         if(active.id.includes('churn-analysis')) toggleAll('churn',true);
-                     });
-
-                     // Segment view controls
-                     function toggleSegmentView() {
-                         const view = document.getElementById('segment-view').value;
-                         console.log('Switching to view:', view);
-                         // TODO: Implement view switching logic
-                         // This would require backend changes to support different data views
-                     }
-
-                     function toggleSmoothing() {
-                         const smoothing = document.getElementById('segment-smoothing').value;
-                         console.log('Applying smoothing:', smoothing);
-                         // TODO: Implement smoothing logic
-                         // This would apply 3-month moving averages to the data
-                     }
-
-                     // Exclude current month
-                     document.getElementById('exclude-current').addEventListener('change', function() {
-                         console.log('Exclude current month:', this.checked);
-                         // TODO: Implement exclude current month logic
-                         // This would filter out the current month's data
-                     });
-                </script>
 
 
+                <!-- Customer Value Tab -->
+                <div id="tab-content-customer-value" class="tab-content" style="display: none;">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Customer Lifetime Value</h3>
+                        <div class="chart-container" style="height: 400px; position: relative;">
+                            <canvas id="customerValueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
 
-                {{-- Table + summary (unchanged) --}}
-                {{-- ... keep your existing summary table here if you want ... --}}
+                <!-- Segmentation Tab -->
+                <div id="tab-content-segmentation" class="tab-content" style="display: none;">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Customer Segmentation</h3>
+                        <div class="chart-container" style="height: 400px; position: relative;">
+                            <canvas id="segmentationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Churn & Retention Tab -->
+                <div id="tab-content-churn-retention" class="tab-content" style="display: none;">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Churn & Retention Analysis</h3>
+                        <div class="chart-container" style="height: 400px; position: relative;">
+                            <canvas id="churnRetentionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Global variables for chart data
+        const allClientData = @json($hasData ? $clientData : []);
+        const allDates = @json($hasData ? $allDates : []);
+         let currentStartDate = allDates.length > 0 ? allDates[0] : '';
+         let currentEndDate = allDates.length > 0 ? allDates[allDates.length - 1] : '';
+         let currentClientLimit = 10;
+         let clientTrendsChart = null;
+         let selectedClients = new Set(); // Track selected clients
+         
+         // RFM Breakdown chart variables
+         let rfmBreakdownChart = null;
+         let rfmStartDate = allDates.length > 0 ? allDates[0] : '';
+         let rfmEndDate = allDates.length > 0 ? allDates[allDates.length - 1] : '';
+         
+
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            });
+            
+            // Show selected tab content
+            document.getElementById('tab-content-' + tabName).style.display = 'block';
+            
+            // Add active class to selected tab
+            const activeTab = document.getElementById('tab-' + tabName);
+            if (activeTab) {
+                activeTab.classList.add('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+            }
+            
+            // Initialize chart for the selected tab
+            initializeChart(tabName);
+        }
+
+        // Date range control
+        function updateDateRange() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            // Validate date range
+            if (startDate && endDate && startDate > endDate) {
+                alert('Start date cannot be after end date');
+                return;
+            }
+            
+            currentStartDate = startDate;
+            currentEndDate = endDate;
+            
+            if (clientTrendsChart) {
+                updateClientTrendsChart();
+            }
+        }
+
+        // Set date range from preset buttons
+        function setDateRange(preset) {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            
+            if (allDates.length === 0) return;
+            
+            const lastDate = new Date(allDates[allDates.length - 1]);
+            let startDate = new Date(lastDate);
+            
+            switch(preset) {
+                case '6m':
+                    startDate.setMonth(startDate.getMonth() - 6);
+                    break;
+                case '12m':
+                    startDate.setMonth(startDate.getMonth() - 12);
+                    break;
+                case '24m':
+                    startDate.setMonth(startDate.getMonth() - 24);
+                    break;
+                case 'all':
+                    startDate = new Date(allDates[0]);
+                    break;
+            }
+            
+            // Ensure start date is not before the earliest available date
+            const earliestDate = new Date(allDates[0]);
+            if (startDate < earliestDate) {
+                startDate = earliestDate;
+            }
+            
+            startInput.value = startDate.toISOString().split('T')[0];
+            endInput.value = lastDate.toISOString().split('T')[0];
+            
+            currentStartDate = startInput.value;
+            currentEndDate = endInput.value;
+            
+            if (clientTrendsChart) {
+                updateClientTrendsChart();
+            }
+        }
+
+                 // Client limit control
+         function updateClientLimit() {
+             currentClientLimit = document.getElementById('clientLimit').value;
+             
+             // If using limit-based selection, clear custom selections
+             if (currentClientLimit !== 'custom') {
+                 selectedClients.clear();
+                 updateCheckboxes();
+                 updateSelectedCount();
+             }
+             
+             if (clientTrendsChart) {
+                 updateClientTrendsChart();
+             }
+         }
+
+                 // Update client trends chart with new filters
+         function updateClientTrendsChart() {
+             const filteredDates = filterDatesByRange(allDates, currentStartDate, currentEndDate);
+             const filteredClients = filterClientsBySelection(allClientData);
+            
+            const datasets = filteredClients.map(client => ({
+                label: client.name,
+                data: client.data.slice(0, filteredDates.length),
+                borderColor: client.color,
+                backgroundColor: client.color + '20',
+                tension: 0.1
+            }));
+
+            const labels = filteredDates.map(date => {
+                return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            });
+
+            if (clientTrendsChart) {
+                clientTrendsChart.destroy();
+            }
+
+            const ctx = document.getElementById('clientTrendsChart');
+            clientTrendsChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'RFM Score'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    }
+                }
+            });
+
+            updateClientLegend(filteredClients);
+        }
+
+        // Filter dates based on custom date range
+        function filterDatesByRange(dates, startDate, endDate) {
+            if (!startDate || !endDate) return dates;
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            return dates.filter(date => {
+                const dateObj = new Date(date);
+                return dateObj >= start && dateObj <= end;
+            });
+        }
+
+                 // Filter clients based on limit
+         function filterClientsByLimit(clients, limit) {
+             if (limit === 'all') return clients;
+             return clients.slice(0, parseInt(limit));
+         }
+         
+         // Filter clients based on selection
+         function filterClientsBySelection(clients) {
+             if (selectedClients.size === 0) {
+                 // If no clients selected, use the limit-based filtering
+                 return filterClientsByLimit(clients, currentClientLimit);
+             }
+             return clients.filter(client => selectedClients.has(client.name));
+         }
+
+                 // Update client legend
+         function updateClientLegend(clients) {
+             const legend = document.getElementById('clientLegend');
+             legend.innerHTML = '';
+             
+             clients.forEach(client => {
+                 const item = document.createElement('div');
+                 item.className = 'flex items-center space-x-2';
+                 item.innerHTML = `
+                     <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
+                     <span class="text-sm text-gray-700 dark:text-gray-300">${client.name}</span>
+                 `;
+                 legend.appendChild(item);
+             });
+         }
+         
+         // Initialize client selection list
+         function initializeClientList() {
+             const clientList = document.getElementById('clientList');
+             const totalCount = document.getElementById('totalCount');
+             
+             if (!clientList || allClientData.length === 0) return;
+             
+             totalCount.textContent = allClientData.length;
+             clientList.innerHTML = '';
+             
+             allClientData.forEach(client => {
+                 const item = document.createElement('div');
+                 item.className = 'flex items-center space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded';
+                 item.innerHTML = `
+                     <input type="checkbox" id="client-${client.name.replace(/\s+/g, '-')}" 
+                            class="client-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            data-client="${client.name}"
+                            onchange="toggleClientSelection('${client.name}')">
+                     <label for="client-${client.name.replace(/\s+/g, '-')}" 
+                            class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
+                         ${client.name}
+                     </label>
+                     <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
+                 `;
+                 clientList.appendChild(item);
+             });
+             
+             // Only initialize with top 10 selected if the panel is visible
+             const panel = document.getElementById('advancedClientPanel');
+             if (!panel.classList.contains('hidden')) {
+                 selectTopClients();
+             }
+         }
+         
+         // Toggle client selection
+         function toggleClientSelection(clientName) {
+             if (selectedClients.has(clientName)) {
+                 selectedClients.delete(clientName);
+             } else {
+                 selectedClients.add(clientName);
+             }
+             updateSelectedCount();
+             updateClientTrendsChart();
+         }
+         
+         // Select all clients
+         function selectAllClients() {
+             selectedClients.clear();
+             allClientData.forEach(client => {
+                 selectedClients.add(client.name);
+             });
+             updateCheckboxes();
+             updateSelectedCount();
+             updateClientTrendsChart();
+         }
+         
+         // Deselect all clients
+         function deselectAllClients() {
+             selectedClients.clear();
+             updateCheckboxes();
+             updateSelectedCount();
+             updateClientTrendsChart();
+         }
+         
+         // Select top clients
+         function selectTopClients() {
+             selectedClients.clear();
+             const topClients = allClientData.slice(0, 10);
+             topClients.forEach(client => {
+                 selectedClients.add(client.name);
+             });
+             updateCheckboxes();
+             updateSelectedCount();
+             updateClientTrendsChart();
+         }
+         
+         // Filter client list based on search
+         function filterClientList() {
+             const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+             const checkboxes = document.querySelectorAll('.client-checkbox');
+             
+             checkboxes.forEach(checkbox => {
+                 const clientName = checkbox.dataset.client.toLowerCase();
+                 const item = checkbox.closest('div');
+                 
+                 if (clientName.includes(searchTerm)) {
+                     item.style.display = 'flex';
+                 } else {
+                     item.style.display = 'none';
+                 }
+             });
+         }
+         
+         // Update checkboxes to reflect current selection
+         function updateCheckboxes() {
+             const checkboxes = document.querySelectorAll('.client-checkbox');
+             checkboxes.forEach(checkbox => {
+                 const clientName = checkbox.dataset.client;
+                 checkbox.checked = selectedClients.has(clientName);
+             });
+         }
+         
+         // Update selected count display
+         function updateSelectedCount() {
+             const selectedCount = document.getElementById('selectedCount');
+             if (selectedCount) {
+                 selectedCount.textContent = selectedClients.size;
+             }
+         }
+         
+         // Toggle client selection panel
+         function toggleClientPanel() {
+             const panel = document.getElementById('advancedClientPanel');
+             const toggleBtn = document.getElementById('toggleClientPanel');
+             const clientLimit = document.getElementById('clientLimit');
+             
+             if (panel.classList.contains('hidden')) {
+                 // Show panel
+                 panel.classList.remove('hidden');
+                 toggleBtn.textContent = 'Hide Advanced Selection';
+                 toggleBtn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                 toggleBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                 
+                 // Automatically set dropdown to custom
+                 clientLimit.value = 'custom';
+                 currentClientLimit = 'custom';
+                 
+                 // Initialize client list if not already done
+                 if (document.getElementById('clientList').children.length === 0) {
+                     initializeClientList();
+                 }
+             } else {
+                 // Hide panel
+                 panel.classList.add('hidden');
+                 toggleBtn.textContent = 'Show Advanced Selection';
+                 toggleBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                 toggleBtn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                 
+                 // Reset to top 10 if no custom selections
+                 if (selectedClients.size === 0) {
+                     clientLimit.value = '10';
+                     currentClientLimit = '10';
+                     updateClientTrendsChart();
+                 }
+             }
+         }
+         
+         // RFM Breakdown date range control
+         function updateRfmDateRange() {
+             const startDate = document.getElementById('rfmStartDate').value;
+             const endDate = document.getElementById('rfmEndDate').value;
+             
+             // Validate date range
+             if (startDate && endDate && startDate > endDate) {
+                 alert('Start date cannot be after end date');
+                 return;
+             }
+             
+             rfmStartDate = startDate;
+             rfmEndDate = endDate;
+             
+             if (rfmBreakdownChart) {
+                 updateRfmBreakdownChart();
+             }
+         }
+         
+
+         
+         // Set RFM date range from preset buttons
+         function setRfmDateRange(preset) {
+             const startInput = document.getElementById('rfmStartDate');
+             const endInput = document.getElementById('rfmEndDate');
+             
+             if (allDates.length === 0) return;
+             
+             const lastDate = new Date(allDates[allDates.length - 1]);
+             let startDate = new Date(lastDate);
+             
+             switch(preset) {
+                 case '6m':
+                     startDate.setMonth(startDate.getMonth() - 6);
+                     break;
+                 case '12m':
+                     startDate.setMonth(startDate.getMonth() - 12);
+                     break;
+                 case '24m':
+                     startDate.setMonth(startDate.getMonth() - 24);
+                     break;
+                 case 'all':
+                     startDate = new Date(allDates[0]);
+                     break;
+             }
+             
+             // Ensure start date is not before the earliest available date
+             const earliestDate = new Date(allDates[0]);
+             if (startDate < earliestDate) {
+                 startDate = earliestDate;
+             }
+             
+             startInput.value = startDate.toISOString().split('T')[0];
+             endInput.value = lastDate.toISOString().split('T')[0];
+             
+             rfmStartDate = startInput.value;
+             rfmEndDate = endInput.value;
+             
+             if (rfmBreakdownChart) {
+                 updateRfmBreakdownChart();
+             }
+         }
+
+        // Chart initialization
+        function initializeChart(tabName) {
+            switch(tabName) {
+                case 'client-trends':
+                    initializeClientTrendsChart();
+                    break;
+                case 'rfm-breakdown':
+                    initializeRFMBreakdownChart();
+                    break;
+
+                case 'customer-value':
+                    initializeCustomerValueChart();
+                    break;
+                case 'segmentation':
+                    initializeSegmentationChart();
+                    break;
+                case 'churn-retention':
+                    initializeChurnRetentionChart();
+                    break;
+            }
+        }
+
+                 // Initialize Client RFM Trends Chart
+         function initializeClientTrendsChart() {
+             if (allClientData.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('clientTrendsChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
+                 return;
+             }
+
+             // Initialize client selection list
+             initializeClientList();
+             updateClientTrendsChart();
+         }
+
+                 // Initialize Overall RFM Breakdown Chart
+         function initializeRFMBreakdownChart() {
+             if (allDates.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('rfmBreakdownChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
+                 return;
+             }
+             
+             updateRfmBreakdownChart();
+         }
+         
+         // Update RFM Breakdown Chart with filtered data
+         function updateRfmBreakdownChart() {
+             const filteredDates = filterDatesByRange(allDates, rfmStartDate, rfmEndDate);
+             
+             // Process RFM data for the filtered date range
+             const rfmData = @json($hasData ? $rfmData : []);
+             
+                           // Debug: Log the first few records to see the data structure
+              console.log('RFM Data sample:', rfmData.slice(0, 3));
+              console.log('Available fields:', rfmData.length > 0 ? Object.keys(rfmData[0]) : 'No data');
+              
+              // Debug: Log a sample record to see exact field names
+              if (rfmData.length > 0) {
+                  console.log('Sample record:', rfmData[0]);
+                  console.log('Sample record keys:', Object.keys(rfmData[0]));
+                  console.log('Sample m_score value:', rfmData[0].m_score, 'Type:', typeof rfmData[0].m_score);
+                  console.log('Sample rfm_score value:', rfmData[0].rfm_score, 'Type:', typeof rfmData[0].rfm_score);
+                  
+                  // Check if the values are actually numbers
+                  const sampleM = parseFloat(rfmData[0].m_score);
+                  const sampleRfm = parseFloat(rfmData[0].rfm_score);
+                  console.log('Parsed m_score:', sampleM, 'isNaN:', isNaN(sampleM));
+                  console.log('Parsed rfm_score:', sampleRfm, 'isNaN:', isNaN(sampleRfm));
+              }
+             
+             const datasets = [
+                 {
+                     label: 'Recency',
+                     data: filteredDates.map(date => {
+                         const monthData = rfmData.filter(record => {
+                             const recordDate = new Date(record.date).toISOString().slice(0, 7) + '-01';
+                             return recordDate === date;
+                         });
+                         
+                         if (monthData.length > 0) {
+                             const avgScore = monthData.reduce((sum, r) => sum + (r.r_score || 0), 0) / monthData.length;
+                             console.log(`Recency scores for ${date}:`, monthData.map(r => r.r_score), 'Average:', avgScore);
+                             return Math.round(avgScore * 100) / 100;
+                         }
+                         return null;
+                     }),
+                     borderColor: '#EF4444',
+                     backgroundColor: '#EF444420',
+                     borderWidth: 2,
+                     tension: 0.1
+                 },
+                 {
+                     label: 'Frequency',
+                     data: filteredDates.map(date => {
+                         const monthData = rfmData.filter(record => {
+                             const recordDate = new Date(record.date).toISOString().slice(0, 7) + '-01';
+                             return recordDate === date;
+                         });
+                         
+                         if (monthData.length > 0) {
+                             const avgScore = monthData.reduce((sum, r) => sum + (r.f_score || 0), 0) / monthData.length;
+                             console.log(`Frequency scores for ${date}:`, monthData.map(r => r.f_score), 'Average:', avgScore);
+                             return Math.round(avgScore * 100) / 100;
+                         }
+                         return null;
+                     }),
+                     borderColor: '#10B981',
+                     backgroundColor: '#10B98120',
+                     borderWidth: 2,
+                     tension: 0.1
+                 },
+                 {
+                     label: 'Monetary',
+                     data: filteredDates.map(date => {
+                         const monthData = rfmData.filter(record => {
+                             const recordDate = new Date(record.date).toISOString().slice(0, 7) + '-01';
+                             return recordDate === date;
+                         });
+                         
+                                                   if (monthData.length > 0) {
+                              const scores = monthData.map(r => parseFloat(r.m_score) || 0);
+                              const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+                              console.log(`Monetary scores for ${date}:`, scores, 'Average:', avgScore);
+                              return Math.round(avgScore * 100) / 100;
+                          }
+                         return null;
+                     }),
+                     borderColor: '#3B82F6',
+                     backgroundColor: '#3B82F620',
+                     borderWidth: 2,
+                     tension: 0.1
+                 },
+                                   {
+                      label: 'Overall RFM Score',
+                      data: filteredDates.map(date => {
+                          const monthData = rfmData.filter(record => {
+                              const recordDate = new Date(record.date).toISOString().slice(0, 7) + '-01';
+                              return recordDate === date;
+                          });
+                          
+                          if (monthData.length > 0) {
+                              const scores = monthData.map(r => parseFloat(r.rfm_score) || 0);
+                              const avgScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+                              console.log(`Overall RFM scores for ${date}:`, scores, 'Average:', avgScore);
+                              return Math.round(avgScore * 100) / 100;
+                          }
+                          return null;
+                      }),
+                      borderColor: '#8B5CF6',
+                      backgroundColor: '#8B5CF620',
+                      borderWidth: 3,
+                      tension: 0.1,
+                      pointRadius: 4,
+                      pointHoverRadius: 6,
+                      fill: false
+                  }
+             ];
+
+             const labels = filteredDates.map(date => {
+                 return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+             });
+
+             if (rfmBreakdownChart) {
+                 rfmBreakdownChart.destroy();
+             }
+
+             const ctx = document.getElementById('rfmBreakdownChart');
+             rfmBreakdownChart = new Chart(ctx, {
+                 type: 'line',
+                 data: { labels, datasets },
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     plugins: {
+                         legend: {
+                             position: 'top',
+                             labels: {
+                                 usePointStyle: true,
+                                 padding: 20
+                             }
+                         },
+                         tooltip: {
+                             mode: 'index',
+                             intersect: false
+                         }
+                     },
+                     scales: {
+                         y: {
+                             beginAtZero: true,
+                             max: 10,
+                             title: {
+                                 display: true,
+                                 text: 'RFM Score'
+                             }
+                         },
+                         x: {
+                             title: {
+                                 display: true,
+                                 text: 'Date'
+                             }
+                         }
+                     },
+                     interaction: {
+                         mode: 'nearest',
+                         axis: 'x',
+                         intersect: false
+                     }
+                 }
+             });
+         }
+
+        // Sample data for other charts (placeholder implementations)
+        const sampleLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+
+        function initializeCustomerValueChart() {
+            const ctx = document.getElementById('customerValueChart');
+            if (ctx && !ctx.chart) {
+                ctx.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sampleLabels,
+                        datasets: [{
+                            label: 'Customer Lifetime Value',
+                            data: [500, 750, 600, 900, 800, 1100],
+                            borderColor: '#F59E0B',
+                            backgroundColor: '#F59E0B20',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initializeSegmentationChart() {
+            const ctx = document.getElementById('segmentationChart');
+            if (ctx && !ctx.chart) {
+                ctx.chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Champions', 'Loyal Customers', 'At Risk', "Can't Lose", 'Lost'],
+                        datasets: [{
+                            data: [25, 30, 20, 15, 10],
+                            backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#6B7280']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initializeChurnRetentionChart() {
+            const ctx = document.getElementById('churnRetentionChart');
+            if (ctx && !ctx.chart) {
+                ctx.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sampleLabels,
+                        datasets: [
+                            {
+                                label: 'Retention Rate',
+                                data: [85, 88, 82, 90, 87, 92],
+                                borderColor: '#10B981',
+                                backgroundColor: '#10B98120',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Churn Rate',
+                                data: [15, 12, 18, 10, 13, 8],
+                                borderColor: '#EF4444',
+                                backgroundColor: '#EF444420',
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize overview tab by default
+        document.addEventListener('DOMContentLoaded', function() {
+            showTab('overview');
+        });
+    </script>
 </x-app-layout>

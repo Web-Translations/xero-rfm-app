@@ -1,9 +1,7 @@
 {{-- resources/views/rfm/analysis/trends.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">
-            {{ __('Trend Analysis') }}
-        </h2>
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">RFM Analysis</h2>
     </x-slot>
 
     @push('styles')
@@ -13,7 +11,42 @@
     </style>
     @endpush
 
-    <div class="p-6 space-y-6">
+    <div class="p-6">
+        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Trend Analysis</h3>
+            </div>
+
+            <div class="p-6">
+                {{-- Tabs --}}
+                <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                    <nav class="-mb-px flex gap-6 overflow-x-auto">
+                        <a href="{{ route('rfm.analysis.index') }}" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Company Trends
+                        </a>
+                        <a href="{{ route('rfm.analysis.index') }}#rfm-breakdown" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            RFM Component Breakdown
+                        </a>
+                        <a href="{{ route('rfm.analysis.index') }}#revenue-trend" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Revenue Trend Analysis
+                        </a>
+                        <a href="{{ route('rfm.analysis.index') }}#clv-trend" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Customer Lifetime Value
+                        </a>
+                        <a href="{{ route('rfm.analysis.segments') }}" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Customer Segmentation
+                        </a>
+                        <a href="{{ route('rfm.analysis.index') }}#churn-analysis" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Churn & Retention
+                        </a>
+                        <a href="{{ route('rfm.analysis.business') }}" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
+                            Business Analytics
+                        </a>
+                    </nav>
+                </div>
+
+                {{-- Trend Analysis Content --}}
+                <div class="space-y-6">
         {{-- Filters --}}
         <form method="GET" class="bg-white dark:bg-gray-800 shadow trend-card p-4 flex flex-wrap gap-3 items-end">
             <div>
@@ -49,6 +82,8 @@
             </div>
             <div class="px-5 pb-5 text-sm text-gray-600 dark:text-gray-300">
                 {{ __('Each line is a customer. Click legend items to toggle lines.') }}
+            </div>
+                </div>
             </div>
         </div>
     </div>
