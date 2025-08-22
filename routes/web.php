@@ -17,6 +17,10 @@ use Illuminate\Http\Request;
 
 Route::get('/', fn () => view('landing'))->name('landing');
 
+// Legal pages
+Route::get('/terms', fn () => view('legal.terms'))->name('terms');
+Route::get('/privacy', fn () => view('legal.privacy'))->name('privacy');
+
 // Compatibility callback if your Xero app still points to /xero/callback
 Route::get('/xero/callback', function (Request $request) {
     return redirect()->route('xero.auth.callback', $request->query());
