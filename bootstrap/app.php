@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'auto.refresh.xero' => \App\Http\Middleware\AutoRefreshXeroToken::class,
+            'subscription.access' => \App\Http\Middleware\CheckSubscriptionAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
