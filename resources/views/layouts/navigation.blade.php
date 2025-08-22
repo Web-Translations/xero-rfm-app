@@ -33,6 +33,9 @@
                     <x-nav-link :href="route('organisations.index')" :active="request()->routeIs('organisations.index')">
                         {{ __('Organisations') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('memberships.index')" :active="request()->routeIs('memberships.index')">
+                        {{ __('Memberships') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -105,6 +108,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('organisations.index')" :active="request()->routeIs('organisations.index')">
                 {{ __('Organisations') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('memberships.index')" :active="request()->routeIs('memberships.index')">
+                {{ __('Memberships') }}
             </x-responsive-nav-link>
         </div>
 

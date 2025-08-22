@@ -10,6 +10,7 @@ use App\Http\Controllers\RfmConfigController;
 use App\Http\Controllers\RfmInsightsController;
 use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\OrganisationController;
+use App\Http\Controllers\MembershipsController;
 use App\Http\Controllers\TokenController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
@@ -32,6 +33,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/organisations', [OrganisationController::class, 'index'])->name('organisations.index');
     Route::post('/organisations/{connection}/switch', [OrganisationController::class, 'switch'])->name('organisations.switch');
     Route::delete('/organisations/{connection}/disconnect', [OrganisationController::class, 'disconnect'])->name('organisations.disconnect');
+
+    // Memberships
+    Route::get('/memberships', [MembershipsController::class, 'index'])->name('memberships.index');
+    Route::post('/memberships/subscribe', [MembershipsController::class, 'subscribe'])->name('memberships.subscribe');
+    Route::post('/memberships/cancel', [MembershipsController::class, 'cancel'])->name('memberships.cancel');
+    Route::get('/memberships/payment', [MembershipsController::class, 'payment'])->name('memberships.payment');
 
     // Token management (moved to auto-refresh group below)
 
@@ -93,5 +100,8 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
 });
 
 
+
+// GoCardless webhook (no auth required)
+Route::post('/webhooks/gocardless', [MembershipsController::class, 'webhook'])->name('webhooks.gocardless');
 
 require __DIR__.'/auth.php';
