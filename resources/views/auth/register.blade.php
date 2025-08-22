@@ -39,6 +39,20 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <!-- Terms and Privacy Policy -->
+        <div class="mt-4">
+            <label class="flex items-center">
+                <input type="checkbox" name="terms_accepted" required class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                    I agree to the 
+                    <a href="{{ route('terms') }}" target="_blank" class="underline text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">Terms of Service</a>
+                    and 
+                    <a href="{{ route('privacy') }}" target="_blank" class="underline text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">Privacy Policy</a>
+                </span>
+            </label>
+            <x-input-error :messages="$errors->get('terms_accepted')" class="mt-2" />
+        </div>
+
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
                 {{ __('Already registered?') }}
