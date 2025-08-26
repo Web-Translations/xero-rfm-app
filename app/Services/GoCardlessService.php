@@ -29,7 +29,7 @@ class GoCardlessService
     /**
      * Create a subscription for a user
      */
-    public function createSubscription(User $user, string $planId, string $mandateId = null)
+    public function createSubscription(User $user, string $planId, ?string $mandateId = null)
     {
         try {
             $plan = $this->config['plans'][$planId] ?? null;
@@ -42,6 +42,10 @@ class GoCardlessService
                 // Free plan - just update user's plan
                 $user->update(['subscription_plan' => $planId]);
                 return ['success' => true, 'plan' => $planId];
+            }
+
+            if (!$mandateId) {
+                throw new \Exception("Mandate ID is required for paid plans");
             }
 
             // Create subscription in GoCardless
