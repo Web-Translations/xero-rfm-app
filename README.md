@@ -49,10 +49,6 @@ GOCARDLESS_ACCESS_TOKEN=your_access_token_here
 GOCARDLESS_ENVIRONMENT=sandbox
 GOCARDLESS_WEBHOOK_SECRET=your_webhook_secret_here
 GOCARDLESS_CREDITOR_ID=your_creditor_id_here
-
-# Optional: Plan-specific IDs (if using GoCardless plans)
-GOCARDLESS_PRO_PLAN_ID=your_pro_plan_id
-GOCARDLESS_PRO_PLUS_PLAN_ID=your_pro_plus_plan_id
 ```
 
 ### Subscription Plans

@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'access_token' => env('GOCARDLESS_ACCESS_TOKEN', 'sandbox_aCtSGoQIBVGfMcg1pL9Guaw5kzqkmfYRjHVfSor_'),
+    'access_token' => env('GOCARDLESS_ACCESS_TOKEN', ''),
     
     'environment' => env('GOCARDLESS_ENVIRONMENT', 'sandbox'), // 'sandbox' or 'live'
     
@@ -32,21 +32,18 @@ return [
             'price' => 0,
             'currency' => 'GBP',
             'interval' => 'monthly',
-            'gocardless_plan_id' => null, // Free plan doesn't need a GoCardless plan
         ],
         'pro' => [
             'name' => 'Pro',
             'price' => 599, // £5.99 in pence
             'currency' => 'GBP',
             'interval' => 'monthly',
-            'gocardless_plan_id' => env('GOCARDLESS_PRO_PLAN_ID', ''),
         ],
         'pro_plus' => [
             'name' => 'Pro+',
             'price' => 1199, // £11.99 in pence
             'currency' => 'GBP',
             'interval' => 'monthly',
-            'gocardless_plan_id' => env('GOCARDLESS_PRO_PLUS_PLAN_ID', ''),
         ],
     ],
 ];

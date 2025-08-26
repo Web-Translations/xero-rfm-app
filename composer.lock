@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6dadd5dc27c498d107633f4a736acd46",
+    "content-hash": "fefd33bf753bcf1e0c08ba4006699bf5",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -932,7 +932,7 @@
             "time": "2023-10-12T05:21:21+00:00"
         },
         {
-            "name": "gocardless/gocardless-pro-php",
+            "name": "gocardless/gocardless-pro",
             "version": "7.2.0",
             "source": {
                 "type": "git",
@@ -984,7 +984,6 @@
                 "issues": "https://github.com/gocardless/gocardless-pro-php/issues",
                 "source": "https://github.com/gocardless/gocardless-pro-php/tree/v7.2.0"
             },
-            "abandoned": "gocardless/gocardless-pro",
             "time": "2025-06-23T10:57:11+00:00"
         },
         {
