@@ -26,24 +26,14 @@
                 </div>
             </div>
 
-            <!-- Subscription summary -->
+            <!-- Manage link only -->
             <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
-                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
-                    <h3 class="text-xl font-semibold mb-4">Your subscription</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">Current plan</div>
-                            <div class="text-lg font-medium">{{ ucfirst($currentPlan) }}</div>
-                        </div>
-                        <div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">Status</div>
-                            <div class="text-lg font-medium">{{ auth()->user()->subscription_status ?? '—' }}</div>
-                        </div>
-                        <div class="truncate">
-                            <div class="text-sm text-gray-500 dark:text-gray-400">GoCardless subscription ID</div>
-                            <div class="text-lg font-mono truncate">{{ auth()->user()->gocardless_subscription_id ?? '—' }}</div>
-                        </div>
+                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold">Manage your membership</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">View next charge, status, and cancel from the manage page.</p>
                     </div>
+                    <a href="{{ route('memberships.manage') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Manage membership</a>
                 </div>
             </div>
 
@@ -107,7 +97,7 @@
                 <!-- Pro Tier -->
                 <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl border-2 {{ $currentPlan === 'pro' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }} overflow-hidden relative">
                     @if($currentPlan === 'pro')
-                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div class="absolute top-2 left-1/2 transform -translate-x-1/2">
                             <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">Current Plan</span>
                         </div>
                     @endif
@@ -173,7 +163,7 @@
                 <!-- Pro+ Tier -->
                 <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl border-2 {{ $currentPlan === 'pro_plus' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }} overflow-hidden relative">
                     @if($currentPlan === 'pro_plus')
-                        <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div class="absolute top-2 left-1/2 transform -translate-x-1/2">
                             <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">Current Plan</span>
                         </div>
                     @endif
@@ -279,27 +269,7 @@
                     </div>
                 </div>
 
-                <!-- Cancel Subscription Section -->
-                @if($currentPlan !== 'free')
-                    <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
-                        <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
-                            <h3 class="text-xl font-semibold mb-4">Manage Subscription</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mb-6">
-                                You're currently on the <strong>{{ ucfirst($currentPlan) }}</strong> plan. 
-                                You can cancel your subscription at any time.
-                            </p>
-                            
-                            <form method="POST" action="{{ route('memberships.cancel') }}" 
-                                  onsubmit="return confirm('Are you sure you want to cancel your subscription?')">
-                                @csrf
-                                <button type="submit" 
-                                        class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                                    Cancel Subscription
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @endif
+                <!-- Manage moved to dedicated page -->
             </div>
         </div>
     </div>

@@ -273,6 +273,73 @@ class GoCardlessService
     }
 
     /**
+     * Get next payment (if any) for a subscription
+     */
+    public function getNextPaymentForSubscription(string $subscriptionId)
+    {
+        try {
+            // Fetch up to 50 payments for this subscription and pick the earliest
+            // relevant upcoming payment (pending_submission/submitted), otherwise fall back
+            // to the most recent payment with a charge_date if no upcoming item exists yet.
+            $list = $this->client->payments()->list([
+                'params' => [
+                    'subscription' => $subscriptionId,
+                    'limit' => 50,
+                ],
+            ]);
+
+            $items = $list->items ?? [];
+            if (!is_array($items)) {
+                $items = [];
+            }
+
+            $upcomingStatuses = ['pending_submission', 'submitted'];
+            $chosen = null;
+            foreach ($items as $payment) {
+                $status = $payment->status ?? null;
+                $chargeDate = $payment->charge_date ?? null;
+                if (!$status || !$chargeDate) {
+                    continue;
+                }
+                if (in_array($status, $upcomingStatuses, true)) {
+                    if ($chosen === null) {
+                        $chosen = $payment;
+                    } else {
+                        if (strtotime((string) $payment->charge_date) < strtotime((string) $chosen->charge_date)) {
+                            $chosen = $payment;
+                        }
+                    }
+                }
+            }
+
+            if ($chosen) {
+                return $chosen;
+            }
+
+            // Fallback: pick the most recent payment with a charge_date
+            foreach ($items as $payment) {
+                if (!empty($payment->charge_date)) {
+                    if ($chosen === null) {
+                        $chosen = $payment;
+                    } else {
+                        if (strtotime((string) $payment->charge_date) > strtotime((string) $chosen->charge_date)) {
+                            $chosen = $payment;
+                        }
+                    }
+                }
+            }
+
+            if ($chosen) {
+                return $chosen;
+            }
+        } catch (\Exception $e) {
+            Log::error('GoCardless get next payment failed: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
      * Get available plans
      */
     public function getPlans()

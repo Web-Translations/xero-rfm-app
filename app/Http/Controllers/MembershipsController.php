@@ -31,6 +31,27 @@ class MembershipsController extends Controller
     }
 
     /**
+     * Manage page: show subscription details (next charge etc.)
+     */
+    public function manage()
+    {
+        $user = Auth::user();
+
+        $subscription = null;
+        $nextPayment = null;
+        if (!empty($user->gocardless_subscription_id)) {
+            $subscription = $this->goCardlessService->getSubscription($user->gocardless_subscription_id);
+            $nextPayment = $this->goCardlessService->getNextPaymentForSubscription($user->gocardless_subscription_id);
+        }
+
+        return view('memberships.manage', [
+            'user' => $user,
+            'subscription' => $subscription,
+            'nextPayment' => $nextPayment,
+        ]);
+    }
+
+    /**
      * Subscribe to a plan
      */
     public function subscribe(SelectPlanRequest $request)

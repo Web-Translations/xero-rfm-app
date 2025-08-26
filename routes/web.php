@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
     // Memberships
     Route::get('/memberships', [MembershipsController::class, 'index'])->name('memberships.index');
+    Route::get('/memberships/manage', [MembershipsController::class, 'manage'])->name('memberships.manage');
     Route::post('/memberships/subscribe', [MembershipsController::class, 'subscribe'])->name('memberships.subscribe');
     Route::post('/memberships/process-payment', [MembershipsController::class, 'processPayment'])->name('memberships.process-payment');
     Route::post('/memberships/cancel', [MembershipsController::class, 'cancel'])->name('memberships.cancel');
