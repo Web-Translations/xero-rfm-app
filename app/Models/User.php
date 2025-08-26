@@ -21,6 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'subscription_plan',
+        'gocardless_subscription_id',
+        'subscription_status',
+        'subscription_ends_at',
     ];
 
     /**
@@ -43,7 +47,41 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'subscription_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Check if user has active subscription
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscription_status === 'active' && 
+               ($this->subscription_ends_at === null || $this->subscription_ends_at->isFuture());
+    }
+
+    /**
+     * Check if user has specific plan
+     */
+    public function hasPlan(string $plan): bool
+    {
+        return $this->subscription_plan === $plan && $this->hasActiveSubscription();
+    }
+
+    /**
+     * Check if user can access premium features
+     */
+    public function canAccessPremium(): bool
+    {
+        return $this->hasPlan('pro') || $this->hasPlan('pro_plus');
+    }
+
+    /**
+     * Check if user can access AI features
+     */
+    public function canAccessAI(): bool
+    {
+        return $this->hasPlan('pro_plus');
     }
 
     /**
