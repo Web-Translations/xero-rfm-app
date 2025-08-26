@@ -41,8 +41,10 @@ Route::middleware('auth')->group(function () {
     // Memberships
     Route::get('/memberships', [MembershipsController::class, 'index'])->name('memberships.index');
     Route::post('/memberships/subscribe', [MembershipsController::class, 'subscribe'])->name('memberships.subscribe');
+    Route::post('/memberships/process-payment', [MembershipsController::class, 'processPayment'])->name('memberships.process-payment');
     Route::post('/memberships/cancel', [MembershipsController::class, 'cancel'])->name('memberships.cancel');
     Route::get('/memberships/payment', [MembershipsController::class, 'payment'])->name('memberships.payment');
+    Route::get('/memberships/success', [MembershipsController::class, 'success'])->name('memberships.success');
 
     // Token management (moved to auto-refresh group below)
 

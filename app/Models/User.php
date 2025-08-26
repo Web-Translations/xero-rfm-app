@@ -123,4 +123,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(ExcludedInvoice::class);
     }
+
+    /**
+     * Get the GoCardless customer for this user
+     */
+    public function gocardlessCustomer()
+    {
+        return $this->hasOne(GoCardlessCustomer::class);
+    }
 }

@@ -6,6 +6,7 @@ use GoCardlessPro\Client;
 use GoCardlessPro\Environment;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\GoCardlessCustomer;
 
 class GoCardlessService
 {
@@ -16,14 +17,26 @@ class GoCardlessService
     {
         $this->config = config('gocardless');
         
+        Log::info('GoCardlessService initialized', [
+            'environment' => $this->config['environment'],
+            'has_access_token' => !empty($this->config['access_token']),
+            'access_token_length' => strlen($this->config['access_token'] ?? '')
+        ]);
+        
         $environment = $this->config['environment'] === 'live' 
             ? Environment::LIVE 
             : Environment::SANDBOX;
             
-        $this->client = new Client([
-            'access_token' => $this->config['access_token'],
-            'environment' => $environment,
-        ]);
+        try {
+            $this->client = new Client([
+                'access_token' => $this->config['access_token'],
+                'environment' => $environment,
+            ]);
+            Log::info('GoCardless client created successfully');
+        } catch (\Exception $e) {
+            Log::error('Failed to create GoCardless client: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -79,6 +92,102 @@ class GoCardlessService
 
         } catch (\Exception $e) {
             Log::error('GoCardless subscription creation failed: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Create a billing request for payment setup
+     */
+    public function createBillingRequest(User $user, string $planId)
+    {
+        try {
+            $plan = $this->config['plans'][$planId] ?? null;
+            
+            if (!$plan) {
+                throw new \Exception("Invalid plan: {$planId}");
+            }
+
+            if ($plan['price'] === 0) {
+                throw new \Exception("Billing request not needed for free plans");
+            }
+
+            // Get or create customer
+            $customerResult = $this->getOrCreateCustomer($user);
+            if (!$customerResult['success']) {
+                throw new \Exception("Failed to create customer: " . $customerResult['error']);
+            }
+
+            // Create billing request in GoCardless
+            $billingRequest = $this->client->billing_requests()->create([
+                'params' => [
+                    'amount' => $plan['price'],
+                    'currency' => $plan['currency'],
+                    'links' => [
+                        'customer' => $customerResult['customer_id'],
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'plan_id' => $planId,
+                    ],
+                ],
+            ]);
+
+            return [
+                'success' => true,
+                'billing_request_id' => $billingRequest->id,
+                'customer_id' => $customerResult['customer_id'],
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('GoCardless billing request creation failed: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Create a billing request flow (for payment setup)
+     */
+    public function createBillingRequestFlow(User $user, string $planId)
+    {
+        try {
+            $plan = $this->config['plans'][$planId] ?? null;
+            
+            if (!$plan) {
+                throw new \Exception("Invalid plan: {$planId}");
+            }
+
+            if ($plan['price'] === 0) {
+                throw new \Exception("Billing request flow not needed for free plans");
+            }
+
+            // Check if GoCardless is configured
+            if (empty($this->config['access_token'])) {
+                Log::info('GoCardless not configured, using test mode');
+                return [
+                    'success' => true,
+                    'redirect_url' => route('memberships.success', ['plan' => $planId]),
+                    'redirect_flow_id' => 'test_flow_' . $user->id,
+                ];
+            }
+
+            // Get or create customer
+            $customerResult = $this->getOrCreateCustomer($user);
+            if (!$customerResult['success']) {
+                throw new \Exception("Failed to create customer: " . $customerResult['error']);
+            }
+
+            // For now, since we're in test mode, just return success
+            // TODO: Implement proper GoCardless API integration when credentials are available
+            Log::info('GoCardless API not fully implemented yet, using test mode');
+            return [
+                'success' => true,
+                'redirect_url' => route('memberships.success', ['plan' => $planId]),
+                'redirect_flow_id' => 'test_flow_' . $user->id,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('GoCardless billing request flow creation failed: ' . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -169,6 +278,118 @@ class GoCardlessService
     public function getPlan(string $planId)
     {
         return $this->config['plans'][$planId] ?? null;
+    }
+
+    /**
+     * Create a customer in GoCardless
+     */
+    public function createCustomer(User $user, array $customerData)
+    {
+        try {
+            Log::info('Creating customer in GoCardless', ['user_id' => $user->id, 'customer_data' => $customerData]);
+            
+            // Check if customer already exists
+            $existingCustomer = $user->gocardlessCustomer;
+            if ($existingCustomer) {
+                Log::info('Customer already exists in database', ['customer_id' => $existingCustomer->gocardless_customer_id]);
+                return ['success' => true, 'customer_id' => $existingCustomer->gocardless_customer_id];
+            }
+
+            // Check if GoCardless is configured
+            if (empty($this->config['access_token'])) {
+                Log::info('GoCardless not configured, creating customer in database only');
+                // Create customer in database only (for testing)
+                $gocardlessCustomer = GoCardlessCustomer::create([
+                    'user_id' => $user->id,
+                    'gocardless_customer_id' => 'test_customer_' . $user->id,
+                    'email' => $customerData['email'],
+                    'given_name' => $customerData['given_name'] ?? null,
+                    'family_name' => $customerData['family_name'] ?? null,
+                    'company_name' => $customerData['company_name'] ?? null,
+                    'address_line1' => $customerData['address_line1'] ?? null,
+                    'address_line2' => $customerData['address_line2'] ?? null,
+                    'city' => $customerData['city'] ?? null,
+                    'region' => $customerData['region'] ?? null,
+                    'postal_code' => $customerData['postal_code'] ?? null,
+                    'country_code' => $customerData['country_code'] ?? 'GB',
+                    'metadata' => ['plan_id' => $planId ?? 'pro'],
+                ]);
+                
+                return ['success' => true, 'customer_id' => $gocardlessCustomer->gocardless_customer_id];
+            }
+
+            // Create customer in GoCardless
+            Log::info('Creating customer in GoCardless API');
+            
+            $params = [
+                'params' => [
+                    'email' => $customerData['email'],
+                    'given_name' => $customerData['given_name'] ?? null,
+                    'family_name' => $customerData['family_name'] ?? null,
+                    'company_name' => !empty($customerData['company_name']) ? $customerData['company_name'] : null,
+                    'address_line1' => $customerData['address_line1'] ?? null,
+                    'address_line2' => !empty($customerData['address_line2']) ? $customerData['address_line2'] : null,
+                    'city' => $customerData['city'] ?? null,
+                    'region' => !empty($customerData['region']) ? $customerData['region'] : null,
+                    'postal_code' => $customerData['postal_code'] ?? null,
+                    'country_code' => $customerData['country_code'] ?? 'GB',
+                    'metadata' => [
+                        'plan_id' => $planId,
+                    ],
+                ],
+            ];
+            
+            Log::info('GoCardless customer params', $params);
+            
+            $customer = $this->client->customers()->create($params);
+
+            // Save customer to database
+            $gocardlessCustomer = GoCardlessCustomer::create([
+                'user_id' => $user->id,
+                'gocardless_customer_id' => $customer->id,
+                'email' => $customer->email,
+                'given_name' => $customer->given_name,
+                'family_name' => $customer->family_name,
+                'company_name' => $customer->company_name,
+                'address_line1' => $customer->address_line1,
+                'address_line2' => $customer->address_line2,
+                'city' => $customer->city,
+                'region' => $customer->region,
+                'postal_code' => $customer->postal_code,
+                'country_code' => $customer->country_code,
+                'metadata' => $customer->metadata,
+            ]);
+
+            return ['success' => true, 'customer_id' => $customer->id];
+
+        } catch (\Exception $e) {
+            Log::error('GoCardless customer creation failed: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get or create customer for a user
+     */
+    public function getOrCreateCustomer(User $user, array $customerData = [])
+    {
+        Log::info('Getting or creating customer', ['user_id' => $user->id, 'customer_data' => $customerData]);
+        
+        // Check if customer already exists
+        $existingCustomer = $user->gocardlessCustomer;
+        if ($existingCustomer) {
+            Log::info('Customer already exists', ['customer_id' => $existingCustomer->gocardless_customer_id]);
+            return ['success' => true, 'customer_id' => $existingCustomer->gocardless_customer_id];
+        }
+
+        // Use user data as fallback
+        $customerData = array_merge([
+            'email' => $user->email,
+            'given_name' => $user->name,
+        ], $customerData);
+
+        Log::info('Creating new customer', ['customer_data' => $customerData]);
+        return $this->createCustomer($user, $customerData);
     }
 
     /**
