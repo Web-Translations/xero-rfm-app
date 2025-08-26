@@ -49,6 +49,8 @@ GOCARDLESS_ACCESS_TOKEN=your_access_token_here
 GOCARDLESS_ENVIRONMENT=sandbox
 GOCARDLESS_WEBHOOK_SECRET=your_webhook_secret_here
 GOCARDLESS_CREDITOR_ID=your_creditor_id_here
+GOCARDLESS_SUCCESS_URL=https://your-ngrok-url.ngrok.io/memberships/success
+GOCARDLESS_FORCE_TEST_MODE=true
 ```
 
 ### Subscription Plans
@@ -67,6 +69,29 @@ The system supports three subscription tiers:
 - Use GoCardless sandbox environment for testing
 - Test payment flows with sandbox bank details
 - Verify webhook processing with test events
+
+### Local Development Options
+
+#### Option 1: Test Mode (Recommended for Development)
+For local development, you can use test mode which bypasses the actual GoCardless API:
+
+1. **Set test mode**: Add to your `.env`:
+   ```env
+   GOCARDLESS_FORCE_TEST_MODE=true
+   ```
+2. **Test the flow**: The payment process will simulate success without calling GoCardless
+
+#### Option 2: ngrok (For Full Integration Testing)
+If you need to test the full GoCardless integration:
+
+1. **Install ngrok**: Download from [ngrok.com](https://ngrok.com)
+2. **Start your Laravel app**: `php artisan serve`
+3. **Start ngrok**: `ngrok http 8000` (or your Laravel port)
+4. **Set the success URL**: Add the ngrok URL to your `.env`:
+   ```env
+   GOCARDLESS_SUCCESS_URL=https://your-ngrok-url.ngrok.io/memberships/success
+   ```
+5. **Update GoCardless webhook URL** (if needed): Use the ngrok URL for webhooks too
 
 ## 📊 Database Schema
 

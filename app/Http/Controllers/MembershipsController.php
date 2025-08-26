@@ -38,8 +38,6 @@ class MembershipsController extends Controller
         $user = Auth::user();
         $planId = $request->input('plan');
 
-        Log::info('Plan selection request', ['plan' => $planId, 'user_id' => $user->id]);
-
         try {
             if ($planId === 'free') {
                 // Handle free plan subscription
@@ -51,7 +49,6 @@ class MembershipsController extends Controller
                 }
             } else {
                 // For paid plans, redirect to payment page
-                Log::info('Redirecting to payment page', ['plan' => $planId]);
                 return redirect()->route('memberships.payment', ['plan' => $planId]);
             }
 
@@ -66,51 +63,52 @@ class MembershipsController extends Controller
      */
     public function success(Request $request)
     {
+        // Success handler (no debug logging)
+        // We prefer using user from metadata, but if logged in we'll use it
         $user = Auth::user();
         
-        // Get the redirect flow ID from the session or query parameter
-        $flowId = $request->query('flow_id') ?? session('redirect_flow_id');
+        // Get the redirect flow ID from GoCardless
+        $flowId = $request->query('redirect_flow_id');
+        $sessionToken = (string) ($request->query('gcst') ?: session('gc_session_token'));
         
-        Log::info('Payment success callback', ['flow_id' => $flowId, 'user_id' => $user->id]);
-
-        // Handle test mode (when GoCardless is not configured)
-        if (empty(config('gocardless.access_token'))) {
-            Log::info('GoCardless not configured, handling test mode success');
-            // In test mode, we assume the payment was successful
-            $planId = $request->query('plan') ?? 'pro';
-            
-            $user->update([
-                'subscription_plan' => $planId,
-                'subscription_status' => 'active',
-            ]);
-            
-            return redirect()->route('memberships.index')
-                ->with('status', 'Subscription activated! (Test mode - GoCardless not configured)');
-        }
-        
-        if (!$flowId) {
+        if (!$flowId || !$sessionToken) {
             return redirect()->route('memberships.index')
                 ->with('error', 'Payment flow not found. Please try again.');
         }
 
         try {
-            // Get the redirect flow from GoCardless
-            $flow = $this->goCardlessService->client->redirect_flows()->get($flowId);
+            // Complete the redirect flow and create mandate
+            $result = $this->goCardlessService->completeRedirectFlow($flowId, $sessionToken);
             
-            if ($flow->status === 'succeeded') {
-                // Payment was successful, update user's subscription
-                $planId = $flow->metadata['plan_id'] ?? 'pro';
+            if ($result['success']) {
+                // Resolve user: prefer current auth, else metadata user_id
+                if (!$user && !empty($result['user_id'])) {
+                    $user = \App\Models\User::find((int) $result['user_id']);
+                }
+                if (!$user) {
+                    return redirect()->route('memberships.index')
+                        ->with('error', 'Could not identify user for subscription. Please log in and try again.');
+                }
+                // Create subscription using the mandate
+                $subscriptionResult = $this->goCardlessService->createSubscription(
+                    $user, 
+                    $result['plan_id'] ?? (string) session('gc_plan_id', 'pro'), 
+                    $result['mandate_id']
+                );
                 
-                $user->update([
-                    'subscription_plan' => $planId,
-                    'subscription_status' => 'active',
-                ]);
-                
-                return redirect()->route('memberships.index')
-                    ->with('status', 'Payment successful! Your subscription is now active.');
+                // Clear temp session state
+                session()->forget(['gc_session_token', 'gc_plan_id']);
+
+                if ($subscriptionResult['success']) {
+                    return redirect()->route('memberships.index')
+                        ->with('status', 'Payment successful! Your subscription is now active.');
+                } else {
+                    return redirect()->route('memberships.index')
+                        ->with('error', 'Subscription creation failed: ' . $subscriptionResult['error']);
+                }
             } else {
                 return redirect()->route('memberships.index')
-                    ->with('error', 'Payment was not completed. Please try again.');
+                    ->with('error', 'Payment setup failed: ' . $result['error']);
             }
             
         } catch (\Exception $e) {
@@ -153,15 +151,7 @@ class MembershipsController extends Controller
         $user = Auth::user();
         $existingCustomer = $user->gocardlessCustomer;
 
-        Log::info('Payment page request', [
-            'plan' => $planId, 
-            'plan_data' => $plan,
-            'user_id' => $user->id,
-            'has_existing_customer' => $existingCustomer ? true : false
-        ]);
-
         if (!$plan || $plan['price'] === 0) {
-            Log::warning('Invalid plan for payment page', ['plan' => $planId]);
             return redirect()->route('memberships.index')
                 ->with('error', 'Invalid plan selected.');
         }
@@ -181,56 +171,39 @@ class MembershipsController extends Controller
         $user = Auth::user();
         $planId = $request->input('plan');
 
-        // Ensure plan is a string
-        $planId = (string) $planId;
-
-        Log::info('Processing payment', ['plan' => $planId, 'plan_type' => gettype($planId), 'user_id' => $user->id]);
-        Log::info('All request data', $request->all());
-
         try {
             // Create customer with the form data
             $customerData = $request->getCustomerData();
-            Log::info('Customer data', $customerData);
             
             $customerResult = $this->goCardlessService->getOrCreateCustomer($user, $customerData);
-            Log::info('Customer creation result', $customerResult);
             
             if (!$customerResult['success']) {
-                Log::error('Customer creation failed', $customerResult);
                 return back()->withErrors(['error' => 'Failed to create customer: ' . $customerResult['error']]);
             }
             
-            // Check if GoCardless is properly configured
-            if (empty(config('gocardless.access_token'))) {
-                Log::info('GoCardless not configured, using test mode');
-                // Fallback for development/testing
-                $user->update([
-                    'subscription_plan' => $planId,
-                    'subscription_status' => 'active',
-                ]);
-                
-                return redirect()->route('memberships.index')
-                    ->with('status', 'Subscription activated! (GoCardless not configured - this is a test mode)');
-            }
-            
-            // Create billing request flow and redirect to GoCardless
-            $flowResult = $this->goCardlessService->createBillingRequestFlow($user, $planId);
-            Log::info('Billing request flow result', $flowResult);
+            // Create redirect flow and redirect to GoCardless
+            $flowResult = $this->goCardlessService->createRedirectFlow($user, $planId, $customerData);
             
             if (!$flowResult['success']) {
-                Log::error('Billing request flow failed', $flowResult);
                 return back()->withErrors(['error' => 'Failed to create payment flow: ' . $flowResult['error']]);
             }
+
+            if (empty($flowResult['redirect_url'])) {
+                Log::error('GC redirect flow missing redirect_url', $flowResult);
+                return back()->withErrors(['error' => 'Payment provider did not return a redirect URL. Please try again.']);
+            }
             
+            // Persist session token and plan for completion step
+            session([
+                'gc_session_token' => $flowResult['session_token'] ?? null,
+                'gc_plan_id' => $planId,
+            ]);
+
             // Redirect to GoCardless payment page
             return redirect()->away($flowResult['redirect_url']);
 
         } catch (\Exception $e) {
-            Log::error('Payment processing error: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Payment processing error: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to process payment: ' . $e->getMessage()]);
         }
     }
@@ -252,4 +225,6 @@ class MembershipsController extends Controller
             return response('Error', 400);
         }
     }
+
+    // Debug API endpoint removed
 }

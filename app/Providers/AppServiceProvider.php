@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Webfox\Xero\Events\XeroAuthorized;
 use XeroAPI\XeroPHP\Api\AccountingApi;
@@ -27,6 +28,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS URL generation when configured (e.g., using ngrok)
+        if (config('app.force_https')) {
+            URL::forceScheme('https');
+        }
+
         // When Xero auth succeeds, persist credentials + tenant to our DB for the logged-in user
         Event::listen(XeroAuthorized::class, function (XeroAuthorized $event): void {
             $userId = Auth::id();

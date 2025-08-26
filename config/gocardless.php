@@ -16,6 +16,8 @@ return [
     'environment' => env('GOCARDLESS_ENVIRONMENT', 'sandbox'), // 'sandbox' or 'live'
     
     'webhook_secret' => env('GOCARDLESS_WEBHOOK_SECRET', ''),
+    'creditor_id' => env('GOCARDLESS_CREDITOR_ID', ''),
+    'success_url' => env('GOCARDLESS_SUCCESS_URL', ''),
     
     /*
     |--------------------------------------------------------------------------

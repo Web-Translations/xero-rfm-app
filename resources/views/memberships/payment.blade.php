@@ -243,9 +243,9 @@
                         </a>
                         
                         <button type="submit" form="subscription-form"
-                                class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                             Continue to Payment Setup
-                        </button>
+                            </button>
                     </div>
                 </div>
             </div>

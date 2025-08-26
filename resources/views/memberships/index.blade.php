@@ -26,6 +26,27 @@
                 </div>
             </div>
 
+            <!-- Subscription summary -->
+            <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
+                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
+                    <h3 class="text-xl font-semibold mb-4">Your subscription</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">Current plan</div>
+                            <div class="text-lg font-medium">{{ ucfirst($currentPlan) }}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">Status</div>
+                            <div class="text-lg font-medium">{{ auth()->user()->subscription_status ?? '—' }}</div>
+                        </div>
+                        <div class="truncate">
+                            <div class="text-sm text-gray-500 dark:text-gray-400">GoCardless subscription ID</div>
+                            <div class="text-lg font-mono truncate">{{ auth()->user()->gocardless_subscription_id ?? '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Subscription Tiers -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Free Tier -->
