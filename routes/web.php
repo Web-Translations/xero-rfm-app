@@ -97,10 +97,15 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     Route::get('/rfm/analysis', [RfmAnalysisController::class, 'index'])->name('rfm.analysis.index');
     Route::get('/rfm/analysis/trends', [RfmAnalysisController::class, 'trends'])->name('rfm.analysis.trends');
     Route::get('/rfm/analysis/business', [RfmAnalysisController::class, 'business'])->name('rfm.analysis.business');
+    Route::get('/rfm/analysis/components', [RfmAnalysisController::class, 'components'])->name('rfm.analysis.components');
     Route::get('/rfm/analysis/segments', [RfmAnalysisController::class, 'segments'])->name('rfm.analysis.segments');
     Route::get('/rfm/analysis/predictive', [RfmAnalysisController::class, 'predictive'])->name('rfm.analysis.predictive');
     Route::get('/rfm/analysis/cohort', [RfmAnalysisController::class, 'cohort'])->name('rfm.analysis.cohort');
     Route::get('/rfm/analysis/comparative', [RfmAnalysisController::class, 'comparative'])->name('rfm.analysis.comparative');
+    
+    // RFM Analysis API endpoints
+    Route::get('/rfm/analysis/component-trends', [RfmAnalysisController::class, 'rfmComponentTrends'])->name('rfm.analysis.component-trends');
+    Route::get('/rfm/analysis/top-companies', [RfmAnalysisController::class, 'topCompaniesByComponent'])->name('rfm.analysis.top-companies');
 });
 
 
