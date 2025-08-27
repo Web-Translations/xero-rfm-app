@@ -26,24 +26,15 @@
                 </div>
             </div>
 
-            <!-- Manage link only -->
-            <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
-                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xl font-semibold">Manage your membership</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">View next charge, status, and cancel from the manage page.</p>
-                    </div>
-                    <a href="{{ route('memberships.manage') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Manage membership</a>
-                </div>
-            </div>
+            
 
             <!-- Subscription Tiers -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Free Tier -->
-                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl border-2 {{ $currentPlan === 'free' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }} overflow-hidden">
+                <div class="group bg-white dark:bg-gray-800 shadow-lg rounded-xl border {{ $currentPlan === 'free' ? 'border-blue-500 ring-2 ring-blue-400/40' : 'border-gray-200 dark:border-gray-700' }} overflow-hidden transition transform hover:-translate-y-0.5 hover:shadow-xl">
                     <div class="p-8">
                         <div class="text-center mb-6">
-                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
                                 <svg class="w-8 h-8 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                                 </svg>
@@ -95,15 +86,15 @@
                 </div>
 
                 <!-- Pro Tier -->
-                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl border-2 {{ $currentPlan === 'pro' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }} overflow-hidden relative">
+                <div class="group bg-white dark:bg-gray-800 shadow-lg rounded-xl border {{ $currentPlan === 'pro' ? 'border-blue-500 ring-2 ring-blue-400/40' : 'border-gray-200 dark:border-gray-700' }} relative pt-6 transition transform hover:-translate-y-0.5 hover:shadow-xl">
                     @if($currentPlan === 'pro')
-                        <div class="absolute top-2 left-1/2 transform -translate-x-1/2">
-                            <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">Current Plan</span>
+                        <div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+                            <span class="inline-block bg-blue-600 text-white px-3 py-0.5 rounded-full text-xs tracking-wide shadow-sm">Current Plan</span>
                         </div>
                     @endif
                     <div class="p-8">
                         <div class="text-center mb-6">
-                            <div class="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
                                 <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                 </svg>
@@ -145,7 +136,7 @@
                         </ul>
 
                                                     @if($currentPlan === 'pro')
-                                <button class="w-full py-3 px-4 rounded-lg bg-blue-500 text-white font-medium cursor-default">
+                                <button class="w-full py-3 px-4 rounded-lg bg-blue-600 text-white font-medium cursor-default">
                                     Current Plan
                                 </button>
                             @else
@@ -161,15 +152,15 @@
                 </div>
 
                 <!-- Pro+ Tier -->
-                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl border-2 {{ $currentPlan === 'pro_plus' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }} overflow-hidden relative">
+                <div class="group bg-white dark:bg-gray-800 shadow-lg rounded-xl border {{ $currentPlan === 'pro_plus' ? 'border-blue-500 ring-2 ring-blue-400/40' : 'border-gray-200 dark:border-gray-700' }} relative pt-6 transition transform hover:-translate-y-0.5 hover:shadow-xl">
                     @if($currentPlan === 'pro_plus')
-                        <div class="absolute top-2 left-1/2 transform -translate-x-1/2">
-                            <span class="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">Current Plan</span>
+                        <div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
+                            <span class="inline-block bg-blue-600 text-white px-3 py-0.5 rounded-full text-xs tracking-wide shadow-sm">Current Plan</span>
                         </div>
                     @endif
                     <div class="p-8">
                         <div class="text-center mb-6">
-                            <div class="w-16 h-16 mx-auto mb-4 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                            <div class="w-16 h-16 mx-auto mb-4 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center group-hover:scale-105 transition-transform">
                                 <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                                 </svg>
@@ -270,6 +261,19 @@
                 </div>
 
                 <!-- Manage moved to dedicated page -->
+            </div>
+        </div>
+        
+        <!-- Manage link only moved below cards -->
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-6">
+            <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
+                <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold">Manage your membership</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">View next charge, status, and cancel from the manage page.</p>
+                    </div>
+                    <a href="{{ route('memberships.manage') }}" class="inline-flex items-center px-4 py-2 rounded-lg bg-gray-900/5 dark:bg-white/10 text-gray-800 dark:text-gray-100 hover:bg-gray-900/10 dark:hover:bg-white/20 transition-colors">Manage membership</a>
+                </div>
             </div>
         </div>
     </div>
