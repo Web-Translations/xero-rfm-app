@@ -30,12 +30,7 @@
                     <x-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                         {{ __('RFM Analysis') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('organisations.index')" :active="request()->routeIs('organisations.index')">
-                        {{ __('Organisations') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('memberships.index')" :active="request()->routeIs('memberships.index')">
-                        {{ __('Memberships') }}
-                    </x-nav-link>
+                    
                 </div>
             </div>
 
@@ -57,6 +52,12 @@
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('organisations.index')">
+                            {{ __('Organisations') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('memberships.index')">
+                            {{ __('Memberships') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -106,12 +107,7 @@
             <x-responsive-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                 {{ __('RFM Analysis') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('organisations.index')" :active="request()->routeIs('organisations.index')">
-                {{ __('Organisations') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('memberships.index')" :active="request()->routeIs('memberships.index')">
-                {{ __('Memberships') }}
-            </x-responsive-nav-link>
+            
         </div>
 
         <!-- Responsive Settings Options -->
@@ -124,6 +120,12 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('organisations.index')">
+                    {{ __('Organisations') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('memberships.index')">
+                    {{ __('Memberships') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
