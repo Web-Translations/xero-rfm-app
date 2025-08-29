@@ -86,6 +86,7 @@ class RfmAnalysisController extends Controller
                 'rfmData'          => collect(),
                 'revenueData'      => collect(),
                 'topRevenueClients' => collect(),
+
             ]);
         }
     }
@@ -188,46 +189,7 @@ class RfmAnalysisController extends Controller
 
 
 
-    public function business(Request $request)
-    {
-        try {
-            $user = $request->user();
-            $activeConnection = $user->getActiveXeroConnection();
-            
-            if (!$activeConnection) {
-                return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
-            }
 
-            // Get RFM data for business analytics - last 12 months
-            $monthsBack = 12;
-            $dateCutoff = now()->subMonths($monthsBack)->startOfDay();
-
-            $rfmData = RfmReport::select([
-                    'rfm_reports.snapshot_date as date',
-                    'rfm_reports.r_score',
-                    'rfm_reports.f_score',
-                    'rfm_reports.m_score',
-                    'rfm_reports.rfm_score',
-                    'rfm_reports.client_id',
-                    'clients.name as client_name',
-                ])
-                ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
-                ->where('rfm_reports.user_id', $user->id)
-                ->where('clients.tenant_id', $activeConnection->tenant_id)
-                ->where('rfm_reports.snapshot_date', '>=', $dateCutoff)
-                ->where('rfm_reports.rfm_score', '>', 0)
-                ->orderBy('rfm_reports.snapshot_date', 'asc')
-                ->get();
-
-            return view('rfm.analysis.business', [
-                'activeConnection' => $activeConnection,
-                'rfmData'          => $rfmData,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('RFM Business error: ' . $e->getMessage());
-            return redirect()->route('dashboard')->withErrors('Failed to load RFM business analysis. Please try again.');
-        }
-    }
 
     public function components(Request $request)
     {
@@ -245,6 +207,110 @@ class RfmAnalysisController extends Controller
         } catch (\Exception $e) {
             Log::error('RFM components error: ' . $e->getMessage());
             return redirect()->route('rfm.analysis.index')->withErrors('Failed to load RFM components analysis.');
+        }
+    }
+
+    public function distributions(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $activeConnection = $user->getActiveXeroConnection();
+            
+            if (!$activeConnection) {
+                return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
+            }
+
+            // Get RFM data for distributions
+            $rfmData = RfmReport::select([
+                    'rfm_reports.snapshot_date as date',
+                    'rfm_reports.r_score',
+                    'rfm_reports.f_score',
+                    'rfm_reports.m_score',
+                    'rfm_reports.rfm_score',
+                    'rfm_reports.client_id',
+                    'clients.name as client_name',
+                ])
+                ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+                ->where('rfm_reports.user_id', $user->id)
+                ->where('clients.tenant_id', $activeConnection->tenant_id)
+                ->where('rfm_reports.rfm_score', '>', 0)
+                ->orderBy('rfm_reports.snapshot_date', 'asc')
+                ->get();
+
+            // Process data the same way as the main index page
+            $hasData = $rfmData->count() > 0;
+            
+            if ($hasData) {
+                // Get all unique dates (1st of each month)
+                $allDates = $rfmData->pluck('date')
+                    ->map(function($date) {
+                        return \Carbon\Carbon::parse($date)->startOfMonth()->format('Y-m-01');
+                    })
+                    ->unique()
+                    ->sort()
+                    ->values();
+                
+                // Get all unique clients
+                $allClients = $rfmData->pluck('client_name')->unique()->values();
+                
+                // Group data by client and date
+                $clientData = [];
+                $palette = ['#3B82F6','#EF4444','#10B981','#F59E0B','#8B5CF6','#06B6D4','#84CC16','#F97316','#EC4899','#6366F1'];
+                
+                foreach ($allClients as $idx => $clientName) {
+                    $clientRecords = $rfmData->where('client_name', $clientName);
+                    $byDate = $clientRecords->groupBy(function($record) {
+                        return \Carbon\Carbon::parse($record->date)->startOfMonth()->format('Y-m-01');
+                    });
+                    
+                    $series = $allDates->map(function($date) use ($byDate) {
+                        return isset($byDate[$date]) ? round($byDate[$date]->avg('rfm_score'), 2) : null;
+                    })->toArray();
+                    
+                    $avgScore = collect($series)->filter(fn($v) => $v !== null)->avg();
+                    
+                    $clientData[] = [
+                        'name' => $clientName,
+                        'data' => $series,
+                        'avg' => $avgScore ?? 0,
+                        'color' => $palette[$idx % count($palette)]
+                    ];
+                }
+                
+                // Sort by average score (top performers first)
+                $clientData = collect($clientData)->sortByDesc('avg')->values()->toArray();
+            } else {
+                $allDates = collect();
+                $allClients = collect();
+                $clientData = [];
+            }
+
+            // Debug logging
+            Log::info('RFM Distributions Controller Debug:', [
+                'user_id' => $user->id,
+                'tenant_id' => $activeConnection->tenant_id,
+                'rfm_data_count' => $rfmData->count(),
+                'first_record' => $rfmData->first(),
+                'has_data' => $hasData,
+                'all_dates_count' => $allDates->count(),
+                'all_clients_count' => $allClients->count(),
+                'client_data_count' => count($clientData),
+            ]);
+
+            return view('rfm.analysis.distributions', [
+                'activeConnection' => $activeConnection,
+                'rfmData' => $rfmData,
+                'hasData' => $hasData,
+                'allDates' => $allDates,
+                'allClients' => $allClients,
+                'clientData' => $clientData,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('RFM Distributions error: ' . $e->getMessage());
+            return view('rfm.analysis.distributions', [
+                'activeConnection' => (object) ['tenant_id' => 'unknown', 'org_name' => 'Error Loading Data'],
+                'rfmData' => collect(),
+            ]);
         }
     }
 

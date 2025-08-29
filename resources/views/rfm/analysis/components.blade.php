@@ -55,10 +55,7 @@
                            class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                             Churn & Retention
                         </a>
-                        <a href="{{ route('rfm.analysis.business') }}" 
-                           class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Business Analytics
-                        </a>
+
                         <span class="py-4 px-1 border-b-2 border-purple-500 font-medium text-sm text-purple-600 dark:text-purple-400">
                             RFM Components
                         </span>
