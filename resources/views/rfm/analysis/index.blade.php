@@ -58,6 +58,10 @@
                                 class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                             Customer Segmentation
                         </button>
+                        <button onclick="showTab('customer-value-distribution')" id="tab-customer-value-distribution" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Customer Value Distribution
+                        </button>
 
 
 
@@ -1346,6 +1350,191 @@
                     </div>
                 </div>
 
+                <!-- Customer Value Distribution Tab -->
+                <div id="tab-content-customer-value-distribution" class="tab-content" style="display: none;">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Value Distribution Analysis</h3>
+                            </div>
+                            <div class="flex space-x-4">
+                                <!-- Value Distribution Method -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Method:</label>
+                                    <select id="valueDistributionMethod" onchange="updateValueDistribution()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="rfm-score">RFM Score</option>
+                                        <option value="monetary-value">Monetary Value</option>
+                                        <option value="frequency">Purchase Frequency</option>
+                                        <option value="recency">Recency</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Distribution Type -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Type:</label>
+                                    <select id="valueDistributionType" onchange="updateValueDistribution()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="histogram">Histogram</option>
+                                        <option value="boxplot">Box Plot</option>
+                                        <option value="percentile">Percentile</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Time Period -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Period:</label>
+                                    <select id="valueDistributionPeriod" onchange="updateValueDistribution()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="3m">3 Months</option>
+                                        <option value="6m" selected>6 Months</option>
+                                        <option value="12m">12 Months</option>
+                                        <option value="all">All Time</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart and Stats Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Main Value Distribution Chart -->
+                            <div class="lg:col-span-2">
+                                <div class="chart-container" style="height: 400px; position: relative;">
+                                    <canvas id="customerValueDistributionChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Value Distribution Statistics -->
+                            <div class="space-y-4">
+                                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Mean Value</h4>
+                                    <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="meanValue">-</div>
+                                    <p class="text-sm text-emerald-700 dark:text-emerald-300">Average customer value</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-blue-800 dark:text-blue-200 mb-2">Median Value</h4>
+                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="medianValue">-</div>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">Middle value</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-purple-800 dark:text-purple-200 mb-2">Top 20%</h4>
+                                    <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="top20Percent">-</div>
+                                    <p class="text-sm text-purple-700 dark:text-purple-300">High-value customers</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-orange-800 dark:text-orange-200 mb-2">Value Range</h4>
+                                    <div class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="valueRange">-</div>
+                                    <p class="text-sm text-orange-700 dark:text-orange-300">Min to max</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Value Distribution Analysis -->
+                        <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Value Distribution Analysis</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Distribution Shape:</span>
+                                        <span class="font-semibold text-emerald-600 dark:text-emerald-400" id="distributionShape">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Skewness:</span>
+                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="distributionSkewness">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Standard Deviation:</span>
+                                        <span class="font-semibold text-purple-600 dark:text-purple-400" id="standardDeviation">-</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Outliers:</span>
+                                        <span class="font-semibold text-orange-600 dark:text-orange-400" id="outlierCount">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Gini Coefficient:</span>
+                                        <span class="font-semibold text-red-600 dark:text-red-400" id="giniCoefficient">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Value Concentration:</span>
+                                        <span class="font-semibold text-indigo-600 dark:text-indigo-400" id="valueConcentration">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Actions Panel -->
+                        <div class="mt-6 bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                                Quick Actions
+                            </h4>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <button onclick="exportChartData()" class="flex flex-col items-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:shadow-md transition-all duration-200">
+                                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Export Data</span>
+                                </button>
+                                
+                                <button onclick="resetChartView()" class="flex flex-col items-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-700 hover:shadow-md transition-all duration-200">
+                                    <svg class="w-6 h-6 text-green-600 dark:text-green-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-green-700 dark:text-green-300">Reset View</span>
+                                </button>
+                                
+                                <button onclick="toggleFullscreen()" class="flex flex-col items-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-700 hover:shadow-md transition-all duration-200">
+                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-purple-700 dark:text-purple-300">Fullscreen</span>
+                                </button>
+                                
+                                <button onclick="shareAnalysis()" class="flex flex-col items-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-700 hover:shadow-md transition-all duration-200">
+                                    <svg class="w-6 h-6 text-orange-600 dark:text-orange-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-orange-700 dark:text-orange-300">Share</span>
+                                </button>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    <strong>Tip:</strong> Use these quick actions to enhance your analysis workflow. Export data for external analysis, reset to default view, or share insights with your team.
+                                </p>
+                            </div>
+                        </div>
+
+
+                        <!-- Value Distribution Insights -->
+                        <div class="mt-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+                            <h4 class="text-md font-semibold text-amber-800 dark:text-amber-200 mb-3">Key Insights</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="valueInsight1">Analyzing customer value distribution patterns...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="valueInsight2">Identifying value concentration and inequality measures...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
 
             </div>
@@ -1398,6 +1587,12 @@
          let segmentationMethod = 'rfm-score';
          let segmentationTimePeriod = '6m';
          let segmentationChartType = 'doughnut';
+         
+         // Customer Value Distribution chart variables
+         let customerValueDistributionChart = null;
+         let valueDistributionMethod = 'rfm-score';
+         let valueDistributionType = 'histogram';
+         let valueDistributionPeriod = '6m';
          
 
          
@@ -1847,6 +2042,9 @@
                 case 'customer-segmentation':
                     initializeCustomerSegmentationChart();
                     break;
+                case 'customer-value-distribution':
+                    initializeCustomerValueDistributionChart();
+                    break;
 
 
 
@@ -1955,6 +2153,20 @@
              }
              
              updateCustomerSegmentationChart();
+         }
+         
+         // Initialize Customer Value Distribution Chart
+         function initializeCustomerValueDistributionChart() {
+             if (allDates.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('customerValueDistributionChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
+                 return;
+             }
+             
+             updateCustomerValueDistributionChart();
          }
          
 
@@ -3870,7 +4082,559 @@
             if (customerSegmentationChart) {
                 updateCustomerSegmentationChart();
             }
-                 }
+        }
+        
+        // Update Customer Value Distribution Chart
+        function updateCustomerValueDistributionChart() {
+            // Process RFM data
+            const rfmData = @json($hasData ? $rfmData : []);
+            
+            if (rfmData.length === 0) {
+                // Show no data message
+                const ctx = document.getElementById('customerValueDistributionChart');
+                ctx.style.display = 'none';
+                const container = ctx.parentElement;
+                container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+                return;
+            }
+            
+            // Calculate time period
+            const monthsBack = valueDistributionPeriod === 'all' ? 999 : parseInt(valueDistributionPeriod.replace('m', ''));
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+            
+            // Group data by customer and calculate values
+            const customerData = {};
+            
+            rfmData.forEach(record => {
+                const clientId = record.client_id;
+                const recordDate = new Date(record.date);
+                
+                if (recordDate < cutoffDate) return; // Skip old data
+                
+                if (!customerData[clientId]) {
+                    customerData[clientId] = {
+                        name: record.client_name,
+                        values: [],
+                        avgValue: 0
+                    };
+                }
+                
+                let value = 0;
+                switch(valueDistributionMethod) {
+                    case 'rfm-score':
+                        value = parseFloat(record.rfm_score) || 0;
+                        break;
+                    case 'monetary-value':
+                        value = parseFloat(record.m_score) || 0;
+                        break;
+                    case 'frequency':
+                        value = parseFloat(record.f_score) || 0;
+                        break;
+                    case 'recency':
+                        value = parseFloat(record.r_score) || 0;
+                        break;
+                }
+                
+                customerData[clientId].values.push(value);
+            });
+            
+            // Calculate average values for each customer
+            Object.values(customerData).forEach(customer => {
+                customer.avgValue = customer.values.reduce((sum, v) => sum + v, 0) / customer.values.length;
+            });
+            
+            // Create distribution data
+            const values = Object.values(customerData).map(c => c.avgValue).filter(v => v > 0);
+            
+            if (values.length === 0) {
+                // Show no data message
+                const ctx = document.getElementById('customerValueDistributionChart');
+                ctx.style.display = 'none';
+                const container = ctx.parentElement;
+                container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No valid data available</div>';
+                return;
+            }
+            
+            // Calculate statistics
+            const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+            const sortedValues = values.sort((a, b) => a - b);
+            const median = sortedValues[Math.floor(sortedValues.length / 2)];
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = max - min;
+            
+            // Calculate percentiles
+            const top20Index = Math.floor(values.length * 0.8);
+            const top20Value = sortedValues[top20Index];
+            
+            // Calculate standard deviation
+            const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+            const stdDev = Math.sqrt(variance);
+            
+            // Calculate skewness
+            const skewness = values.reduce((sum, v) => sum + Math.pow((v - mean) / stdDev, 3), 0) / values.length;
+            
+            // Detect outliers (using IQR method)
+            const q1Index = Math.floor(values.length * 0.25);
+            const q3Index = Math.floor(values.length * 0.75);
+            const q1 = sortedValues[q1Index];
+            const q3 = sortedValues[q3Index];
+            const iqr = q3 - q1;
+            const lowerBound = q1 - 1.5 * iqr;
+            const upperBound = q3 + 1.5 * iqr;
+            const outliers = values.filter(v => v < lowerBound || v > upperBound);
+            
+            // Calculate Gini coefficient
+            const giniCoefficient = calculateGiniCoefficient(values);
+            
+            // Create chart data based on type
+            let chartData = {};
+            let chartType = 'bar';
+            
+            switch(valueDistributionType) {
+                case 'histogram':
+                    chartData = createHistogramData(values, 10);
+                    chartType = 'bar';
+                    break;
+                case 'boxplot':
+                    chartData = createBoxPlotData(values);
+                    chartType = 'bar';
+                    break;
+                case 'percentile':
+                    chartData = createPercentileData(values);
+                    chartType = 'line';
+                    break;
+            }
+            
+            // Create or update chart
+            const ctx = document.getElementById('customerValueDistributionChart');
+            ctx.style.display = 'block';
+            
+            if (customerValueDistributionChart) {
+                customerValueDistributionChart.destroy();
+            }
+            
+            customerValueDistributionChart = new Chart(ctx, {
+                type: chartType,
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: getChartTitle(),
+                            color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
+                        legend: {
+                            display: chartType === 'bar' && valueDistributionType === 'boxplot',
+                            position: 'top',
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                padding: 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
+                            titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                            bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                            borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y || context.parsed;
+                                    const methodLabel = getMethodLabel();
+                                    
+                                    if (valueDistributionType === 'histogram') {
+                                        return `${context.parsed} customers in this range`;
+                                    } else if (valueDistributionType === 'boxplot') {
+                                        return `${label}: ${value.toFixed(2)}`;
+                                    } else {
+                                        return `${methodLabel}: ${value.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: getYAxisLabel(),
+                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: {
+                                    top: 10,
+                                    bottom: 10
+                                }
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB',
+                                drawBorder: false,
+                                lineWidth: 0.5
+                            },
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 12
+                                },
+                                padding: 8,
+                                callback: function(value, index, values) {
+                                    if (valueDistributionType === 'histogram') {
+                                        return value + ' customers';
+                                    }
+                                    return value;
+                                }
+                            },
+                            border: {
+                                color: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                width: 1
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: getXAxisLabel(),
+                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: {
+                                    top: 10,
+                                    bottom: 10
+                                }
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB',
+                                drawBorder: false,
+                                lineWidth: 0.5
+                            },
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                font: {
+                                    size: 11
+                                },
+                                padding: 8,
+                                maxRotation: 45,
+                                minRotation: 0,
+                                callback: function(value, index, values) {
+                                    if (valueDistributionType === 'histogram') {
+                                        // Shorten long labels
+                                        const label = this.getLabelForValue(value);
+                                        if (label.length > 8) {
+                                            return label.split('-')[0] + '-';
+                                        }
+                                        return label;
+                                    }
+                                    return value;
+                                }
+                            },
+                            border: {
+                                color: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                width: 1
+                            }
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: 4,
+                            borderSkipped: false
+                        },
+                        point: {
+                            radius: 4,
+                            hoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        line: {
+                            tension: 0.2
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    animation: {
+                        duration: 750,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+            
+            // Update statistics
+            document.getElementById('meanValue').textContent = mean.toFixed(2);
+            document.getElementById('medianValue').textContent = median.toFixed(2);
+            document.getElementById('top20Percent').textContent = top20Value.toFixed(2);
+            document.getElementById('valueRange').textContent = `${min.toFixed(2)} - ${max.toFixed(2)}`;
+            
+            document.getElementById('distributionShape').textContent = Math.abs(skewness) < 0.5 ? 'Normal' : skewness > 0 ? 'Right-skewed' : 'Left-skewed';
+            document.getElementById('distributionSkewness').textContent = skewness.toFixed(3);
+            document.getElementById('standardDeviation').textContent = stdDev.toFixed(2);
+            document.getElementById('outlierCount').textContent = outliers.length;
+            document.getElementById('giniCoefficient').textContent = giniCoefficient.toFixed(3);
+            document.getElementById('valueConcentration').textContent = ((top20Value / mean) * 100).toFixed(1) + '%';
+            
+            // Update insights
+            const methodLabel = valueDistributionMethod.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            document.getElementById('valueInsight1').textContent = `Analyzed ${values.length} customers using ${methodLabel} distribution`;
+            document.getElementById('valueInsight2').textContent = `Found ${outliers.length} outliers and ${giniCoefficient.toFixed(3)} Gini coefficient indicating value concentration`;
+            document.getElementById('valueInsight3').textContent = `Distribution is ${Math.abs(skewness) < 0.5 ? 'relatively normal' : skewness > 0 ? 'right-skewed' : 'left-skewed'} with ${stdDev.toFixed(2)} standard deviation`;
+        }
+        
+
+        
+        // Helper functions for value distribution
+        function createHistogramData(values, bins = 10) {
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const binSize = (max - min) / bins;
+            
+            const histogram = new Array(bins).fill(0);
+            const labels = [];
+            
+            for (let i = 0; i < bins; i++) {
+                const binStart = min + i * binSize;
+                const binEnd = min + (i + 1) * binSize;
+                
+                // Create more readable labels
+                let label;
+                if (binSize <= 1) {
+                    label = `${binStart.toFixed(1)}-${binEnd.toFixed(1)}`;
+                } else if (binSize <= 2) {
+                    label = `${binStart.toFixed(1)}-${binEnd.toFixed(1)}`;
+                } else {
+                    label = `${Math.round(binStart)}-${Math.round(binEnd)}`;
+                }
+                
+                labels.push(label);
+                
+                values.forEach(value => {
+                    if (value >= binStart && value < binEnd) {
+                        histogram[i]++;
+                    }
+                });
+            }
+            
+            // Create gradient colors based on value
+            const colors = histogram.map(count => {
+                const maxCount = Math.max(...histogram);
+                const intensity = count / maxCount;
+                return `rgba(59, 130, 246, ${0.3 + intensity * 0.4})`;
+            });
+            
+            const borderColors = histogram.map(count => {
+                const maxCount = Math.max(...histogram);
+                const intensity = count / maxCount;
+                return `rgba(59, 130, 246, ${0.6 + intensity * 0.4})`;
+            });
+            
+            return {
+                labels: labels,
+                datasets: [{
+                    label: 'Customer Count',
+                    data: histogram,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 2,
+                    borderRadius: 4,
+                    borderSkipped: false
+                }]
+            };
+        }
+        
+        function createBoxPlotData(values) {
+            const sorted = values.sort((a, b) => a - b);
+            const q1Index = Math.floor(values.length * 0.25);
+            const q3Index = Math.floor(values.length * 0.75);
+            const medianIndex = Math.floor(values.length * 0.5);
+            
+            const min = sorted[0];
+            const q1 = sorted[q1Index];
+            const median = sorted[medianIndex];
+            const q3 = sorted[q3Index];
+            const max = sorted[sorted.length - 1];
+            
+            return {
+                labels: ['Value Distribution'],
+                datasets: [{
+                    label: 'Min',
+                    data: [min],
+                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                    borderColor: 'rgba(34, 197, 94, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }, {
+                    label: 'Q1 (25th Percentile)',
+                    data: [q1],
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }, {
+                    label: 'Median (50th Percentile)',
+                    data: [median],
+                    backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }, {
+                    label: 'Q3 (75th Percentile)',
+                    data: [q3],
+                    backgroundColor: 'rgba(236, 72, 153, 0.8)',
+                    borderColor: 'rgba(236, 72, 153, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }, {
+                    label: 'Max',
+                    data: [max],
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6
+                }]
+            };
+        }
+        
+        function createPercentileData(values) {
+            const sorted = values.sort((a, b) => a - b);
+            const percentiles = [10, 25, 50, 75, 90, 95, 99];
+            const labels = percentiles.map(p => `${p}th`);
+            const data = percentiles.map(p => {
+                const index = Math.floor((p / 100) * sorted.length);
+                return sorted[index];
+            });
+            
+            return {
+                labels: labels,
+                datasets: [{
+                    label: 'Percentile Value',
+                    data: data,
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    pointBorderColor: '#FFFFFF',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            };
+        }
+        
+        function calculateGiniCoefficient(values) {
+            const sorted = values.sort((a, b) => a - b);
+            const n = sorted.length;
+            let sum = 0;
+            
+            for (let i = 0; i < n; i++) {
+                sum += (2 * (i + 1) - n - 1) * sorted[i];
+            }
+            
+            return sum / (n * n * (sorted.reduce((a, b) => a + b, 0) / n));
+        }
+        
+        // Helper functions for chart labels and titles
+        function getChartTitle() {
+            const methodLabel = getMethodLabel();
+            const typeLabel = getTypeLabel();
+            const periodLabel = getPeriodLabel();
+            return `${methodLabel} Distribution - ${typeLabel} (${periodLabel})`;
+        }
+        
+        function getMethodLabel() {
+            switch(valueDistributionMethod) {
+                case 'rfm-score': return 'RFM Score';
+                case 'monetary-value': return 'Monetary Value';
+                case 'frequency': return 'Purchase Frequency';
+                case 'recency': return 'Recency Score';
+                default: return 'Value';
+            }
+        }
+        
+        function getTypeLabel() {
+            switch(valueDistributionType) {
+                case 'histogram': return 'Histogram';
+                case 'boxplot': return 'Box Plot';
+                case 'percentile': return 'Percentile Analysis';
+                default: return 'Distribution';
+            }
+        }
+        
+        function getPeriodLabel() {
+            switch(valueDistributionPeriod) {
+                case '3m': return 'Last 3 Months';
+                case '6m': return 'Last 6 Months';
+                case '12m': return 'Last 12 Months';
+                case 'all': return 'All Time';
+                default: return 'Recent';
+            }
+        }
+        
+        function getXAxisLabel() {
+            switch(valueDistributionMethod) {
+                case 'rfm-score': return 'RFM Score Range';
+                case 'monetary-value': return 'Monetary Value Range';
+                case 'frequency': return 'Purchase Frequency Range';
+                case 'recency': return 'Recency Score Range';
+                default: return 'Value Range';
+            }
+        }
+        
+        function getYAxisLabel() {
+            switch(valueDistributionType) {
+                case 'histogram': return 'Number of Customers';
+                case 'boxplot': return 'Value';
+                case 'percentile': return 'Value';
+                default: return 'Count';
+            }
+        }
+        
+        // Control functions for Customer Value Distribution
+        function updateValueDistribution() {
+            const methodSelect = document.getElementById('valueDistributionMethod');
+            const typeSelect = document.getElementById('valueDistributionType');
+            const periodSelect = document.getElementById('valueDistributionPeriod');
+            
+            valueDistributionMethod = methodSelect.value;
+            valueDistributionType = typeSelect.value;
+            valueDistributionPeriod = periodSelect.value;
+            
+            if (customerValueDistributionChart) {
+                updateCustomerValueDistributionChart();
+            }
+        }
          
 
 
@@ -4212,6 +4976,140 @@
                 localStorage.removeItem('rfm_tour_completed');
                 window.onboardingTour.startTour();
             }
+        }
+        
+        // Quick Actions Functions for Customer Value Distribution
+        function exportChartData() {
+            if (!customerValueDistributionChart) {
+                alert('No chart data available to export');
+                return;
+            }
+            
+            const chartData = customerValueDistributionChart.data;
+            const method = valueDistributionMethod;
+            const type = valueDistributionType;
+            const period = valueDistributionPeriod;
+            
+            const exportData = {
+                chartType: 'Customer Value Distribution',
+                method: method,
+                type: type,
+                period: period,
+                datasets: chartData.datasets,
+                labels: chartData.labels,
+                timestamp: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `customer-value-distribution-${method}-${type}-${period}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            // Show success notification
+            showNotification('Data exported successfully!', 'success');
+        }
+        
+        function resetChartView() {
+            // Reset to default values
+            valueDistributionMethod = 'rfm-score';
+            valueDistributionType = 'histogram';
+            valueDistributionPeriod = '6m';
+            
+            // Update selectors
+            document.getElementById('valueDistributionMethod').value = valueDistributionMethod;
+            document.getElementById('valueDistributionType').value = valueDistributionType;
+            document.getElementById('valueDistributionPeriod').value = valueDistributionPeriod;
+            
+            // Update chart
+            updateCustomerValueDistributionChart();
+            
+            showNotification('Chart view reset to defaults', 'info');
+        }
+        
+        function toggleFullscreen() {
+            const chartContainer = document.querySelector('#tab-content-customer-value-distribution .chart-container');
+            if (!chartContainer) return;
+            
+            if (!document.fullscreenElement) {
+                chartContainer.requestFullscreen().then(() => {
+                    showNotification('Entered fullscreen mode', 'info');
+                }).catch(err => {
+                    showNotification('Fullscreen not supported', 'error');
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    showNotification('Exited fullscreen mode', 'info');
+                });
+            }
+        }
+        
+        function shareAnalysis() {
+            const method = valueDistributionMethod;
+            const type = valueDistributionType;
+            const period = valueDistributionPeriod;
+            
+            const shareText = `Customer Value Distribution Analysis\nMethod: ${method}\nType: ${type}\nPeriod: ${period}\n\nView the full analysis at: ${window.location.href}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Customer Value Distribution Analysis',
+                    text: shareText,
+                    url: window.location.href
+                }).then(() => {
+                    showNotification('Analysis shared successfully!', 'success');
+                }).catch(err => {
+                    showNotification('Share cancelled', 'info');
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showNotification('Analysis link copied to clipboard!', 'success');
+                }).catch(err => {
+                    showNotification('Failed to copy to clipboard', 'error');
+                });
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500',
+                warning: 'bg-yellow-500'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
         }
     </script>
 </x-app-layout>
