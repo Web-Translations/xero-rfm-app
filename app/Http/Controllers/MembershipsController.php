@@ -51,6 +51,7 @@ class MembershipsController extends Controller
         ]);
     }
 
+
     /**
      * Subscribe to a plan
      */
@@ -110,6 +111,12 @@ class MembershipsController extends Controller
                     return redirect()->route('memberships.index')
                         ->with('error', 'Could not identify user for subscription. Please log in and try again.');
                 }
+                // Prevent duplicate completion for the same redirect flow
+                $lastCompleted = (string) session('gc_last_completed_flow_id');
+                if (!empty($lastCompleted) && $lastCompleted === ($result['redirect_flow_id'] ?? '')) {
+                    return redirect()->route('memberships.index')
+                        ->with('status', 'Payment successful! Your subscription is now active.');
+                }
                 // Create subscription using the mandate
                 $subscriptionResult = $this->goCardlessService->createSubscription(
                     $user, 
@@ -118,6 +125,7 @@ class MembershipsController extends Controller
                 );
                 
                 // Clear temp session state
+                session()->put('gc_last_completed_flow_id', $result['redirect_flow_id'] ?? null);
                 session()->forget(['gc_session_token', 'gc_plan_id']);
 
                 if ($subscriptionResult['success']) {
@@ -150,6 +158,8 @@ class MembershipsController extends Controller
             $result = $this->goCardlessService->cancelSubscription($user);
             
             if ($result['success']) {
+                // Clear stored subscription id when cancelled in-app
+                $user->update(['gocardless_subscription_id' => null]);
                 return redirect()->route('memberships.index')
                     ->with('status', 'Subscription cancelled successfully.');
             } else {
@@ -193,6 +203,19 @@ class MembershipsController extends Controller
         $planId = $request->input('plan');
 
         try {
+            // If a stored mandate exists and the user confirmed or selected the option, skip redirect and create the subscription immediately
+            $useExisting = !empty($user->gocardless_mandate_id) && (
+                $request->boolean('confirm_use_mandate') || $request->input('use_mandate_option') === 'existing'
+            );
+            if ($useExisting) {
+                $subscriptionResult = $this->goCardlessService->createSubscription($user, $planId, $user->gocardless_mandate_id);
+                if ($subscriptionResult['success']) {
+                    return redirect()->route('memberships.index')
+                        ->with('status', 'Subscription created using your saved Direct Debit mandate.');
+                }
+                // If creation fails, fall back to full flow below
+            }
+
             // Create customer with the form data
             $customerData = $request->getCustomerData();
             

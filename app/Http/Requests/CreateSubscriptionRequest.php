@@ -33,6 +33,8 @@ class CreateSubscriptionRequest extends FormRequest
             'region' => 'nullable|string|max:255',
             'postal_code' => 'required|string|max:10',
             'country_code' => 'required|string|size:2',
+            // When a mandate already exists, we allow using it, but require explicit confirmation
+            'confirm_use_mandate' => 'nullable|boolean',
         ];
     }
 

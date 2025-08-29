@@ -25,6 +25,14 @@
                 </div>
             @endif
 
+            <!-- Begin subscription form wrapper so selector can sit above payment card -->
+            <form id="subscription-form" method="POST" action="{{ route('memberships.process-payment') }}" class="space-y-6">
+                @csrf
+                <input type="hidden" name="plan" value="{{ $planId }}">
+                @if(auth()->user()->gocardless_mandate_id)
+                    <input type="hidden" id="confirm_use_mandate" name="confirm_use_mandate" value="0">
+                @endif
+
             <!-- Payment Summary -->
             <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
                 <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
@@ -57,7 +65,41 @@
                                 <span class="font-medium ml-2">{{ $plan['currency'] }}</span>
                             </div>
                         </div>
+                        <div class="mt-4 flex items-start">
+                            <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">
+                                Payments are collected securely by Direct Debit through GoCardless. If you use your existing mandate, we’ll start the subscription immediately without leaving this page. If you choose a different bank account, you’ll be redirected to GoCardless to set it up.
+                            </p>
+                        </div>
                     </div>
+
+                    @if(auth()->user()->gocardless_mandate_id)
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+                        <h3 class="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-100">How would you like to set up this subscription?</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="cursor-pointer block rounded-lg border border-blue-200 dark:border-blue-800 p-4 hover:bg-blue-100/50 dark:hover:bg-blue-900/30" id="option-existing">
+                                <div class="flex items-start">
+                                    <input type="radio" name="use_mandate_option" value="existing" class="mt-1 text-blue-600" aria-describedby="existing-desc">
+                                    <div class="ml-3">
+                                        <div class="font-semibold text-blue-900 dark:text-blue-100">Use existing Direct Debit mandate</div>
+                                        <div id="existing-desc" class="text-sm text-blue-800 dark:text-blue-200">Fastest option. No bank details needed. We will use your saved mandate.</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-100/50 dark:hover:bg-gray-800/30" id="option-new">
+                                <div class="flex items-start">
+                                    <input type="radio" name="use_mandate_option" value="new" class="mt-1 text-blue-600" aria-describedby="new-desc">
+                                    <div class="ml-3">
+                                        <div class="font-semibold">Set up with a different bank account</div>
+                                        <div id="new-desc" class="text-sm text-gray-600 dark:text-gray-300">You’ll be redirected to GoCardless to enter details again.</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- GoCardless Integration -->
                     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
@@ -65,14 +107,10 @@
                         <p class="text-blue-800 dark:text-blue-200 mb-4">
                             We use GoCardless for secure, reliable payment processing. Your payment will be taken via Direct Debit.
                         </p>
-                        
-                        <!-- Customer Information Form -->
-                        <form id="subscription-form" method="POST" action="{{ route('memberships.process-payment') }}" class="mt-6 space-y-6">
-                            @csrf
-                            <input type="hidden" name="plan" value="{{ $planId }}">
-                            
+
+                        <!-- Customer Information / Confirmation -->
                             <!-- Personal Information -->
-                            <div class="space-y-4">
+                            <div class="space-y-4" id="customer-fields">
                                 <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">Personal Information</h4>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,34 +230,9 @@
                             </div>
                             
                                                     <!-- Payment Information -->
-                        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                            <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Payment Method</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                Your payment will be processed securely via Direct Debit through GoCardless. 
-                                After submitting this form, you'll be redirected to GoCardless to complete your bank account setup.
-                            </p>
-                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                </svg>
-                                Secure Direct Debit payment processing
-                            </div>
-                        </div>
+                        
 
-                        <!-- Development Notice -->
-                        @if(config('app.env') === 'local')
-                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="text-sm text-yellow-800 dark:text-yellow-200">
-                                    <strong>Development Mode:</strong> GoCardless credentials are required for full payment processing. 
-                                    Currently, this will create a customer record and simulate the payment flow.
-                                </span>
-                            </div>
-                        </div>
-                        @endif
+                        
                         </form>
 
                         <!-- Terms and Conditions -->
@@ -244,11 +257,41 @@
                         
                         <button type="submit" form="subscription-form"
                                     class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Continue to Payment Setup
+                            Continue to Payment
                             </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+        </form>
+@push('scripts')
+<script>
+    (function() {
+        const existingOption = document.querySelector('#option-existing input[name="use_mandate_option"]');
+        const newOption = document.querySelector('#option-new input[name="use_mandate_option"]');
+        const confirmField = document.getElementById('confirm_use_mandate');
+        const customerFields = document.getElementById('customer-fields');
+
+        function updateMode() {
+            if (existingOption && existingOption.checked) {
+                if (confirmField) confirmField.value = '1';
+                if (customerFields) customerFields.classList.add('hidden');
+            } else {
+                if (confirmField) confirmField.value = '0';
+                if (customerFields) customerFields.classList.remove('hidden');
+            }
+        }
+
+        if (existingOption) existingOption.addEventListener('change', updateMode);
+        if (newOption) newOption.addEventListener('change', updateMode);
+
+        // Default: require a choice when a mandate exists
+        if (existingOption) {
+            existingOption.checked = true;
+            updateMode();
+        }
+    })();
+</script>
+@endpush
 </x-app-layout>
