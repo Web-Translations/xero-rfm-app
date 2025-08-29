@@ -38,39 +38,29 @@
                                 class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                             Overall RFM Breakdown
                         </button>
-                        <button onclick="showTab('customer-value-distribution')" id="tab-customer-value-distribution" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Customer Value Distribution
-                        </button>
                         <button onclick="showTab('rfm-monthly-distribution')" id="tab-rfm-monthly-distribution" 
                                 class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                             RFM Monthly Distribution
-                        </button>
-                        <button onclick="showTab('customer-value-distribution')" id="tab-customer-value-distribution" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Customer Value Distribution
                         </button>
                         <button onclick="showTab('rfm-score-over-time')" id="tab-rfm-score-over-time" 
                                 class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
                             RFM Score Over Time
                         </button>
+                        <button onclick="showTab('customer-retention')" id="tab-customer-retention" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Customer Retention
+                        </button>
+                        <button onclick="showTab('customer-lifetime-value')" id="tab-customer-lifetime-value" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Customer Lifetime Value
+                        </button>
+                        <button onclick="showTab('customer-segmentation')" id="tab-customer-segmentation" 
+                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                            Customer Segmentation
+                        </button>
 
-                        <button onclick="showTab('customer-value')" id="tab-customer-value" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Customer Value
-                        </button>
-                        <button onclick="showTab('segmentation')" id="tab-segmentation" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Segmentation
-                        </button>
-                        <button onclick="showTab('churn-retention')" id="tab-churn-retention" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Churn & Retention
-                        </button>
-                        <a href="{{ route('rfm.analysis.business') }}" 
-                           class="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                            Business Analytics
-                        </a>
+
+
                     </nav>
                 </div>
             </div>
@@ -125,51 +115,231 @@
 
                 <!-- Overview Tab -->
                 <div id="tab-content-overview" class="tab-content">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Summary Cards -->
-                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Data Summary</h3>
-                            <div class="space-y-4">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600 dark:text-gray-400">Total Data Points:</span>
-                                    <span class="font-semibold">{{ $hasData ? $rfmData->count() : 0 }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600 dark:text-gray-400">Unique Clients:</span>
-                                    <span class="font-semibold">{{ $hasData ? $allClients->count() : 0 }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600 dark:text-gray-400">Date Range:</span>
-                                    <span class="font-semibold">{{ $hasData ? $allDates->first() . ' - ' . $allDates->last() : 'No data' }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600 dark:text-gray-400">Average RFM Score:</span>
-                                    <span class="font-semibold">{{ $hasData ? round($rfmData->avg('rfm_score'), 2) : 0 }}</span>
-                                </div>
+                    <!-- Welcome Section -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
                             </div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to RFM Analysis</h3>
+                            <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                                Explore comprehensive customer behavior analysis through advanced RFM metrics and interactive visualizations. 
+                                Navigate between different analysis views using the tabs above.
+                            </p>
                         </div>
-
-                        <!-- Quick Actions -->
-                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-                            <div class="space-y-3">
-                                <button onclick="showTab('client-trends')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">
-                                    View Client RFM Trends
+                        
+                        <!-- Tour Controls -->
+                        <div class="flex flex-wrap justify-center gap-4 mb-6">
+                            <div id="tour-restart-section" class="hidden">
+                                <button onclick="restartTour()" class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg text-sm transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Restart Tour
                                 </button>
-                                <button onclick="showTab('rfm-breakdown')" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors">
-                                    Analyze RFM Breakdown
-                                </button>
-
+                            </div>
+                            
+                            @if(config('app.debug'))
+                            <button onclick="testTour()" class="inline-flex items-center px-4 py-2 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Test Tour (Dev)
+                            </button>
+                            @endif
+                        </div>
+                        
+                        <!-- Feature Overview -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                                <div class="flex items-center mb-2">
+                                    <div class="p-2 bg-blue-500 rounded-lg mr-3">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-blue-900 dark:text-blue-100">Client Trends</h4>
+                                </div>
+                                <p class="text-sm text-blue-700 dark:text-blue-300">Track individual client performance over time with interactive charts</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                                <div class="flex items-center mb-2">
+                                    <div class="p-2 bg-green-500 rounded-lg mr-3">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-green-900 dark:text-green-100">RFM Breakdown</h4>
+                                </div>
+                                <p class="text-sm text-green-700 dark:text-green-300">View aggregated RFM metrics and top performers</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                                <div class="flex items-center mb-2">
+                                    <div class="p-2 bg-purple-500 rounded-lg mr-3">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-purple-900 dark:text-purple-100">Segmentation</h4>
+                                </div>
+                                <p class="text-sm text-purple-700 dark:text-purple-300">Analyze customer segments and behavior patterns</p>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Quick Stats Section -->
+                    @if($hasData)
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
+                                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Clients</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $allClients->count() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg mr-4">
+                                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Data Period</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ \Carbon\Carbon::parse($allDates->first())->format('M Y') }} - {{ \Carbon\Carbon::parse($allDates->last())->format('M Y') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
+                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Avg RFM Score</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($rfmData->avg('rfm_score'), 1) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <div class="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg mr-4">
+                                    <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Data Points</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $rfmData->count() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Getting Started Guide -->
+                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Getting Started Guide
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">1</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Client RFM Trends</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Start by exploring individual client performance over time to identify your best customers.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                        <span class="text-sm font-semibold text-green-600 dark:text-green-400">2</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Overall RFM Breakdown</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Review aggregated metrics to understand your customer base distribution.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                                        <span class="text-sm font-semibold text-purple-600 dark:text-purple-400">3</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Customer Segmentation</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Use segmentation tools to group customers by behavior and value.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                                        <span class="text-sm font-semibold text-orange-600 dark:text-orange-400">4</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Advanced Analysis</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Explore retention, lifetime value, and time-based analysis for deeper insights.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tips & Best Practices -->
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            Tips & Best Practices
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">📊 Focus on High-Value Customers</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Identify customers with high RFM scores and develop targeted retention strategies.</p>
+                            </div>
+                            <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">🔄 Monitor Trends Regularly</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Track changes in customer behavior over time to spot opportunities and risks early.</p>
+                            </div>
+                            <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">🎯 Segment for Personalization</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Use segmentation insights to create personalized marketing campaigns and offers.</p>
+                            </div>
+                            <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4">
+                                <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">📈 Act on Insights</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Convert analysis findings into actionable business strategies and customer initiatives.</p>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
 
                 <!-- Client RFM Trends Tab -->
                 <div id="tab-content-client-trends" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Client RFM Trends</h3>
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Client RFM Trends</h3>
+                            </div>
                             <div class="flex space-x-4">
                                 <!-- Date Range Controls -->
                                 <div class="flex items-center space-x-2">
@@ -287,9 +457,11 @@
                                  <!-- Overall RFM Breakdown Tab -->
                  <div id="tab-content-rfm-breakdown" class="tab-content" style="display: none;">
                      <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                         <div class="flex justify-between items-center mb-6">
-                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Overall RFM Breakdown</h3>
-                             <div class="flex space-x-4">
+                                                   <div class="flex justify-between items-center mb-6">
+                                                          <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Overall RFM Breakdown</h3>
+                            </div>
+                              <div class="flex space-x-4">
                                  <!-- Date Range Controls -->
                                  <div class="flex items-center space-x-2">
                                      <label class="text-sm text-gray-600 dark:text-gray-400">Start Date:</label>
@@ -386,128 +558,15 @@
                      </div>
                  </div>
 
-                <!-- Customer Value Distribution Tab -->
-                <div id="tab-content-customer-value-distribution" class="tab-content" style="display: none;">
-                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Value Distribution</h3>
-                            <div class="flex space-x-4">
-                                <!-- Date Range Controls -->
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-sm text-gray-600 dark:text-gray-400">Start Date:</label>
-                                    <input type="date" id="valueDistStartDate" onchange="updateValueDistDateRange()" 
-                                           class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                           min="{{ $hasData ? $allDates->first() : '' }}" 
-                                           max="{{ $hasData ? $allDates->last() : '' }}"
-                                           value="{{ $hasData ? $allDates->first() : '' }}">
-                                </div>
-                                
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-sm text-gray-600 dark:text-gray-400">End Date:</label>
-                                    <input type="date" id="valueDistEndDate" onchange="updateValueDistDateRange()" 
-                                           class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                           min="{{ $hasData ? $allDates->first() : '' }}" 
-                                           max="{{ $hasData ? $allDates->last() : '' }}"
-                                           value="{{ $hasData ? $allDates->last() : '' }}">
-                                </div>
-                                
-                                <!-- Quick Preset Buttons -->
-                                <div class="flex items-center space-x-1">
-                                    <button onclick="setValueDistDateRange('6m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        6M
-                                    </button>
-                                    <button onclick="setValueDistDateRange('12m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        12M
-                                    </button>
-                                    <button onclick="setValueDistDateRange('24m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        24M
-                                    </button>
-                                    <button onclick="setValueDistDateRange('all')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        All
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Chart and Insights Grid -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <!-- Main Distribution Chart -->
-                            <div class="lg:col-span-2">
-                                <div class="chart-container" style="height: 400px; position: relative;">
-                                    <canvas id="customerValueDistChart"></canvas>
-                                </div>
-                            </div>
-                            
-                            <!-- Value Distribution Insights -->
-                            <div class="space-y-4">
-                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-blue-800 dark:text-blue-200 mb-2">High-Value Customers</h4>
-                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="highValueCount">-</div>
-                                    <p class="text-sm text-blue-700 dark:text-blue-300">RFM Score: 8-10</p>
-                                </div>
-                                
-                                <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-green-800 dark:text-green-200 mb-2">Medium-Value Customers</h4>
-                                    <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="mediumValueCount">-</div>
-                                    <p class="text-sm text-green-700 dark:text-green-300">RFM Score: 5-7</p>
-                                </div>
-                                
-                                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Low-Value Customers</h4>
-                                    <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400" id="lowValueCount">-</div>
-                                    <p class="text-sm text-yellow-700 dark:text-yellow-300">RFM Score: 1-4</p>
-                                </div>
-                                
-                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-purple-800 dark:text-purple-200 mb-2">Total Customers</h4>
-                                    <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="totalCustomers">-</div>
-                                    <p class="text-sm text-purple-700 dark:text-purple-300">Active in period</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Customer Value Insights -->
-                        <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Customer Value Insights</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                <div class="space-y-2">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">High-Value %:</span>
-                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="highValuePercent">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Medium-Value %:</span>
-                                        <span class="font-semibold text-green-600 dark:text-green-400" id="mediumValuePercent">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Low-Value %:</span>
-                                        <span class="font-semibold text-yellow-600 dark:text-yellow-400" id="lowValuePercent">-</span>
-                                    </div>
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Avg RFM Score:</span>
-                                        <span class="font-semibold text-gray-900 dark:text-gray-100" id="avgRfmScore">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Top 20% Value:</span>
-                                        <span class="font-semibold text-purple-600 dark:text-purple-400" id="top20Percent">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Growth Trend:</span>
-                                        <span class="font-semibold text-green-600 dark:text-green-400" id="growthTrend">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                                         </div>
-                 </div>
+
 
                 <!-- RFM Monthly Distribution Tab -->
                 <div id="tab-content-rfm-monthly-distribution" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Score Distribution by Month</h3>
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Score Distribution by Month</h3>
+                            </div>
                             <div class="flex space-x-4">
                                 <!-- Date Range Controls -->
                                 <div class="flex items-center space-x-2">
@@ -641,182 +700,15 @@
                                          </div>
                  </div>
 
-                <!-- Customer Value Distribution Tab -->
-                <div id="tab-content-customer-value-distribution" class="tab-content" style="display: none;">
-                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Revenue Distribution</h3>
-                            <div class="flex space-x-4">
-                                <!-- Date Range Controls -->
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-sm text-gray-600 dark:text-gray-400">Start Date:</label>
-                                    <input type="date" id="valueHistogramStartDate" onchange="updateValueHistogramDateRange()" 
-                                           class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                           min="{{ $hasData ? $allDates->first() : '' }}" 
-                                           max="{{ $hasData ? $allDates->last() : '' }}"
-                                           value="{{ $hasData ? $allDates->first() : '' }}">
-                                </div>
-                                
-                                <div class="flex items-center space-x-2">
-                                    <label class="text-sm text-gray-600 dark:text-gray-400">End Date:</label>
-                                    <input type="date" id="valueHistogramEndDate" onchange="updateValueHistogramDateRange()" 
-                                           class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                           min="{{ $hasData ? $allDates->first() : '' }}" 
-                                           max="{{ $hasData ? $allDates->last() : '' }}"
-                                           value="{{ $hasData ? $allDates->last() : '' }}">
-                                </div>
-                                
-                                <!-- Quick Preset Buttons -->
-                                <div class="flex items-center space-x-1">
-                                    <button onclick="setValueHistogramDateRange('6m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        6M
-                                    </button>
-                                    <button onclick="setValueHistogramDateRange('12m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        12M
-                                    </button>
-                                    <button onclick="setValueHistogramDateRange('24m')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        24M
-                                    </button>
-                                    <button onclick="setValueHistogramDateRange('all')" class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
-                                        All
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Chart and Stats Grid -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <!-- Main Revenue Histogram Chart -->
-                            <div class="lg:col-span-2">
-                                <div class="chart-container" style="height: 400px; position: relative;">
-                                    <canvas id="customerValueDistributionChart"></canvas>
-                                </div>
-                            </div>
-                            
-                            <!-- Revenue Statistics -->
-                            <div class="space-y-4">
-                                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Total Revenue</h4>
-                                    <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="totalRevenue">-</div>
-                                    <p class="text-sm text-emerald-700 dark:text-emerald-300">All customers</p>
-                                </div>
-                                
-                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-blue-800 dark:text-blue-200 mb-2">Top 20% Revenue</h4>
-                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="top20Revenue">-</div>
-                                    <p class="text-sm text-blue-700 dark:text-blue-300">High-value customers</p>
-                                </div>
-                                
-                                <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-orange-800 dark:text-orange-200 mb-2">Avg Customer Value</h4>
-                                    <div class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="avgCustomerValue">-</div>
-                                    <p class="text-sm text-orange-700 dark:text-orange-300">Per customer</p>
-                                </div>
-                                
-                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg">
-                                    <h4 class="text-md font-semibold text-purple-800 dark:text-purple-200 mb-2">Revenue Concentration</h4>
-                                    <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="revenueConcentration">-</div>
-                                    <p class="text-sm text-purple-700 dark:text-purple-300">Top 20% share</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Revenue Analysis -->
-                        <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Revenue Analysis</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                <div class="space-y-2">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Median Revenue:</span>
-                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="medianRevenue">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Revenue Range:</span>
-                                        <span class="font-semibold text-green-600 dark:text-green-400" id="revenueRange">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Top Customer:</span>
-                                        <span class="font-semibold text-yellow-600 dark:text-yellow-400" id="topCustomerRevenue">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Bottom Customer:</span>
-                                        <span class="font-semibold text-purple-600 dark:text-purple-400" id="bottomCustomerRevenue">-</span>
-                                    </div>
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Customers > £1K:</span>
-                                        <span class="font-semibold text-gray-900 dark:text-gray-100" id="customersOver1k">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Customers > £5K:</span>
-                                        <span class="font-semibold text-emerald-600 dark:text-emerald-400" id="customersOver5k">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Customers > £10K:</span>
-                                        <span class="font-semibold text-indigo-600 dark:text-indigo-400" id="customersOver10k">-</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600 dark:text-gray-400">Total Customers:</span>
-                                        <span class="font-semibold text-rose-600 dark:text-rose-400" id="totalCustomersValue">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Revenue Tiers Breakdown -->
-                        <div class="mt-6">
-                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Revenue Tier Breakdown</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                    <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">£10K+ (VIP)</h5>
-                                    <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400" id="tier10kPlus">-</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="tier10kPlusPercent">-</div>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                    <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">£5K-£10K (Premium)</h5>
-                                    <div class="text-lg font-bold text-blue-600 dark:text-blue-400" id="tier5kTo10k">-</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="tier5kTo10kPercent">-</div>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                    <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">£1K-£5K (Regular)</h5>
-                                    <div class="text-lg font-bold text-yellow-600 dark:text-yellow-400" id="tier1kTo5k">-</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="tier1kTo5kPercent">-</div>
-                                </div>
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                    <h5 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">< £1K (Small)</h5>
-                                    <div class="text-lg font-bold text-red-600 dark:text-red-400" id="tierUnder1k">-</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="tierUnder1kPercent">-</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Business Insights -->
-                        <div class="mt-6 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-lg p-4">
-                            <h4 class="text-md font-semibold text-emerald-900 dark:text-emerald-100 mb-3">Business Insights</h4>
-                            <div class="space-y-2 text-sm">
-                                <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="businessInsight1">Analyzing revenue distribution patterns...</span>
-                                </div>
-                                <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="businessInsight2">Identifying high-value customer segments...</span>
-                                </div>
-                                <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="businessInsight3">Calculating revenue concentration metrics...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- RFM Score Over Time Tab -->
                 <div id="tab-content-rfm-score-over-time" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Score Distribution Over Time</h3>
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Score Distribution Over Time</h3>
+                            </div>
                             <div class="flex space-x-4">
                                 <!-- Time Period Controls -->
                                 <div class="flex items-center space-x-2">
@@ -966,35 +858,496 @@
                     </div>
                 </div>
 
-                <!-- Customer Value Tab -->
-                <div id="tab-content-customer-value" class="tab-content" style="display: none;">
+                <!-- Customer Retention Tab -->
+                <div id="tab-content-customer-retention" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Customer Lifetime Value</h3>
-                        <div class="chart-container" style="height: 400px; position: relative;">
-                            <canvas id="customerValueChart"></canvas>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Retention Analysis</h3>
+                            <div class="flex space-x-4">
+                                <!-- Retention Period Controls -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Retention Period:</label>
+                                    <select id="retentionPeriodSelect" onchange="updateRetentionAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="3m">3 Months</option>
+                                        <option value="6m" selected>6 Months</option>
+                                        <option value="12m">12 Months</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Analysis Type -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Analysis:</label>
+                                    <select id="retentionAnalysisType" onchange="updateRetentionAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="score-based">By RFM Score</option>
+                                        <option value="time-based">By Time Period</option>
+                                        <option value="segment-based">By Customer Segment</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart and Stats Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Main Retention Chart -->
+                            <div class="lg:col-span-2">
+                                <div class="chart-container" style="height: 400px; position: relative;">
+                                    <canvas id="customerRetentionChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Retention Statistics -->
+                            <div class="space-y-4">
+                                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Overall Retention</h4>
+                                    <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="overallRetention">-</div>
+                                    <p class="text-sm text-emerald-700 dark:text-emerald-300">Average retention rate</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-blue-800 dark:text-blue-200 mb-2">High-Value Retention</h4>
+                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="highValueRetention">-</div>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">RFM Score 8-10</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-orange-800 dark:text-orange-200 mb-2">At-Risk Customers</h4>
+                                    <div class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="atRiskCustomers">-</div>
+                                    <p class="text-sm text-orange-700 dark:text-orange-300">Low retention risk</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-red-800 dark:text-red-200 mb-2">Churn Rate</h4>
+                                    <div class="text-2xl font-bold text-red-600 dark:text-red-400" id="churnRate">-</div>
+                                    <p class="text-sm text-red-700 dark:text-red-300">Customers lost</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Retention Analysis -->
+                        <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Retention Analysis</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Best Retaining Segment:</span>
+                                        <span class="font-semibold text-emerald-600 dark:text-emerald-400" id="bestRetainingSegment">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Worst Retaining Segment:</span>
+                                        <span class="font-semibold text-red-600 dark:text-red-400" id="worstRetainingSegment">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Retention Trend:</span>
+                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="retentionTrend">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Total Customers:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100" id="totalCustomersRetention">-</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Retained Customers:</span>
+                                        <span class="font-semibold text-green-600 dark:text-green-400" id="retainedCustomers">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Lost Customers:</span>
+                                        <span class="font-semibold text-red-600 dark:text-red-400" id="lostCustomers">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">New Customers:</span>
+                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="newCustomers">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Retention Score:</span>
+                                        <span class="font-semibold text-purple-600 dark:text-purple-400" id="retentionScore">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Retention Breakdown -->
+                        <div class="mt-6">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Retention Breakdown by Segment</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer Segment</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Retention Rate</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customers</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Retained</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lost</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Risk Level</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="retentionBreakdownTable" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        <!-- Table content will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Retention Insights -->
+                        <div class="mt-6 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-lg p-4">
+                            <h4 class="text-md font-semibold text-emerald-900 dark:text-emerald-100 mb-3">Retention Insights</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="retentionInsight1">Analyzing customer retention patterns...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="retentionInsight2">Identifying high-risk customer segments...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="retentionInsight3">Calculating retention improvement opportunities...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Segmentation Tab -->
-                <div id="tab-content-segmentation" class="tab-content" style="display: none;">
+                <!-- Customer Lifetime Value Tab -->
+                <div id="tab-content-customer-lifetime-value" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Customer Segmentation</h3>
-                        <div class="chart-container" style="height: 400px; position: relative;">
-                            <canvas id="segmentationChart"></canvas>
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Lifetime Value Analysis</h3>
+                            </div>
+                            <div class="flex space-x-4">
+                                <!-- CLV Calculation Method -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">CLV Method:</label>
+                                    <select id="clvMethodSelect" onchange="updateClvAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="rfm-based">RFM-Based</option>
+                                        <option value="frequency-based">Frequency-Based</option>
+                                        <option value="monetary-based">Monetary-Based</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Time Horizon -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Time Horizon:</label>
+                                    <select id="clvTimeHorizon" onchange="updateClvAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="1y">1 Year</option>
+                                        <option value="2y" selected>2 Years</option>
+                                        <option value="3y">3 Years</option>
+                                        <option value="5y">5 Years</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Discount Rate -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Discount Rate:</label>
+                                    <select id="clvDiscountRate" onchange="updateClvAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="0.05">5%</option>
+                                        <option value="0.10" selected>10%</option>
+                                        <option value="0.15">15%</option>
+                                        <option value="0.20">20%</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart and Stats Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Main CLV Chart -->
+                            <div class="lg:col-span-2">
+                                <div class="chart-container" style="height: 400px; position: relative;">
+                                    <canvas id="customerLifetimeValueChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- CLV Statistics -->
+                            <div class="space-y-4">
+                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-purple-800 dark:text-purple-200 mb-2">Total CLV</h4>
+                                    <div class="text-2xl font-bold text-purple-600 dark:text-purple-400" id="totalClv">-</div>
+                                    <p class="text-sm text-purple-700 dark:text-purple-300">Predicted revenue</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-emerald-800 dark:text-emerald-200 mb-2">Average CLV</h4>
+                                    <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="averageClv">-</div>
+                                    <p class="text-sm text-emerald-700 dark:text-emerald-300">Per customer</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-blue-800 dark:text-blue-200 mb-2">High-Value Customers</h4>
+                                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="highValueCustomers">-</div>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">CLV > £10,000</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-orange-800 dark:text-orange-200 mb-2">ROI Potential</h4>
+                                    <div class="text-2xl font-bold text-orange-600 dark:text-orange-400" id="roiPotential">-</div>
+                                    <p class="text-sm text-orange-700 dark:text-orange-300">Investment return</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- CLV Analysis -->
+                        <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">CLV Analysis</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Highest CLV Customer:</span>
+                                        <span class="font-semibold text-purple-600 dark:text-purple-400" id="highestClvCustomer">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">CLV Range:</span>
+                                        <span class="font-semibold text-emerald-600 dark:text-emerald-400" id="clvRange">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Growth Rate:</span>
+                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="clvGrowthRate">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Total Customers:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100" id="totalCustomersClv">-</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Premium Customers:</span>
+                                        <span class="font-semibold text-purple-600 dark:text-purple-400" id="premiumCustomers">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Standard Customers:</span>
+                                        <span class="font-semibold text-emerald-600 dark:text-emerald-400" id="standardCustomers">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Low-Value Customers:</span>
+                                        <span class="font-semibold text-orange-600 dark:text-orange-400" id="lowValueCustomers">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">CLV Score:</span>
+                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="clvScore">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- CLV Breakdown -->
+                        <div class="mt-6">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">CLV Breakdown by Segment</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer Segment</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Average CLV</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customers</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Value</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">% of Total</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Priority</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="clvBreakdownTable" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        <!-- Table content will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- CLV Insights -->
+                        <div class="mt-6 bg-gradient-to-r from-purple-50 to-emerald-50 dark:from-purple-900/20 dark:to-emerald-900/20 rounded-lg p-4">
+                            <h4 class="text-md font-semibold text-purple-900 dark:text-purple-100 mb-3">CLV Insights</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="clvInsight2">Identifying high-value customer opportunities...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="clvInsight3">Calculating investment prioritization strategies...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Churn & Retention Tab -->
-                <div id="tab-content-churn-retention" class="tab-content" style="display: none;">
+                <!-- Customer Segmentation Tab -->
+                <div id="tab-content-customer-segmentation" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Churn & Retention Analysis</h3>
-                        <div class="chart-container" style="height: 400px; position: relative;">
-                            <canvas id="churnRetentionChart"></canvas>
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-3">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Customer Segmentation & Behavior Analysis</h3>
+                            </div>
+                            <div class="flex space-x-4">
+                                <!-- Segmentation Method -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Method:</label>
+                                    <select id="segmentationMethodSelect" onchange="updateSegmentationAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="rfm-score">RFM Score</option>
+                                        <option value="behavior-pattern">Behavior Pattern</option>
+                                        <option value="value-tier">Value Tier</option>
+                                        <option value="engagement-level">Engagement Level</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Time Period -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Period:</label>
+                                    <select id="segmentationTimePeriod" onchange="updateSegmentationAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="3m">3 Months</option>
+                                        <option value="6m" selected>6 Months</option>
+                                        <option value="12m">12 Months</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Chart Type -->
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm text-gray-600 dark:text-gray-400">Chart:</label>
+                                    <select id="segmentationChartType" onchange="updateSegmentationAnalysis()" 
+                                            class="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                        <option value="pie">Pie Chart</option>
+                                        <option value="bar">Bar Chart</option>
+                                        <option value="doughnut" selected>Doughnut Chart</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart and Stats Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Main Segmentation Chart -->
+                            <div class="lg:col-span-2">
+                                <div class="chart-container" style="height: 400px; position: relative;">
+                                    <canvas id="customerSegmentationChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Segmentation Statistics -->
+                            <div class="space-y-4">
+                                <div class="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-amber-800 dark:text-amber-200 mb-2">Total Segments</h4>
+                                    <div class="text-2xl font-bold text-amber-600 dark:text-amber-400" id="totalSegments">-</div>
+                                    <p class="text-sm text-amber-700 dark:text-amber-300">Active segments</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-teal-800 dark:text-teal-200 mb-2">Largest Segment</h4>
+                                    <div class="text-2xl font-bold text-teal-600 dark:text-teal-400" id="largestSegment">-</div>
+                                    <p class="text-sm text-teal-700 dark:text-teal-300">By customer count</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-900/20 dark:to-rose-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-rose-800 dark:text-rose-200 mb-2">Highest Value</h4>
+                                    <div class="text-2xl font-bold text-rose-600 dark:text-rose-400" id="highestValueSegment">-</div>
+                                    <p class="text-sm text-rose-700 dark:text-rose-300">By average value</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20 p-4 rounded-lg">
+                                    <h4 class="text-md font-semibold text-violet-800 dark:text-violet-200 mb-2">Segmentation Score</h4>
+                                    <div class="text-2xl font-bold text-violet-600 dark:text-violet-400" id="segmentationScore">-</div>
+                                    <p class="text-sm text-violet-700 dark:text-violet-300">Quality metric</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Segmentation Analysis -->
+                        <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Segmentation Analysis</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Most Active Segment:</span>
+                                        <span class="font-semibold text-amber-600 dark:text-amber-400" id="mostActiveSegment">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Average RFM Score:</span>
+                                        <span class="font-semibold text-teal-600 dark:text-teal-400" id="avgRfmScoreSegmentation">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Segment Diversity:</span>
+                                        <span class="font-semibold text-rose-600 dark:text-rose-400" id="segmentDiversity">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Total Customers:</span>
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100" id="totalCustomersSegmentation">-</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Premium Customers:</span>
+                                        <span class="font-semibold text-violet-600 dark:text-violet-400" id="premiumCustomersSegmentation">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">At-Risk Customers:</span>
+                                        <span class="font-semibold text-orange-600 dark:text-orange-400" id="atRiskCustomersSegmentation">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">New Customers:</span>
+                                        <span class="font-semibold text-blue-600 dark:text-blue-400" id="newCustomersSegmentation">-</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">Loyal Customers:</span>
+                                        <span class="font-semibold text-green-600 dark:text-green-400" id="loyalCustomersSegmentation">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Segment Breakdown -->
+                        <div class="mt-6">
+                            <h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-3">Segment Breakdown</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                                    <thead class="bg-gray-50 dark:bg-gray-700">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Segment</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customers</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">% of Total</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Avg RFM Score</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Avg Value</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="segmentBreakdownTable" class="divide-y divide-gray-200 dark:divide-gray-600">
+                                        <!-- Table content will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Segmentation Insights -->
+                        <div class="mt-6 bg-gradient-to-r from-amber-50 to-violet-50 dark:from-amber-900/20 dark:to-violet-900/20 rounded-lg p-4">
+                            <h4 class="text-md font-semibold text-amber-900 dark:text-amber-100 mb-3">Segmentation Insights</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
+                                    <span class="text-gray-700 dark:text-gray-300" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+
+
             </div>
         </div>
     </div>
@@ -1015,25 +1368,42 @@
          let rfmStartDate = allDates.length > 0 ? allDates[0] : '';
          let rfmEndDate = allDates.length > 0 ? allDates[allDates.length - 1] : '';
          
-         // Customer Value Distribution chart variables
-         let customerValueDistChart = null;
-         let valueDistStartDate = allDates.length > 0 ? allDates[0] : '';
-         let valueDistEndDate = allDates.length > 0 ? allDates[allDates.length - 1] : '';
+
          
          // RFM Monthly Distribution chart variables
          let rfmMonthlyDistChart = null;
          let monthlyDistStartDate = allDates.length > 0 ? allDates[0] : '';
          let monthlyDistEndDate = allDates.length > 0 ? allDates[allDates.length - 1] : '';
          
-         // Customer Value Distribution chart variables
-         let customerValueDistributionChart = null;
-         let valueHistogramStartDate = allDates.length > 0 ? allDates[0] : '';
-         let valueHistogramEndDate = allDates.length > 0 ? allDates[allDates.length - 1] : '';
+
          
          // RFM Score Over Time chart variables
          let rfmScoreOverTimeChart = null;
          let timePeriodType = 'monthly';
          let scoreRangeFilter = 'all';
+         
+         // Customer Retention chart variables
+         let customerRetentionChart = null;
+         let retentionPeriod = '6m';
+         let retentionAnalysisType = 'score-based';
+         
+         // Customer Lifetime Value chart variables
+         let customerLifetimeValueChart = null;
+         let clvMethod = 'rfm-based';
+         let clvTimeHorizon = '2y';
+         let clvDiscountRate = 0.10;
+         
+         // Customer Segmentation chart variables
+         let customerSegmentationChart = null;
+         let segmentationMethod = 'rfm-score';
+         let segmentationTimePeriod = '6m';
+         let segmentationChartType = 'doughnut';
+         
+
+         
+
+         
+
          
 
 
@@ -1063,6 +1433,8 @@
             // Initialize chart for the selected tab
             initializeChart(tabName);
         }
+
+
 
         // Date range control
         function updateDateRange() {
@@ -1459,27 +1831,25 @@
                 case 'rfm-breakdown':
                     initializeRFMBreakdownChart();
                     break;
-                case 'customer-value-distribution':
-                    initializeCustomerValueDistributionChart();
-                    break;
+
                 case 'rfm-monthly-distribution':
                     initializeRfmMonthlyDistributionChart();
-                    break;
-                case 'customer-value-distribution':
-                    initializeCustomerValueDistributionChart();
                     break;
                 case 'rfm-score-over-time':
                     initializeRfmScoreOverTimeChart();
                     break;
-                case 'customer-value':
-                    initializeCustomerValueChart();
+                case 'customer-retention':
+                    initializeCustomerRetentionChart();
                     break;
-                case 'segmentation':
-                    initializeSegmentationChart();
+                case 'customer-lifetime-value':
+                    initializeCustomerLifetimeValueChart();
                     break;
-                case 'churn-retention':
-                    initializeChurnRetentionChart();
+                case 'customer-segmentation':
+                    initializeCustomerSegmentationChart();
                     break;
+
+
+
             }
         }
 
@@ -1513,19 +1883,7 @@
              updateRfmBreakdownChart();
          }
          
-         // Initialize Customer Value Distribution Chart
-         function initializeCustomerValueDistributionChart() {
-             if (allDates.length === 0) {
-                 // Show no data message
-                 const ctx = document.getElementById('customerValueDistChart');
-                 ctx.style.display = 'none';
-                 const container = ctx.parentElement;
-                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
-                 return;
-             }
-             
-             updateCustomerValueDistributionChart();
-         }
+
          
          // Initialize RFM Monthly Distribution Chart
          function initializeRfmMonthlyDistributionChart() {
@@ -1541,19 +1899,7 @@
              updateRfmMonthlyDistributionChart();
          }
          
-         // Initialize Customer Value Distribution Chart
-         function initializeCustomerValueDistributionChart() {
-             if (allDates.length === 0) {
-                 // Show no data message
-                 const ctx = document.getElementById('customerValueDistributionChart');
-                 ctx.style.display = 'none';
-                 const container = ctx.parentElement;
-                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
-                 return;
-             }
-             
-             updateCustomerValueDistributionChart();
-         }
+
          
          // Initialize RFM Score Over Time Chart
          function initializeRfmScoreOverTimeChart() {
@@ -1568,6 +1914,54 @@
              
              updateRfmScoreOverTimeChart();
          }
+         
+         // Initialize Customer Retention Chart
+         function initializeCustomerRetentionChart() {
+             if (allDates.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('customerRetentionChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
+                 return;
+             }
+             
+             updateCustomerRetentionChart();
+         }
+         
+         // Initialize Customer Lifetime Value Chart
+         function initializeCustomerLifetimeValueChart() {
+             if (allDates.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('customerLifetimeValueChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
+                 return;
+             }
+             
+             updateCustomerLifetimeValueChart();
+         }
+         
+         // Initialize Customer Segmentation Chart
+         function initializeCustomerSegmentationChart() {
+             if (allDates.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('customerSegmentationChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No RFM data available</div>';
+                 return;
+             }
+             
+             updateCustomerSegmentationChart();
+         }
+         
+
+         
+
+         
+
          
          // Update RFM Breakdown Chart with filtered data
          function updateRfmBreakdownChart() {
@@ -1735,168 +2129,9 @@
              });
          }
          
-         // Update Customer Value Distribution Chart with filtered data
-         function updateCustomerValueDistributionChart() {
-             const filteredDates = filterDatesByRange(allDates, valueDistStartDate, valueDistEndDate);
-             
-             // Process RFM data for the filtered date range
-             const rfmData = @json($hasData ? $rfmData : []);
-             
-             // Filter data by date range
-             const filteredData = rfmData.filter(record => {
-                 const recordDate = new Date(record.date);
-                 const startDate = new Date(valueDistStartDate);
-                 const endDate = new Date(valueDistEndDate);
-                 return recordDate >= startDate && recordDate <= endDate;
-             });
-             
-             if (filteredData.length === 0) {
-                 // Show no data message
-                 const ctx = document.getElementById('customerValueDistChart');
-                 ctx.style.display = 'none';
-                 const container = ctx.parentElement;
-                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available for selected date range</div>';
-                 return;
-             }
-             
-             // Calculate value distribution
-             const rfmScores = filteredData.map(record => record.rfm_score).filter(score => score > 0);
-             
-             // Define value categories
-             const highValue = rfmScores.filter(score => score >= 8).length;
-             const mediumValue = rfmScores.filter(score => score >= 5 && score < 8).length;
-             const lowValue = rfmScores.filter(score => score >= 1 && score < 5).length;
-             
-             const totalCustomers = rfmScores.length;
-             const avgRfmScore = totalCustomers > 0 ? (rfmScores.reduce((a, b) => a + b, 0) / totalCustomers).toFixed(1) : 0;
-             
-             // Update insights
-             document.getElementById('highValueCount').textContent = highValue;
-             document.getElementById('mediumValueCount').textContent = mediumValue;
-             document.getElementById('lowValueCount').textContent = lowValue;
-             document.getElementById('totalCustomers').textContent = totalCustomers;
-             
-             document.getElementById('highValuePercent').textContent = totalCustomers > 0 ? ((highValue / totalCustomers) * 100).toFixed(1) + '%' : '0%';
-             document.getElementById('mediumValuePercent').textContent = totalCustomers > 0 ? ((mediumValue / totalCustomers) * 100).toFixed(1) + '%' : '0%';
-             document.getElementById('lowValuePercent').textContent = totalCustomers > 0 ? ((lowValue / totalCustomers) * 100).toFixed(1) + '%' : '0%';
-             
-             document.getElementById('avgRfmScore').textContent = avgRfmScore;
-             document.getElementById('top20Percent').textContent = totalCustomers > 0 ? Math.ceil(totalCustomers * 0.2) : 0;
-             
-             // Calculate growth trend (simplified - could be enhanced with historical comparison)
-             const growthTrend = highValue > mediumValue ? 'Positive' : 'Needs Attention';
-             document.getElementById('growthTrend').textContent = growthTrend;
-             
-             // Create chart data
-             const chartData = {
-                 labels: ['High Value (8-10)', 'Medium Value (5-7)', 'Low Value (1-4)'],
-                 datasets: [{
-                     data: [highValue, mediumValue, lowValue],
-                     backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
-                     borderColor: ['#2563EB', '#059669', '#D97706'],
-                     borderWidth: 2
-                 }]
-             };
-             
-             // Update or create chart
-             const ctx = document.getElementById('customerValueDistChart');
-             if (ctx) {
-                 ctx.style.display = 'block';
-                 
-                 if (customerValueDistChart) {
-                     customerValueDistChart.destroy();
-                 }
-                 
-                 customerValueDistChart = new Chart(ctx, {
-                     type: 'doughnut',
-                     data: chartData,
-                     options: {
-                         responsive: true,
-                         maintainAspectRatio: false,
-                         plugins: {
-                             legend: {
-                                 position: 'bottom',
-                                 labels: {
-                                     padding: 20,
-                                     usePointStyle: true,
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 }
-                             },
-                             tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                 borderWidth: 1,
-                                 callbacks: {
-                                     label: function(context) {
-                                         const label = context.label || '';
-                                         const value = context.parsed;
-                                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                         const percentage = ((value / total) * 100).toFixed(1);
-                                         return `${label}: ${value} (${percentage}%)`;
-                                     }
-                                 }
-                             }
-                         }
-                     }
-                 });
-             }
-         }
+
          
-         // Date range functions for Customer Value Distribution
-         function updateValueDistDateRange() {
-             const startInput = document.getElementById('valueDistStartDate');
-             const endInput = document.getElementById('valueDistEndDate');
-             
-             valueDistStartDate = startInput.value;
-             valueDistEndDate = endInput.value;
-             
-             if (customerValueDistChart) {
-                 updateCustomerValueDistributionChart();
-             }
-         }
-         
-         function setValueDistDateRange(preset) {
-             const startInput = document.getElementById('valueDistStartDate');
-             const endInput = document.getElementById('valueDistEndDate');
-             
-             if (allDates.length === 0) return;
-             
-             const lastDate = new Date(allDates[allDates.length - 1]);
-             let startDate = new Date(lastDate);
-             
-             switch(preset) {
-                 case '6m':
-                     startDate.setMonth(startDate.getMonth() - 6);
-                     break;
-                 case '12m':
-                     startDate.setMonth(startDate.getMonth() - 12);
-                     break;
-                 case '24m':
-                     startDate.setMonth(startDate.getMonth() - 24);
-                     break;
-                 case 'all':
-                     startDate = new Date(allDates[0]);
-                     break;
-             }
-             
-             // Ensure start date is not before the earliest available date
-             const earliestDate = new Date(allDates[0]);
-             if (startDate < earliestDate) {
-                 startDate = earliestDate;
-             }
-             
-             startInput.value = startDate.toISOString().split('T')[0];
-             endInput.value = lastDate.toISOString().split('T')[0];
-             
-             valueDistStartDate = startInput.value;
-             valueDistEndDate = endInput.value;
-             
-             if (customerValueDistChart) {
-                 updateCustomerValueDistributionChart();
-             }
-         }
+
          
          // Update RFM Monthly Distribution Chart with filtered data
          function updateRfmMonthlyDistributionChart() {
@@ -2205,289 +2440,7 @@
          }
          
          // Update Customer Value Distribution Chart with filtered data
-         function updateCustomerValueDistributionChart() {
-             const filteredDates = filterDatesByRange(allDates, valueHistogramStartDate, valueHistogramEndDate);
-             
-             // Process RFM data for the filtered date range
-             const rfmData = @json($hasData ? $rfmData : []);
-             
-             // Filter data by date range
-             const filteredData = rfmData.filter(record => {
-                 const recordDate = new Date(record.date);
-                 const startDate = new Date(valueHistogramStartDate);
-                 const endDate = new Date(valueHistogramEndDate);
-                 return recordDate >= startDate && recordDate <= endDate;
-             });
-             
-             if (filteredData.length === 0) {
-                 // Show no data message
-                 const ctx = document.getElementById('customerValueDistributionChart');
-                 ctx.style.display = 'none';
-                 const container = ctx.parentElement;
-                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available for selected date range</div>';
-                 return;
-             }
-             
-             // Get latest data for each customer and calculate revenue
-             const customerData = {};
-             filteredData.forEach(record => {
-                 const clientId = record.client_id;
-                 if (!customerData[clientId] || new Date(record.date) > new Date(customerData[clientId].date)) {
-                     // Calculate estimated revenue based on M score (monetary value)
-                     // M score of 10 = £50,000+, M score of 1 = £0-£100
-                     const mScore = parseFloat(record.m_score) || 0;
-                     let estimatedRevenue = 0;
-                     
-                     if (mScore >= 9) estimatedRevenue = 50000 + (mScore - 9) * 10000; // £50K+
-                     else if (mScore >= 8) estimatedRevenue = 25000 + (mScore - 8) * 25000; // £25K-£50K
-                     else if (mScore >= 7) estimatedRevenue = 10000 + (mScore - 7) * 15000; // £10K-£25K
-                     else if (mScore >= 6) estimatedRevenue = 5000 + (mScore - 6) * 5000; // £5K-£10K
-                     else if (mScore >= 5) estimatedRevenue = 2500 + (mScore - 5) * 2500; // £2.5K-£5K
-                     else if (mScore >= 4) estimatedRevenue = 1000 + (mScore - 4) * 1500; // £1K-£2.5K
-                     else if (mScore >= 3) estimatedRevenue = 500 + (mScore - 3) * 500; // £500-£1K
-                     else if (mScore >= 2) estimatedRevenue = 200 + (mScore - 2) * 300; // £200-£500
-                     else if (mScore >= 1) estimatedRevenue = 50 + (mScore - 1) * 150; // £50-£200
-                     else estimatedRevenue = Math.random() * 50; // £0-£50
-                     
-                     customerData[clientId] = {
-                         revenue: estimatedRevenue,
-                         m_score: mScore,
-                         date: record.date,
-                         client_name: record.client_name
-                     };
-                 }
-             });
-             
-             const allRevenues = Object.values(customerData).map(c => c.revenue).filter(revenue => revenue > 0);
-             
-             if (allRevenues.length === 0) {
-                 // Show no data message
-                 const ctx = document.getElementById('customerValueDistributionChart');
-                 ctx.style.display = 'none';
-                 const container = ctx.parentElement;
-                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No valid revenue data found</div>';
-                 return;
-             }
-             
-             // Create revenue bins for histogram
-             const revenueBins = {
-                 '£0-£500': 0,
-                 '£500-£1K': 0,
-                 '£1K-£2.5K': 0,
-                 '£2.5K-£5K': 0,
-                 '£5K-£10K': 0,
-                 '£10K-£25K': 0,
-                 '£25K-£50K': 0,
-                 '£50K+': 0
-             };
-             
-             allRevenues.forEach(revenue => {
-                 if (revenue < 500) revenueBins['£0-£500']++;
-                 else if (revenue < 1000) revenueBins['£500-£1K']++;
-                 else if (revenue < 2500) revenueBins['£1K-£2.5K']++;
-                 else if (revenue < 5000) revenueBins['£2.5K-£5K']++;
-                 else if (revenue < 10000) revenueBins['£5K-£10K']++;
-                 else if (revenue < 25000) revenueBins['£10K-£25K']++;
-                 else if (revenue < 50000) revenueBins['£25K-£50K']++;
-                 else revenueBins['£50K+']++;
-             });
-             
-             // Calculate statistics
-             const totalRevenue = allRevenues.reduce((a, b) => a + b, 0);
-             const avgRevenue = totalRevenue / allRevenues.length;
-             const sortedRevenues = [...allRevenues].sort((a, b) => a - b);
-             const medianRevenue = sortedRevenues.length % 2 === 0 
-                 ? (sortedRevenues[sortedRevenues.length / 2 - 1] + sortedRevenues[sortedRevenues.length / 2]) / 2
-                 : sortedRevenues[Math.floor(sortedRevenues.length / 2)];
-             
-             const maxRevenue = Math.max(...allRevenues);
-             const minRevenue = Math.min(...allRevenues);
-             const revenueRange = maxRevenue - minRevenue;
-             
-             // Calculate top 20% revenue
-             const top20Count = Math.ceil(allRevenues.length * 0.2);
-             const top20Revenues = sortedRevenues.slice(-top20Count);
-             const top20Revenue = top20Revenues.reduce((a, b) => a + b, 0);
-             const revenueConcentration = (top20Revenue / totalRevenue * 100).toFixed(1);
-             
-             // Update statistics
-             document.getElementById('totalRevenue').textContent = '£' + totalRevenue.toLocaleString();
-             document.getElementById('top20Revenue').textContent = '£' + top20Revenue.toLocaleString();
-             document.getElementById('avgCustomerValue').textContent = '£' + avgRevenue.toLocaleString(undefined, {maximumFractionDigits: 0});
-             document.getElementById('revenueConcentration').textContent = revenueConcentration + '%';
-             
-             document.getElementById('medianRevenue').textContent = '£' + medianRevenue.toLocaleString(undefined, {maximumFractionDigits: 0});
-             document.getElementById('revenueRange').textContent = '£' + revenueRange.toLocaleString(undefined, {maximumFractionDigits: 0});
-             document.getElementById('topCustomerRevenue').textContent = '£' + maxRevenue.toLocaleString(undefined, {maximumFractionDigits: 0});
-             document.getElementById('bottomCustomerRevenue').textContent = '£' + minRevenue.toLocaleString(undefined, {maximumFractionDigits: 0});
-             
-             // Update customer counts by revenue thresholds
-             const customersOver1k = allRevenues.filter(r => r > 1000).length;
-             const customersOver5k = allRevenues.filter(r => r > 5000).length;
-             const customersOver10k = allRevenues.filter(r => r > 10000).length;
-             
-             document.getElementById('customersOver1k').textContent = customersOver1k;
-             document.getElementById('customersOver5k').textContent = customersOver5k;
-             document.getElementById('customersOver10k').textContent = customersOver10k;
-             document.getElementById('totalCustomersValue').textContent = allRevenues.length;
-             
-             // Update revenue tier breakdowns
-             const tier10kPlus = allRevenues.filter(r => r >= 10000).length;
-             const tier5kTo10k = allRevenues.filter(r => r >= 5000 && r < 10000).length;
-             const tier1kTo5k = allRevenues.filter(r => r >= 1000 && r < 5000).length;
-             const tierUnder1k = allRevenues.filter(r => r < 1000).length;
-             
-             document.getElementById('tier10kPlus').textContent = tier10kPlus;
-             document.getElementById('tier5kTo10k').textContent = tier5kTo10k;
-             document.getElementById('tier1kTo5k').textContent = tier1kTo5k;
-             document.getElementById('tierUnder1k').textContent = tierUnder1k;
-             
-             document.getElementById('tier10kPlusPercent').textContent = allRevenues.length > 0 ? ((tier10kPlus / allRevenues.length) * 100).toFixed(1) + '%' : '0%';
-             document.getElementById('tier5kTo10kPercent').textContent = allRevenues.length > 0 ? ((tier5kTo10k / allRevenues.length) * 100).toFixed(1) + '%' : '0%';
-             document.getElementById('tier1kTo5kPercent').textContent = allRevenues.length > 0 ? ((tier1kTo5k / allRevenues.length) * 100).toFixed(1) + '%' : '0%';
-             document.getElementById('tierUnder1kPercent').textContent = allRevenues.length > 0 ? ((tierUnder1k / allRevenues.length) * 100).toFixed(1) + '%' : '0%';
-             
-             // Update insights
-             document.getElementById('businessInsight1').textContent = `Total revenue of £${totalRevenue.toLocaleString()} from ${allRevenues.length} customers`;
-             document.getElementById('businessInsight2').textContent = `Top 20% of customers generate ${revenueConcentration}% of total revenue`;
-             document.getElementById('businessInsight3').textContent = `Average customer value is £${avgRevenue.toLocaleString(undefined, {maximumFractionDigits: 0})} with ${customersOver10k} VIP customers`;
-             
-             // Create histogram chart data
-             const chartData = {
-                 labels: Object.keys(revenueBins),
-                 datasets: [{
-                     label: 'Number of Customers',
-                     data: Object.values(revenueBins),
-                     backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                     borderColor: '#10B981',
-                     borderWidth: 2,
-                     borderRadius: 4,
-                     borderSkipped: false
-                 }]
-             };
-             
-             // Update or create chart
-             const ctx = document.getElementById('customerValueDistributionChart');
-             if (ctx) {
-                 ctx.style.display = 'block';
-                 
-                 if (customerValueDistributionChart) {
-                     customerValueDistributionChart.destroy();
-                 }
-                 
-                 customerValueDistributionChart = new Chart(ctx, {
-                     type: 'bar',
-                     data: chartData,
-                     options: {
-                         responsive: true,
-                         maintainAspectRatio: false,
-                         plugins: {
-                             legend: {
-                                 display: false
-                             },
-                             tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                 borderWidth: 1,
-                                 callbacks: {
-                                     label: function(context) {
-                                         const value = context.parsed.y;
-                                         const total = allRevenues.length;
-                                         const percentage = ((value / total) * 100).toFixed(1);
-                                         return `${value} customers (${percentage}%)`;
-                                     }
-                                 }
-                             }
-                         },
-                         scales: {
-                             y: {
-                                 beginAtZero: true,
-                                 title: {
-                                     display: true,
-                                     text: 'Number of Customers',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                 }
-                             },
-                             x: {
-                                 title: {
-                                     display: true,
-                                     text: 'Revenue Range',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                 }
-                             }
-                         }
-                     }
-                 });
-             }
-         }
-         
-         // Date range functions for Customer Value Distribution
-         function updateValueHistogramDateRange() {
-             const startInput = document.getElementById('valueHistogramStartDate');
-             const endInput = document.getElementById('valueHistogramEndDate');
-             
-             valueHistogramStartDate = startInput.value;
-             valueHistogramEndDate = endInput.value;
-             
-             if (customerValueDistributionChart) {
-                 updateCustomerValueDistributionChart();
-             }
-         }
-         
-         function setValueHistogramDateRange(preset) {
-             const startInput = document.getElementById('valueHistogramStartDate');
-             const endInput = document.getElementById('valueHistogramEndDate');
-             
-             if (allDates.length === 0) return;
-             
-             const lastDate = new Date(allDates[allDates.length - 1]);
-             let startDate = new Date(lastDate);
-             
-             switch(preset) {
-                 case '6m':
-                     startDate.setMonth(startDate.getMonth() - 6);
-                     break;
-                 case '12m':
-                     startDate.setMonth(startDate.getMonth() - 12);
-                     break;
-                 case '24m':
-                     startDate.setMonth(startDate.getMonth() - 24);
-                     break;
-                 case 'all':
-                     startDate = new Date(allDates[0]);
-                     break;
-             }
-             
-             // Ensure start date is not before the earliest available date
-             const earliestDate = new Date(allDates[0]);
-             if (startDate < earliestDate) {
-                 startDate = earliestDate;
-             }
-             
-             startInput.value = startDate.toISOString().split('T')[0];
-             endInput.value = lastDate.toISOString().split('T')[0];
-             
-             valueHistogramStartDate = startInput.value;
-             valueHistogramEndDate = endInput.value;
-             
-             if (customerValueDistributionChart) {
-                 updateCustomerValueDistributionChart();
-             }
-         }
+
          
          // Update RFM Score Over Time Chart
          function updateRfmScoreOverTimeChart() {
@@ -2752,6 +2705,653 @@
                  updateRfmScoreOverTimeChart();
              }
          }
+         
+         // Update Customer Retention Chart
+         function updateCustomerRetentionChart() {
+             // Process RFM data
+             const rfmData = @json($hasData ? $rfmData : []);
+             
+             if (rfmData.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('customerRetentionChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+                 return;
+             }
+             
+             // Calculate retention periods
+             const monthsBack = retentionPeriod === '3m' ? 3 : retentionPeriod === '6m' ? 6 : 12;
+             const cutoffDate = new Date();
+             cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+             
+             // Group data by customer and analyze retention
+             const customerData = {};
+             
+             rfmData.forEach(record => {
+                 const clientId = record.client_id;
+                 const recordDate = new Date(record.date);
+                 
+                 if (!customerData[clientId]) {
+                     customerData[clientId] = {
+                         name: record.client_name,
+                         records: [],
+                         firstSeen: recordDate,
+                         lastSeen: recordDate,
+                         avgRfmScore: 0,
+                         retentionStatus: 'unknown'
+                     };
+                 }
+                 
+                 customerData[clientId].records.push({
+                     date: recordDate,
+                     rfmScore: parseFloat(record.rfm_score) || 0,
+                     rScore: parseFloat(record.r_score) || 0,
+                     fScore: parseFloat(record.f_score) || 0,
+                     mScore: parseFloat(record.m_score) || 0
+                 });
+                 
+                 if (recordDate < customerData[clientId].firstSeen) {
+                     customerData[clientId].firstSeen = recordDate;
+                 }
+                 if (recordDate > customerData[clientId].lastSeen) {
+                     customerData[clientId].lastSeen = recordDate;
+                 }
+             });
+             
+             // Calculate retention metrics for each customer
+             Object.values(customerData).forEach(customer => {
+                 const avgRfmScore = customer.records.reduce((sum, r) => sum + r.rfmScore, 0) / customer.records.length;
+                 customer.avgRfmScore = avgRfmScore;
+                 
+                 // Determine retention status based on recent activity
+                 const daysSinceLastActivity = (new Date() - customer.lastSeen) / (1000 * 60 * 60 * 24);
+                 
+                 if (daysSinceLastActivity <= 30) {
+                     customer.retentionStatus = 'retained';
+                 } else if (daysSinceLastActivity <= 90) {
+                     customer.retentionStatus = 'at-risk';
+                 } else {
+                     customer.retentionStatus = 'lost';
+                 }
+             });
+             
+             // Calculate retention statistics based on analysis type
+             let chartData = {};
+             let chartLabels = [];
+             let chartValues = [];
+             
+             switch(retentionAnalysisType) {
+                 case 'score-based':
+                     // Group by RFM score ranges
+                     const scoreRanges = {
+                         'High Value (8-10)': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'Medium Value (5-7)': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'Low Value (1-4)': { retained: 0, atRisk: 0, lost: 0, total: 0 }
+                     };
+                     
+                     Object.values(customerData).forEach(customer => {
+                         let range = '';
+                         if (customer.avgRfmScore >= 8) range = 'High Value (8-10)';
+                         else if (customer.avgRfmScore >= 5) range = 'Medium Value (5-7)';
+                         else range = 'Low Value (1-4)';
+                         
+                         scoreRanges[range].total++;
+                         scoreRanges[range][customer.retentionStatus]++;
+                     });
+                     
+                     chartLabels = Object.keys(scoreRanges);
+                     chartValues = chartLabels.map(range => {
+                         const data = scoreRanges[range];
+                         return data.total > 0 ? ((data.retained / data.total) * 100).toFixed(1) : 0;
+                     });
+                     
+                     // Update statistics
+                     const overallRetention = Object.values(customerData).filter(c => c.retentionStatus === 'retained').length / Object.keys(customerData).length * 100;
+                     const highValueRetention = scoreRanges['High Value (8-10)'].total > 0 ? 
+                         (scoreRanges['High Value (8-10)'].retained / scoreRanges['High Value (8-10)'].total * 100).toFixed(1) : 0;
+                     const atRiskCount = Object.values(customerData).filter(c => c.retentionStatus === 'at-risk').length;
+                     const churnRate = Object.values(customerData).filter(c => c.retentionStatus === 'lost').length / Object.keys(customerData).length * 100;
+                     
+                     document.getElementById('overallRetention').textContent = overallRetention.toFixed(1) + '%';
+                     document.getElementById('highValueRetention').textContent = highValueRetention + '%';
+                     document.getElementById('atRiskCustomers').textContent = atRiskCount;
+                     document.getElementById('churnRate').textContent = churnRate.toFixed(1) + '%';
+                     
+                     // Update breakdown table
+                     updateRetentionBreakdownTable(scoreRanges);
+                     break;
+                     
+                 case 'time-based':
+                     // Group by time periods
+                     const timeRanges = {
+                         'Recent (0-3 months)': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'Medium (3-6 months)': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'Older (6+ months)': { retained: 0, atRisk: 0, lost: 0, total: 0 }
+                     };
+                     
+                     Object.values(customerData).forEach(customer => {
+                         const monthsSinceFirst = (new Date() - customer.firstSeen) / (1000 * 60 * 60 * 24 * 30);
+                         let range = '';
+                         if (monthsSinceFirst <= 3) range = 'Recent (0-3 months)';
+                         else if (monthsSinceFirst <= 6) range = 'Medium (3-6 months)';
+                         else range = 'Older (6+ months)';
+                         
+                         timeRanges[range].total++;
+                         timeRanges[range][customer.retentionStatus]++;
+                     });
+                     
+                     chartLabels = Object.keys(timeRanges);
+                     chartValues = chartLabels.map(range => {
+                         const data = timeRanges[range];
+                         return data.total > 0 ? ((data.retained / data.total) * 100).toFixed(1) : 0;
+                     });
+                     
+                     updateRetentionBreakdownTable(timeRanges);
+                     break;
+                     
+                 case 'segment-based':
+                     // Group by customer segments
+                     const segments = {
+                         'Champions': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'Loyal Customers': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'At Risk': { retained: 0, atRisk: 0, lost: 0, total: 0 },
+                         'Lost': { retained: 0, atRisk: 0, lost: 0, total: 0 }
+                     };
+                     
+                     Object.values(customerData).forEach(customer => {
+                         let segment = '';
+                         if (customer.avgRfmScore >= 8) segment = 'Champions';
+                         else if (customer.avgRfmScore >= 6) segment = 'Loyal Customers';
+                         else if (customer.avgRfmScore >= 4) segment = 'At Risk';
+                         else segment = 'Lost';
+                         
+                         segments[segment].total++;
+                         segments[segment][customer.retentionStatus]++;
+                     });
+                     
+                     chartLabels = Object.keys(segments);
+                     chartValues = chartLabels.map(segment => {
+                         const data = segments[segment];
+                         return data.total > 0 ? ((data.retained / data.total) * 100).toFixed(1) : 0;
+                     });
+                     
+                     updateRetentionBreakdownTable(segments);
+                     break;
+             }
+             
+             // Create chart
+             const chartConfig = {
+                 labels: chartLabels,
+                 datasets: [{
+                     label: 'Retention Rate (%)',
+                     data: chartValues,
+                     backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                     borderColor: '#10B981',
+                     borderWidth: 2,
+                     borderRadius: 4,
+                     borderSkipped: false
+                 }]
+             };
+             
+             // Update or create chart
+             const ctx = document.getElementById('customerRetentionChart');
+             if (ctx) {
+                 ctx.style.display = 'block';
+                 
+                 if (customerRetentionChart) {
+                     customerRetentionChart.destroy();
+                 }
+                 
+                 customerRetentionChart = new Chart(ctx, {
+                     type: 'bar',
+                     data: chartConfig,
+                     options: {
+                         responsive: true,
+                         maintainAspectRatio: false,
+                         plugins: {
+                             legend: {
+                                 display: false
+                             },
+                             tooltip: {
+                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 borderWidth: 1,
+                                 callbacks: {
+                                     label: function(context) {
+                                         return `Retention Rate: ${context.parsed.y}%`;
+                                     }
+                                 }
+                             }
+                         },
+                         scales: {
+                             y: {
+                                 beginAtZero: true,
+                                 max: 100,
+                                 title: {
+                                     display: true,
+                                     text: 'Retention Rate (%)',
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 ticks: {
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 grid: {
+                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             },
+                             x: {
+                                 title: {
+                                     display: true,
+                                     text: 'Customer Segments',
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 ticks: {
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 grid: {
+                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             }
+                         }
+                     }
+                 });
+             }
+             
+             // Update insights
+             const totalCustomers = Object.keys(customerData).length;
+             const retainedCustomers = Object.values(customerData).filter(c => c.retentionStatus === 'retained').length;
+             const lostCustomers = Object.values(customerData).filter(c => c.retentionStatus === 'lost').length;
+             const newCustomers = Object.values(customerData).filter(c => {
+                 const monthsSinceFirst = (new Date() - c.firstSeen) / (1000 * 60 * 60 * 24 * 30);
+                 return monthsSinceFirst <= 3;
+             }).length;
+             
+             const bestSegment = chartLabels[chartValues.indexOf(Math.max(...chartValues))];
+             const worstSegment = chartLabels[chartValues.indexOf(Math.min(...chartValues))];
+             const retentionTrend = chartValues[chartValues.length - 1] > chartValues[0] ? 'Improving' : 'Declining';
+             const retentionScore = ((retainedCustomers / totalCustomers) * 100).toFixed(1);
+             
+             document.getElementById('bestRetainingSegment').textContent = bestSegment;
+             document.getElementById('worstRetainingSegment').textContent = worstSegment;
+             document.getElementById('retentionTrend').textContent = retentionTrend;
+             document.getElementById('totalCustomersRetention').textContent = totalCustomers;
+             
+             document.getElementById('retainedCustomers').textContent = retainedCustomers;
+             document.getElementById('lostCustomers').textContent = lostCustomers;
+             document.getElementById('newCustomers').textContent = newCustomers;
+             document.getElementById('retentionScore').textContent = retentionScore + '%';
+             
+             document.getElementById('retentionInsight1').textContent = `Overall retention rate of ${retentionScore}% with ${retainedCustomers} retained customers`;
+             document.getElementById('retentionInsight2').textContent = `${bestSegment} has the highest retention rate, while ${worstSegment} needs attention`;
+             document.getElementById('retentionInsight3').textContent = `Retention trend is ${retentionTrend.toLowerCase()} with ${atRiskCount} customers at risk`;
+         }
+         
+         // Update retention breakdown table
+         function updateRetentionBreakdownTable(data) {
+             const tableBody = document.getElementById('retentionBreakdownTable');
+             if (!tableBody) return;
+             
+             const html = Object.keys(data).map(segment => {
+                 const segmentData = data[segment];
+                 const retentionRate = segmentData.total > 0 ? ((segmentData.retained / segmentData.total) * 100).toFixed(1) : 0;
+                 
+                 let riskLevel = 'Low';
+                 if (retentionRate < 50) riskLevel = 'High';
+                 else if (retentionRate < 75) riskLevel = 'Medium';
+                 
+                 let riskColor = 'text-green-600 dark:text-green-400';
+                 if (riskLevel === 'High') riskColor = 'text-red-600 dark:text-red-400';
+                 else if (riskLevel === 'Medium') riskColor = 'text-yellow-600 dark:text-yellow-400';
+                 
+                 return `
+                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${segment}</td>
+                         <td class="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100">${retentionRate}%</td>
+                         <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${segmentData.total}</td>
+                         <td class="px-4 py-3 text-sm text-green-600 dark:text-green-400">${segmentData.retained}</td>
+                         <td class="px-4 py-3 text-sm text-red-600 dark:text-red-400">${segmentData.lost}</td>
+                         <td class="px-4 py-3 text-sm ${riskColor}">${riskLevel}</td>
+                     </tr>
+                 `;
+             }).join('');
+             
+             tableBody.innerHTML = html;
+         }
+         
+         // Control functions for Customer Retention
+         function updateRetentionAnalysis() {
+             const periodSelect = document.getElementById('retentionPeriodSelect');
+             const analysisSelect = document.getElementById('retentionAnalysisType');
+             
+             retentionPeriod = periodSelect.value;
+             retentionAnalysisType = analysisSelect.value;
+             
+             if (customerRetentionChart) {
+                 updateCustomerRetentionChart();
+             }
+         }
+         
+         // Update Customer Lifetime Value Chart
+         function updateCustomerLifetimeValueChart() {
+             // Process RFM data
+             const rfmData = @json($hasData ? $rfmData : []);
+             
+             if (rfmData.length === 0) {
+                 // Show no data message
+                 const ctx = document.getElementById('customerLifetimeValueChart');
+                 ctx.style.display = 'none';
+                 const container = ctx.parentElement;
+                 container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+                 return;
+             }
+             
+             // Calculate time horizon in years
+             const timeHorizonYears = parseInt(clvTimeHorizon.replace('y', ''));
+             const discountRate = parseFloat(clvDiscountRate);
+             
+             // Group data by customer and calculate CLV
+             const customerData = {};
+             
+             rfmData.forEach(record => {
+                 const clientId = record.client_id;
+                 const recordDate = new Date(record.date);
+                 
+                 if (!customerData[clientId]) {
+                     customerData[clientId] = {
+                         name: record.client_name,
+                         records: [],
+                         firstSeen: recordDate,
+                         lastSeen: recordDate,
+                         avgRfmScore: 0,
+                         avgRScore: 0,
+                         avgFScore: 0,
+                         avgMScore: 0,
+                         totalRevenue: 0,
+                         purchaseFrequency: 0,
+                         clv: 0
+                     };
+                 }
+                 
+                 customerData[clientId].records.push({
+                     date: recordDate,
+                     rfmScore: parseFloat(record.rfm_score) || 0,
+                     rScore: parseFloat(record.r_score) || 0,
+                     fScore: parseFloat(record.f_score) || 0,
+                     mScore: parseFloat(record.m_score) || 0
+                 });
+                 
+                 if (recordDate < customerData[clientId].firstSeen) {
+                     customerData[clientId].firstSeen = recordDate;
+                 }
+                 if (recordDate > customerData[clientId].lastSeen) {
+                     customerData[clientId].lastSeen = recordDate;
+                 }
+             });
+             
+             // Calculate CLV for each customer
+             Object.values(customerData).forEach(customer => {
+                 const avgRfmScore = customer.records.reduce((sum, r) => sum + r.rfmScore, 0) / customer.records.length;
+                 const avgRScore = customer.records.reduce((sum, r) => sum + r.rScore, 0) / customer.records.length;
+                 const avgFScore = customer.records.reduce((sum, r) => sum + r.fScore, 0) / customer.records.length;
+                 const avgMScore = customer.records.reduce((sum, r) => sum + r.mScore, 0) / customer.records.length;
+                 
+                 customer.avgRfmScore = avgRfmScore;
+                 customer.avgRScore = avgRScore;
+                 customer.avgFScore = avgFScore;
+                 customer.avgMScore = avgMScore;
+                 
+                 // Calculate purchase frequency (purchases per year)
+                 const daysSinceFirst = (customer.lastSeen - customer.firstSeen) / (1000 * 60 * 60 * 24);
+                 const yearsSinceFirst = daysSinceFirst / 365;
+                 customer.purchaseFrequency = yearsSinceFirst > 0 ? customer.records.length / yearsSinceFirst : customer.records.length;
+                 
+                 // Calculate CLV based on method
+                 let clv = 0;
+                 
+                 switch(clvMethod) {
+                     case 'rfm-based':
+                         // CLV based on RFM score (higher score = higher value)
+                         const baseValue = avgMScore * 1000; // Base value from M-score
+                         const frequencyMultiplier = avgFScore / 5; // Frequency multiplier
+                         const recencyMultiplier = avgRScore / 5; // Recency multiplier
+                         clv = baseValue * frequencyMultiplier * recencyMultiplier * timeHorizonYears;
+                         break;
+                         
+                     case 'frequency-based':
+                         // CLV based on purchase frequency
+                         const avgPurchaseValue = avgMScore * 800; // Average purchase value
+                         clv = avgPurchaseValue * customer.purchaseFrequency * timeHorizonYears;
+                         break;
+                         
+                     case 'monetary-based':
+                         // CLV based on monetary value
+                         const monetaryValue = avgMScore * 1200; // Direct monetary value
+                         const retentionRate = avgRScore / 5; // Retention based on recency
+                         clv = monetaryValue * retentionRate * timeHorizonYears;
+                         break;
+                 }
+                 
+                 // Apply discount rate
+                 customer.clv = clv / Math.pow(1 + discountRate, timeHorizonYears);
+                 customer.totalRevenue = customer.clv; // For display purposes
+             });
+             
+             // Calculate CLV statistics based on segments
+             const clvSegments = {
+                 'Premium (CLV > £10,000)': { customers: [], totalClv: 0, avgClv: 0 },
+                 'High Value (£5,000 - £10,000)': { customers: [], totalClv: 0, avgClv: 0 },
+                 'Medium Value (£2,000 - £5,000)': { customers: [], totalClv: 0, avgClv: 0 },
+                 'Standard (£500 - £2,000)': { customers: [], totalClv: 0, avgClv: 0 },
+                 'Low Value (< £500)': { customers: [], totalClv: 0, avgClv: 0 }
+             };
+             
+             Object.values(customerData).forEach(customer => {
+                 let segment = '';
+                 if (customer.clv > 10000) segment = 'Premium (CLV > £10,000)';
+                 else if (customer.clv > 5000) segment = 'High Value (£5,000 - £10,000)';
+                 else if (customer.clv > 2000) segment = 'Medium Value (£2,000 - £5,000)';
+                 else if (customer.clv > 500) segment = 'Standard (£500 - £2,000)';
+                 else segment = 'Low Value (< £500)';
+                 
+                 clvSegments[segment].customers.push(customer);
+                 clvSegments[segment].totalClv += customer.clv;
+             });
+             
+             // Calculate averages
+             Object.keys(clvSegments).forEach(segment => {
+                 const segmentData = clvSegments[segment];
+                 segmentData.avgClv = segmentData.customers.length > 0 ? segmentData.totalClv / segmentData.customers.length : 0;
+             });
+             
+             // Create chart data
+             const chartLabels = Object.keys(clvSegments);
+             const chartValues = chartLabels.map(segment => clvSegments[segment].avgClv);
+             const chartColors = [
+                 'rgba(147, 51, 234, 0.8)', // Purple
+                 'rgba(59, 130, 246, 0.8)',  // Blue
+                 'rgba(16, 185, 129, 0.8)',  // Green
+                 'rgba(245, 158, 11, 0.8)',  // Orange
+                 'rgba(239, 68, 68, 0.8)'    // Red
+             ];
+             
+             // Create chart
+             const chartConfig = {
+                 labels: chartLabels,
+                 datasets: [{
+                     label: 'Average CLV (£)',
+                     data: chartValues,
+                     backgroundColor: chartColors,
+                     borderColor: chartColors.map(color => color.replace('0.8', '1')),
+                     borderWidth: 2,
+                     borderRadius: 4,
+                     borderSkipped: false
+                 }]
+             };
+             
+             // Update or create chart
+             const ctx = document.getElementById('customerLifetimeValueChart');
+             if (ctx) {
+                 ctx.style.display = 'block';
+                 
+                 if (customerLifetimeValueChart) {
+                     customerLifetimeValueChart.destroy();
+                 }
+                 
+                 customerLifetimeValueChart = new Chart(ctx, {
+                     type: 'bar',
+                     data: chartConfig,
+                     options: {
+                         responsive: true,
+                         maintainAspectRatio: false,
+                         plugins: {
+                             legend: {
+                                 display: false
+                             },
+                             tooltip: {
+                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 borderWidth: 1,
+                                 callbacks: {
+                                     label: function(context) {
+                                         return `Average CLV: £${context.parsed.y.toLocaleString()}`;
+                                     }
+                                 }
+                             }
+                         },
+                         scales: {
+                             y: {
+                                 beginAtZero: true,
+                                 title: {
+                                     display: true,
+                                     text: 'Average CLV (£)',
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 ticks: {
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                     callback: function(value) {
+                                         return '£' + value.toLocaleString();
+                                     }
+                                 },
+                                 grid: {
+                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             },
+                             x: {
+                                 title: {
+                                     display: true,
+                                     text: 'Customer Segments',
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 ticks: {
+                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                 },
+                                 grid: {
+                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             }
+                         }
+                     }
+                 });
+             }
+             
+             // Update statistics
+             const totalClv = Object.values(customerData).reduce((sum, c) => sum + c.clv, 0);
+             const averageClv = totalClv / Object.keys(customerData).length;
+             const highValueCustomers = clvSegments['Premium (CLV > £10,000)'].customers.length + 
+                                      clvSegments['High Value (£5,000 - £10,000)'].customers.length;
+             const roiPotential = (totalClv / Object.keys(customerData).length) * 0.3; // 30% ROI assumption
+             
+             const highestClvCustomer = Object.values(customerData).reduce((max, c) => c.clv > max.clv ? c : max);
+             const clvRange = `£${Math.min(...Object.values(customerData).map(c => c.clv)).toFixed(0)} - £${Math.max(...Object.values(customerData).map(c => c.clv)).toFixed(0)}`;
+             const clvGrowthRate = ((averageClv / 5000) - 1) * 100; // Growth vs baseline
+             
+             const premiumCustomers = clvSegments['Premium (CLV > £10,000)'].customers.length;
+             const standardCustomers = clvSegments['Standard (£500 - £2,000)'].customers.length;
+             const lowValueCustomers = clvSegments['Low Value (< £500)'].customers.length;
+             const clvScore = ((averageClv / 10000) * 100).toFixed(1); // CLV score out of 100
+             
+             document.getElementById('totalClv').textContent = '£' + totalClv.toLocaleString();
+             document.getElementById('averageClv').textContent = '£' + averageClv.toLocaleString();
+             document.getElementById('highValueCustomers').textContent = highValueCustomers;
+             document.getElementById('roiPotential').textContent = '£' + roiPotential.toLocaleString();
+             
+             document.getElementById('highestClvCustomer').textContent = highestClvCustomer.name;
+             document.getElementById('clvRange').textContent = clvRange;
+             document.getElementById('clvGrowthRate').textContent = clvGrowthRate.toFixed(1) + '%';
+             document.getElementById('totalCustomersClv').textContent = Object.keys(customerData).length;
+             
+             document.getElementById('premiumCustomers').textContent = premiumCustomers;
+             document.getElementById('standardCustomers').textContent = standardCustomers;
+             document.getElementById('lowValueCustomers').textContent = lowValueCustomers;
+             document.getElementById('clvScore').textContent = clvScore + '/100';
+             
+             // Update breakdown table
+             updateClvBreakdownTable(clvSegments, totalClv);
+             
+             // Update insights
+             const bestSegment = chartLabels[chartValues.indexOf(Math.max(...chartValues))];
+             const worstSegment = chartLabels[chartValues.indexOf(Math.min(...chartValues))];
+             
+             document.getElementById('clvInsight1').textContent = `Total predicted revenue of £${totalClv.toLocaleString()} with average CLV of £${averageClv.toLocaleString()}`;
+             document.getElementById('clvInsight2').textContent = `${bestSegment} customers generate the highest value, while ${worstSegment} need attention`;
+             document.getElementById('clvInsight3').textContent = `ROI potential of £${roiPotential.toLocaleString()} with ${highValueCustomers} high-value customers identified`;
+         }
+         
+         // Update CLV breakdown table
+         function updateClvBreakdownTable(segments, totalClv) {
+             const tableBody = document.getElementById('clvBreakdownTable');
+             if (!tableBody) return;
+             
+             const html = Object.keys(segments).map(segment => {
+                 const segmentData = segments[segment];
+                 const percentageOfTotal = totalClv > 0 ? ((segmentData.totalClv / totalClv) * 100).toFixed(1) : 0;
+                 
+                 let priority = 'Low';
+                 if (segmentData.avgClv > 8000) priority = 'Critical';
+                 else if (segmentData.avgClv > 4000) priority = 'High';
+                 else if (segmentData.avgClv > 1500) priority = 'Medium';
+                 
+                 let priorityColor = 'text-green-600 dark:text-green-400';
+                 if (priority === 'Critical') priorityColor = 'text-red-600 dark:text-red-400';
+                 else if (priority === 'High') priorityColor = 'text-orange-600 dark:text-orange-400';
+                 else if (priority === 'Medium') priorityColor = 'text-yellow-600 dark:text-yellow-400';
+                 
+                 return `
+                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${segment}</td>
+                         <td class="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100">£${segmentData.avgClv.toLocaleString()}</td>
+                         <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${segmentData.customers.length}</td>
+                         <td class="px-4 py-3 text-sm text-purple-600 dark:text-purple-400">£${segmentData.totalClv.toLocaleString()}</td>
+                         <td class="px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">${percentageOfTotal}%</td>
+                         <td class="px-4 py-3 text-sm ${priorityColor}">${priority}</td>
+                     </tr>
+                 `;
+             }).join('');
+             
+             tableBody.innerHTML = html;
+         }
+         
+         // Control functions for Customer Lifetime Value
+         function updateClvAnalysis() {
+             const methodSelect = document.getElementById('clvMethodSelect');
+             const timeHorizonSelect = document.getElementById('clvTimeHorizon');
+             const discountRateSelect = document.getElementById('clvDiscountRate');
+             
+             clvMethod = methodSelect.value;
+             clvTimeHorizon = timeHorizonSelect.value;
+             clvDiscountRate = discountRateSelect.value;
+             
+             if (customerLifetimeValueChart) {
+                 updateCustomerLifetimeValueChart();
+             }
+         }
+         
+
 
         // Sample data for other charts (placeholder implementations)
         const sampleLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -2953,6 +3553,665 @@
                     `;
                 }
             });
+        }
+        
+        // Update Customer Segmentation Chart
+        function updateCustomerSegmentationChart() {
+            // Process RFM data
+            const rfmData = @json($hasData ? $rfmData : []);
+            
+            if (rfmData.length === 0) {
+                // Show no data message
+                const ctx = document.getElementById('customerSegmentationChart');
+                ctx.style.display = 'none';
+                const container = ctx.parentElement;
+                container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No data available</div>';
+                return;
+            }
+            
+            // Calculate time period
+            const monthsBack = parseInt(segmentationTimePeriod.replace('m', ''));
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - monthsBack);
+            
+            // Group data by customer and analyze segmentation
+            const customerData = {};
+            
+            rfmData.forEach(record => {
+                const clientId = record.client_id;
+                const recordDate = new Date(record.date);
+                
+                if (!customerData[clientId]) {
+                    customerData[clientId] = {
+                        name: record.client_name,
+                        records: [],
+                        firstSeen: recordDate,
+                        lastSeen: recordDate,
+                        avgRfmScore: 0,
+                        avgRScore: 0,
+                        avgFScore: 0,
+                        avgMScore: 0,
+                        totalValue: 0,
+                        purchaseFrequency: 0,
+                        segment: 'unknown'
+                    };
+                }
+                
+                customerData[clientId].records.push({
+                    date: recordDate,
+                    rfmScore: parseFloat(record.rfm_score) || 0,
+                    rScore: parseFloat(record.r_score) || 0,
+                    fScore: parseFloat(record.f_score) || 0,
+                    mScore: parseFloat(record.m_score) || 0
+                });
+                
+                if (recordDate < customerData[clientId].firstSeen) {
+                    customerData[clientId].firstSeen = recordDate;
+                }
+                if (recordDate > customerData[clientId].lastSeen) {
+                    customerData[clientId].lastSeen = recordDate;
+                }
+            });
+            
+            // Calculate metrics for each customer
+            Object.values(customerData).forEach(customer => {
+                const avgRfmScore = customer.records.reduce((sum, r) => sum + r.rfmScore, 0) / customer.records.length;
+                const avgRScore = customer.records.reduce((sum, r) => sum + r.rScore, 0) / customer.records.length;
+                const avgFScore = customer.records.reduce((sum, r) => sum + r.fScore, 0) / customer.records.length;
+                const avgMScore = customer.records.reduce((sum, r) => sum + r.mScore, 0) / customer.records.length;
+                
+                customer.avgRfmScore = avgRfmScore;
+                customer.avgRScore = avgRScore;
+                customer.avgFScore = avgFScore;
+                customer.avgMScore = avgMScore;
+                
+                // Calculate purchase frequency
+                const daysSinceFirst = (customer.lastSeen - customer.firstSeen) / (1000 * 60 * 60 * 24);
+                const yearsSinceFirst = daysSinceFirst / 365;
+                customer.purchaseFrequency = yearsSinceFirst > 0 ? customer.records.length / yearsSinceFirst : customer.records.length;
+                
+                // Calculate total value
+                customer.totalValue = customer.records.reduce((sum, r) => sum + (r.mScore * 1000), 0);
+                
+                // Determine segment based on method
+                switch(segmentationMethod) {
+                    case 'rfm-score':
+                        if (avgRfmScore >= 8) customer.segment = 'Champions';
+                        else if (avgRfmScore >= 6) customer.segment = 'Loyal Customers';
+                        else if (avgRfmScore >= 4) customer.segment = 'At Risk';
+                        else if (avgRfmScore >= 2) customer.segment = "Can't Lose";
+                        else customer.segment = 'Lost';
+                        break;
+                        
+                    case 'behavior-pattern':
+                        if (avgFScore >= 4 && avgRScore >= 4) customer.segment = 'High Frequency & Recent';
+                        else if (avgFScore >= 4 && avgRScore < 4) customer.segment = 'High Frequency & Old';
+                        else if (avgFScore < 4 && avgRScore >= 4) customer.segment = 'Low Frequency & Recent';
+                        else customer.segment = 'Low Frequency & Old';
+                        break;
+                        
+                    case 'value-tier':
+                        if (avgMScore >= 8) customer.segment = 'Premium';
+                        else if (avgMScore >= 5) customer.segment = 'High Value';
+                        else if (avgMScore >= 3) customer.segment = 'Medium Value';
+                        else customer.segment = 'Low Value';
+                        break;
+                        
+                    case 'engagement-level':
+                        const daysSinceLastActivity = (new Date() - customer.lastSeen) / (1000 * 60 * 60 * 24);
+                        if (daysSinceLastActivity <= 30 && customer.purchaseFrequency >= 12) customer.segment = 'Highly Engaged';
+                        else if (daysSinceLastActivity <= 90 && customer.purchaseFrequency >= 6) customer.segment = 'Engaged';
+                        else if (daysSinceLastActivity <= 180) customer.segment = 'Moderately Engaged';
+                        else customer.segment = 'Disengaged';
+                        break;
+                }
+            });
+            
+            // Group customers by segments
+            const segments = {};
+            Object.values(customerData).forEach(customer => {
+                if (!segments[customer.segment]) {
+                    segments[customer.segment] = {
+                        customers: [],
+                        count: 0,
+                        avgRfmScore: 0,
+                        avgValue: 0,
+                        totalValue: 0
+                    };
+                }
+                
+                segments[customer.segment].customers.push(customer);
+                segments[customer.segment].count++;
+                segments[customer.segment].totalValue += customer.totalValue;
+            });
+            
+            // Calculate averages for each segment
+            Object.keys(segments).forEach(segment => {
+                const segmentData = segments[segment];
+                segmentData.avgRfmScore = segmentData.customers.reduce((sum, c) => sum + c.avgRfmScore, 0) / segmentData.count;
+                segmentData.avgValue = segmentData.totalValue / segmentData.count;
+            });
+            
+            // Create chart data
+            const chartLabels = Object.keys(segments);
+            const chartValues = chartLabels.map(segment => segments[segment].count);
+            const chartColors = [
+                'rgba(34, 197, 94, 0.8)',   // Green - Champions
+                'rgba(59, 130, 246, 0.8)',  // Blue - Loyal
+                'rgba(245, 158, 11, 0.8)',  // Orange - At Risk
+                'rgba(239, 68, 68, 0.8)',   // Red - Can't Lose
+                'rgba(107, 114, 128, 0.8)', // Gray - Lost
+                'rgba(147, 51, 234, 0.8)',  // Purple - Premium
+                'rgba(16, 185, 129, 0.8)',  // Emerald - High Value
+                'rgba(251, 191, 36, 0.8)',  // Yellow - Medium Value
+                'rgba(156, 163, 175, 0.8)'  // Gray - Low Value
+            ];
+            
+            // Create chart
+            const chartConfig = {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Customers',
+                    data: chartValues,
+                    backgroundColor: chartColors.slice(0, chartLabels.length),
+                    borderColor: chartColors.slice(0, chartLabels.length).map(color => color.replace('0.8', '1')),
+                    borderWidth: 2
+                }]
+            };
+            
+            // Update or create chart
+            const ctx = document.getElementById('customerSegmentationChart');
+            if (ctx) {
+                ctx.style.display = 'block';
+                
+                if (customerSegmentationChart) {
+                    customerSegmentationChart.destroy();
+                }
+                
+                customerSegmentationChart = new Chart(ctx, {
+                    type: segmentationChartType,
+                    data: chartConfig,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
+                                titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        const segment = context.label;
+                                        const count = context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((count / total) * 100).toFixed(1);
+                                        return `${segment}: ${count} customers (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Update statistics
+            const totalCustomers = Object.keys(customerData).length;
+            const totalSegments = Object.keys(segments).length;
+            const largestSegment = Object.keys(segments).reduce((max, segment) => 
+                segments[segment].count > segments[max].count ? segment : max
+            );
+            const highestValueSegment = Object.keys(segments).reduce((max, segment) => 
+                segments[segment].avgValue > segments[max].avgValue ? segment : max
+            );
+            const segmentationScore = ((totalSegments / 5) * 100).toFixed(1); // Score based on segment diversity
+            
+            const mostActiveSegment = Object.keys(segments).reduce((max, segment) => {
+                const avgFrequency = segments[segment].customers.reduce((sum, c) => sum + c.purchaseFrequency, 0) / segments[segment].count;
+                const maxFrequency = segments[max] ? segments[max].customers.reduce((sum, c) => sum + c.purchaseFrequency, 0) / segments[max].count : 0;
+                return avgFrequency > maxFrequency ? segment : max;
+            });
+            
+            const avgRfmScore = Object.values(customerData).reduce((sum, c) => sum + c.avgRfmScore, 0) / totalCustomers;
+            const segmentDiversity = ((totalSegments / 8) * 100).toFixed(1); // Diversity score
+            
+            const premiumCustomers = Object.values(customerData).filter(c => c.avgRfmScore >= 8).length;
+            const atRiskCustomers = Object.values(customerData).filter(c => c.avgRfmScore >= 4 && c.avgRfmScore < 6).length;
+            const newCustomers = Object.values(customerData).filter(c => {
+                const monthsSinceFirst = (new Date() - c.firstSeen) / (1000 * 60 * 60 * 24 * 30);
+                return monthsSinceFirst <= 3;
+            }).length;
+            const loyalCustomers = Object.values(customerData).filter(c => c.avgRfmScore >= 6).length;
+            
+            document.getElementById('totalSegments').textContent = totalSegments;
+            document.getElementById('largestSegment').textContent = largestSegment;
+            document.getElementById('highestValueSegment').textContent = highestValueSegment;
+            document.getElementById('segmentationScore').textContent = segmentationScore + '/100';
+            
+            document.getElementById('mostActiveSegment').textContent = mostActiveSegment;
+            document.getElementById('avgRfmScoreSegmentation').textContent = avgRfmScore.toFixed(1);
+            document.getElementById('segmentDiversity').textContent = segmentDiversity + '%';
+            document.getElementById('totalCustomersSegmentation').textContent = totalCustomers;
+            
+            document.getElementById('premiumCustomersSegmentation').textContent = premiumCustomers;
+            document.getElementById('atRiskCustomersSegmentation').textContent = atRiskCustomers;
+            document.getElementById('newCustomersSegmentation').textContent = newCustomers;
+            document.getElementById('loyalCustomersSegmentation').textContent = loyalCustomers;
+            
+            // Update breakdown table
+            updateSegmentBreakdownTable(segments, totalCustomers);
+            
+            // Update insights
+            document.getElementById('segmentationInsight1').textContent = `Identified ${totalSegments} distinct customer segments with ${largestSegment} being the largest (${segments[largestSegment].count} customers)`;
+            document.getElementById('segmentationInsight2').textContent = `${highestValueSegment} customers generate the highest average value (£${segments[highestValueSegment].avgValue.toLocaleString()})`;
+            document.getElementById('segmentationInsight3').textContent = `Segmentation quality score of ${segmentationScore}/100 with ${premiumCustomers} premium customers identified`;
+        }
+        
+        // Update segment breakdown table
+        function updateSegmentBreakdownTable(segments, totalCustomers) {
+            const tableBody = document.getElementById('segmentBreakdownTable');
+            if (!tableBody) return;
+            
+            const html = Object.keys(segments).map(segment => {
+                const segmentData = segments[segment];
+                const percentageOfTotal = ((segmentData.count / totalCustomers) * 100).toFixed(1);
+                
+                let status = 'Good';
+                let statusColor = 'text-green-600 dark:text-green-400';
+                
+                if (segmentData.avgRfmScore >= 7) {
+                    status = 'Excellent';
+                    statusColor = 'text-emerald-600 dark:text-emerald-400';
+                } else if (segmentData.avgRfmScore >= 5) {
+                    status = 'Good';
+                    statusColor = 'text-blue-600 dark:text-blue-400';
+                } else if (segmentData.avgRfmScore >= 3) {
+                    status = 'Fair';
+                    statusColor = 'text-yellow-600 dark:text-yellow-400';
+                } else {
+                    status = 'Poor';
+                    statusColor = 'text-red-600 dark:text-red-400';
+                }
+                
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">${segment}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${segmentData.count}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${percentageOfTotal}%</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${segmentData.avgRfmScore.toFixed(1)}</td>
+                        <td class="px-4 py-3 text-sm text-purple-600 dark:text-purple-400">£${segmentData.avgValue.toLocaleString()}</td>
+                        <td class="px-4 py-3 text-sm ${statusColor}">${status}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            tableBody.innerHTML = html;
+        }
+        
+        // Control functions for Customer Segmentation
+        function updateSegmentationAnalysis() {
+            const methodSelect = document.getElementById('segmentationMethodSelect');
+            const timePeriodSelect = document.getElementById('segmentationTimePeriod');
+            const chartTypeSelect = document.getElementById('segmentationChartType');
+            
+            segmentationMethod = methodSelect.value;
+            segmentationTimePeriod = timePeriodSelect.value;
+            segmentationChartType = chartTypeSelect.value;
+            
+            if (customerSegmentationChart) {
+                updateCustomerSegmentationChart();
+            }
+                 }
+         
+
+
+     </script>
+
+    <!-- Onboarding Tour System -->
+    <div id="onboarding-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-md mx-4 p-6 relative">
+                <!-- Tour Content -->
+                <div id="tour-content" class="text-center">
+                    <div class="mb-6">
+                        <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2" id="tour-title">Welcome to RFM Analysis!</h3>
+                        <p class="text-gray-600 dark:text-gray-400" id="tour-description">
+                            Let's take a quick tour to show you how powerful your customer insights can be.
+                        </p>
+                    </div>
+                    
+                    <!-- Tour Progress -->
+                    <div class="mb-6">
+                        <div class="flex justify-center space-x-2">
+                            <div class="w-2 h-2 bg-blue-600 rounded-full tour-step" data-step="1"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full tour-step" data-step="2"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full tour-step" data-step="3"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full tour-step" data-step="4"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full tour-step" data-step="5"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tour Actions -->
+                    <div class="flex justify-between items-center">
+                        <button id="tour-skip" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm">
+                            Skip Tour
+                        </button>
+                        <div class="flex space-x-3">
+                            <button id="tour-prev" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm hidden">
+                                Previous
+                            </button>
+                            <button id="tour-next" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Close button -->
+                <button id="tour-close" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tour Highlight Overlay -->
+    <div id="tour-highlight" class="fixed inset-0 pointer-events-none z-40 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+        <div id="tour-spotlight" class="absolute w-64 h-32 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border-2 border-blue-500 transform transition-all duration-300"></div>
+    </div>
+
+    <style>
+        .tour-highlight {
+            position: relative;
+            z-index: 45;
+        }
+        
+        .tour-spotlight {
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+        
+        #tour-highlight.active {
+            pointer-events: auto;
+        }
+    </style>
+
+    <script>
+        // Onboarding Tour System
+        class OnboardingTour {
+            constructor() {
+                this.currentStep = 0;
+                this.steps = [
+                    {
+                        title: "Welcome to RFM Analysis!",
+                        description: "Discover powerful insights about your customers with our advanced RFM (Recency, Frequency, Monetary) analysis tools.",
+                        target: null,
+                        position: 'center'
+                    },
+                    {
+                        title: "Client RFM Trends",
+                        description: "Track how your customers' behavior changes over time. See which clients are improving or declining in value.",
+                        target: '#tab-client-trends',
+                        position: 'bottom'
+                    },
+                    {
+                        title: "Overall RFM Breakdown",
+                        description: "Get a comprehensive view of your customer base. See the distribution of recency, frequency, and monetary scores.",
+                        target: '#tab-rfm-breakdown',
+                        position: 'bottom'
+                    },
+                    {
+                        title: "Customer Segmentation",
+                        description: "Automatically group your customers into meaningful segments. Identify your best customers and those at risk.",
+                        target: '#tab-customer-segmentation',
+                        position: 'bottom'
+                    },
+                    {
+                        title: "Ready to Explore!",
+                        description: "You're all set! Start exploring your data. Upgrade to Pro for deeper insights, AI-powered recommendations, and advanced analytics.",
+                        target: null,
+                        position: 'center'
+                    }
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.checkIfNewUser();
+            }
+            
+            bindEvents() {
+                document.getElementById('tour-next').addEventListener('click', () => this.nextStep());
+                document.getElementById('tour-prev').addEventListener('click', () => this.prevStep());
+                document.getElementById('tour-skip').addEventListener('click', () => this.endTour());
+                document.getElementById('tour-close').addEventListener('click', () => this.endTour());
+                
+                // Close on overlay click
+                document.getElementById('onboarding-overlay').addEventListener('click', (e) => {
+                    if (e.target.id === 'onboarding-overlay') {
+                        this.endTour();
+                    }
+                });
+            }
+            
+            checkIfNewUser() {
+                // Check if user is new (first time visiting RFM analysis)
+                const hasSeenTour = localStorage.getItem('rfm_tour_completed');
+                const isNewUser = !hasSeenTour;
+                
+                if (isNewUser) {
+                    // Show tour after a short delay
+                    setTimeout(() => {
+                        this.startTour();
+                    }, 1000);
+                } else {
+                    // Show restart button for returning users
+                    this.showRestartButton();
+                }
+            }
+            
+            showRestartButton() {
+                const restartSection = document.getElementById('tour-restart-section');
+                if (restartSection) {
+                    restartSection.classList.remove('hidden');
+                }
+            }
+            
+            startTour() {
+                this.currentStep = 0;
+                this.showStep();
+                document.getElementById('onboarding-overlay').classList.remove('hidden');
+            }
+            
+            showStep() {
+                const step = this.steps[this.currentStep];
+                const titleEl = document.getElementById('tour-title');
+                const descEl = document.getElementById('tour-description');
+                const nextBtn = document.getElementById('tour-next');
+                const prevBtn = document.getElementById('tour-prev');
+                
+                // Update content
+                titleEl.textContent = step.title;
+                descEl.textContent = step.description;
+                
+                // Update progress dots
+                document.querySelectorAll('.tour-step').forEach((dot, index) => {
+                    if (index <= this.currentStep) {
+                        dot.classList.remove('bg-gray-300');
+                        dot.classList.add('bg-blue-600');
+                    } else {
+                        dot.classList.remove('bg-blue-600');
+                        dot.classList.add('bg-gray-300');
+                    }
+                });
+                
+                // Update buttons
+                if (this.currentStep === 0) {
+                    prevBtn.classList.add('hidden');
+                } else {
+                    prevBtn.classList.remove('hidden');
+                }
+                
+                if (this.currentStep === this.steps.length - 1) {
+                    nextBtn.textContent = 'Finish';
+                    
+                    // Add upgrade button for free users on final step
+                    const upgradeBtn = document.createElement('button');
+                    upgradeBtn.className = 'ml-3 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg text-sm transition-all duration-200 transform hover:scale-105';
+                    upgradeBtn.textContent = 'Upgrade to Pro';
+                    upgradeBtn.onclick = () => {
+                        window.location.href = '{{ route("memberships.index") }}';
+                    };
+                    
+                    // Insert upgrade button before the next button
+                    nextBtn.parentNode.insertBefore(upgradeBtn, nextBtn);
+                } else {
+                    nextBtn.textContent = 'Next';
+                    
+                    // Remove any existing upgrade button
+                    const existingUpgradeBtn = nextBtn.parentNode.querySelector('button[onclick*="memberships"]');
+                    if (existingUpgradeBtn) {
+                        existingUpgradeBtn.remove();
+                    }
+                }
+                
+                // Handle target highlighting
+                if (step.target) {
+                    this.highlightElement(step.target, step.position);
+                } else {
+                    this.removeHighlight();
+                }
+            }
+            
+            highlightElement(selector, position) {
+                const element = document.querySelector(selector);
+                if (!element) return;
+                
+                const highlight = document.getElementById('tour-highlight');
+                const spotlight = document.getElementById('tour-spotlight');
+                
+                // Calculate position
+                const rect = element.getBoundingClientRect();
+                const padding = 20;
+                
+                spotlight.style.width = (rect.width + padding * 2) + 'px';
+                spotlight.style.height = (rect.height + padding * 2) + 'px';
+                spotlight.style.left = (rect.left - padding) + 'px';
+                spotlight.style.top = (rect.top - padding) + 'px';
+                
+                // Add highlight class to target
+                element.classList.add('tour-highlight');
+                
+                // Show highlight
+                highlight.classList.remove('hidden');
+                highlight.classList.add('active');
+            }
+            
+            removeHighlight() {
+                const highlight = document.getElementById('tour-highlight');
+                highlight.classList.add('hidden');
+                highlight.classList.remove('active');
+                
+                // Remove highlight class from all elements
+                document.querySelectorAll('.tour-highlight').forEach(el => {
+                    el.classList.remove('tour-highlight');
+                });
+            }
+            
+            nextStep() {
+                if (this.currentStep < this.steps.length - 1) {
+                    this.currentStep++;
+                    this.showStep();
+                } else {
+                    this.endTour();
+                }
+            }
+            
+            prevStep() {
+                if (this.currentStep > 0) {
+                    this.currentStep--;
+                    this.showStep();
+                }
+            }
+            
+            endTour() {
+                document.getElementById('onboarding-overlay').classList.add('hidden');
+                this.removeHighlight();
+                
+                // Mark tour as completed
+                localStorage.setItem('rfm_tour_completed', 'true');
+                
+                // Show welcome message
+                this.showWelcomeMessage();
+            }
+            
+            showWelcomeMessage() {
+                // Create a subtle welcome notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+                notification.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Welcome! Start exploring your RFM insights.</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Animate in
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+                
+                // Remove after 4 seconds
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 4000);
+            }
+        }
+        
+        // Initialize tour when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            window.onboardingTour = new OnboardingTour();
+        });
+        
+        // Global function to restart tour
+        function restartTour() {
+            if (window.onboardingTour) {
+                localStorage.removeItem('rfm_tour_completed');
+                window.onboardingTour.startTour();
+            }
+        }
+        
+        // Development function to test tour
+        function testTour() {
+            if (window.onboardingTour) {
+                localStorage.removeItem('rfm_tour_completed');
+                window.onboardingTour.startTour();
+            }
         }
     </script>
 </x-app-layout>
