@@ -31,9 +31,7 @@
                         <a href="{{ route('rfm.analysis.index') }}#churn-analysis" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
                             Churn & Retention
                         </a>
-                        <a href="{{ route('rfm.analysis.business') }}" class="tab-button py-2 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-300">
-                            Business Analytics
-                        </a>
+
                     </nav>
                 </div>
 

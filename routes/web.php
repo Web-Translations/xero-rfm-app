@@ -13,9 +13,11 @@ use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\MembershipsController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\WebhookController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
 use Illuminate\Http\Request;
+
 
 Route::get('/', fn () => view('landing'))->name('landing');
 
@@ -29,7 +31,7 @@ Route::get('/xero/callback', function (Request $request) {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Xero OAuth flow (package handles authorize + callback)
     Route::get('/xero/connect',  [XeroController::class, 'connect'])->name('xero.connect');
@@ -100,11 +102,17 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     // RFM Analysis
     Route::get('/rfm/analysis', [RfmAnalysisController::class, 'index'])->name('rfm.analysis.index');
     Route::get('/rfm/analysis/trends', [RfmAnalysisController::class, 'trends'])->name('rfm.analysis.trends');
-    Route::get('/rfm/analysis/business', [RfmAnalysisController::class, 'business'])->name('rfm.analysis.business');
+
+    Route::get('/rfm/analysis/components', [RfmAnalysisController::class, 'components'])->name('rfm.analysis.components');
+    Route::get('/rfm/analysis/distributions', [RfmAnalysisController::class, 'distributions'])->name('rfm.analysis.distributions');
     Route::get('/rfm/analysis/segments', [RfmAnalysisController::class, 'segments'])->name('rfm.analysis.segments');
     Route::get('/rfm/analysis/predictive', [RfmAnalysisController::class, 'predictive'])->name('rfm.analysis.predictive');
     Route::get('/rfm/analysis/cohort', [RfmAnalysisController::class, 'cohort'])->name('rfm.analysis.cohort');
     Route::get('/rfm/analysis/comparative', [RfmAnalysisController::class, 'comparative'])->name('rfm.analysis.comparative');
+    
+    // RFM Analysis API endpoints
+    Route::get('/rfm/analysis/component-trends', [RfmAnalysisController::class, 'rfmComponentTrends'])->name('rfm.analysis.component-trends');
+    Route::get('/rfm/analysis/top-companies', [RfmAnalysisController::class, 'topCompaniesByComponent'])->name('rfm.analysis.top-companies');
 });
 
 // GoCardless webhook (no auth required, CSRF disabled)
