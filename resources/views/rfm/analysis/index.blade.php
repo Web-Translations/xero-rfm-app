@@ -27,7 +27,7 @@
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="flex space-x-8 px-6" aria-label="Tabs">
                         <button onclick="showTab('overview')" id="tab-overview" 
-                                class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600 dark:text-blue-400">
+                                class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-white dark:text-white">
                             Overview
                         </button>
                         <button onclick="showTab('client-trends')" id="tab-client-trends" 
@@ -189,6 +189,85 @@
                                     <h4 class="font-semibold text-purple-900 dark:text-purple-100">Segmentation</h4>
                                 </div>
                                 <p class="text-sm text-purple-700 dark:text-purple-300">Analyze customer segments and behavior patterns</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Charts & Pro Features -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-700 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Need Custom Charts for Your Business?
+                        </h3>
+                        <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-6">
+                            <p class="text-gray-700 dark:text-gray-300 mb-4">
+                                If there's a specific chart or analysis that would be perfect for your business needs but isn't included here, we can create custom tailored visualizations just for you!
+                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-purple-900 dark:text-purple-100">Pro Plan</h4>
+                                            <p class="text-sm text-purple-700 dark:text-purple-300">Up to 2 custom tailored charts</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-pink-600 dark:text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-pink-900 dark:text-pink-100">Pro+ Plan</h4>
+                                            <p class="text-sm text-pink-700 dark:text-pink-300">Up to 5 custom tailored charts</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-indigo-900 dark:text-indigo-100">Need More?</h4>
+                                            <p class="text-sm text-indigo-700 dark:text-indigo-300">Contact us for unlimited custom solutions</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                            <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-green-900 dark:text-green-100">Tailored to You</h4>
+                                            <p class="text-sm text-green-700 dark:text-green-300">Industry-specific insights and metrics</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex flex-wrap gap-3">
+                                <a href="{{ route('memberships.index') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    Upgrade to Pro
+                                </a>
+                                <button onclick="openCustomFeaturesModal()" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                    </svg>
+                                    Enquire About Custom Solutions
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -847,15 +926,15 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
                                     <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="timeInsight1">Analyzing RFM score trends over time...</span>
+                                    <span class="text-white dark:text-white" id="timeInsight1">Analyzing RFM score trends over time...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="timeInsight2">Identifying seasonal patterns and trends...</span>
+                                    <span class="text-white dark:text-white" id="timeInsight2">Identifying seasonal patterns and trends...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="timeInsight3">Calculating performance consistency metrics...</span>
+                                    <span class="text-white dark:text-white" id="timeInsight3">Calculating performance consistency metrics...</span>
                                 </div>
                             </div>
                         </div>
@@ -1000,15 +1079,15 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
                                     <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="retentionInsight1">Analyzing customer retention patterns...</span>
+                                    <span class="text-white dark:text-white" id="retentionInsight1">Analyzing customer retention patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="retentionInsight2">Identifying high-risk customer segments...</span>
+                                    <span class="text-white dark:text-white" id="retentionInsight2">Identifying high-risk customer segments...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="retentionInsight3">Calculating retention improvement opportunities...</span>
+                                    <span class="text-white dark:text-white" id="retentionInsight3">Calculating retention improvement opportunities...</span>
                                 </div>
                             </div>
                         </div>
@@ -1168,15 +1247,15 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
                                     <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
+                                    <span class="text-white dark:text-white" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="clvInsight2">Identifying high-value customer opportunities...</span>
+                                    <span class="text-white dark:text-white" id="clvInsight2">Identifying high-value customer opportunities...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="clvInsight3">Calculating investment prioritization strategies...</span>
+                                    <span class="text-white dark:text-white" id="clvInsight3">Calculating investment prioritization strategies...</span>
                                 </div>
                             </div>
                         </div>
@@ -1335,15 +1414,15 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
                                     <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
+                                    <span class="text-white dark:text-white" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
+                                    <span class="text-white dark:text-white" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
+                                    <span class="text-white dark:text-white" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
                                 </div>
                             </div>
                         </div>
@@ -1520,15 +1599,15 @@
                             <div class="space-y-2">
                                 <div class="flex items-start space-x-2">
                                     <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="valueInsight1">Analyzing customer value distribution patterns...</span>
+                                    <span class="text-white dark:text-white" id="valueInsight1">Analyzing customer value distribution patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="valueInsight2">Identifying value concentration and inequality measures...</span>
+                                    <span class="text-white dark:text-white" id="valueInsight2">Identifying value concentration and inequality measures...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
                                     <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-gray-700 dark:text-gray-300" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
+                                    <span class="text-white dark:text-white" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
                                 </div>
                             </div>
                         </div>
@@ -1611,7 +1690,7 @@
             
             // Remove active class from all tabs
             document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400', 'text-white', 'dark:text-white');
                 button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
             });
             
@@ -1621,8 +1700,8 @@
             // Add active class to selected tab
             const activeTab = document.getElementById('tab-' + tabName);
             if (activeTab) {
-                activeTab.classList.add('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400');
-                activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                activeTab.classList.add('active', 'border-blue-500', 'text-white', 'dark:text-white');
+                activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400', 'text-blue-600', 'dark:text-blue-400');
             }
             
             // Initialize chart for the selected tab
@@ -1747,13 +1826,21 @@
                             max: 10,
                             title: {
                                 display: true,
-                                text: 'RFM Score'
+                                text: 'RFM Score',
+                                color: '#FFFFFF'
+                            },
+                            ticks: {
+                                color: '#FFFFFF'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: 'Date'
+                                text: 'Date',
+                                color: '#FFFFFF'
+                            },
+                            ticks: {
+                                color: '#FFFFFF'
                             }
                         }
                     }
@@ -1801,7 +1888,7 @@
                  item.className = 'flex items-center space-x-2';
                  item.innerHTML = `
                      <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
-                     <span class="text-sm text-gray-700 dark:text-gray-300">${client.name}</span>
+                     <span class="text-sm text-white dark:text-white">${client.name}</span>
                  `;
                  legend.appendChild(item);
              });
@@ -1826,7 +1913,7 @@
                             data-client="${client.name}"
                             onchange="toggleClientSelection('${client.name}')">
                      <label for="client-${client.name.replace(/\s+/g, '-')}" 
-                            class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1">
+                            class="text-sm text-white dark:text-white cursor-pointer flex-1">
                          ${client.name}
                      </label>
                      <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
@@ -2317,20 +2404,28 @@
                          }
                      },
                      scales: {
-                         y: {
-                             beginAtZero: true,
-                             max: 10,
-                             title: {
-                                 display: true,
-                                 text: 'RFM Score'
-                             }
-                         },
-                         x: {
-                             title: {
-                                 display: true,
-                                 text: 'Date'
-                             }
-                         }
+                                                 y: {
+                            beginAtZero: true,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'RFM Score',
+                                color: '#FFFFFF'
+                            },
+                            ticks: {
+                                color: '#FFFFFF'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: '#FFFFFF'
+                            },
+                            ticks: {
+                                color: '#FFFFFF'
+                            }
+                        }
                      },
                      interaction: {
                          mode: 'nearest',
@@ -2507,47 +2602,47 @@
                              }
                          },
                          scales: {
-                             y: {
-                                 type: 'linear',
-                                 display: true,
-                                 position: 'left',
-                                 title: {
-                                     display: true,
-                                     text: 'RFM Score',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
+                                                         y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'RFM Score',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF'
+                                },
                                  grid: {
                                      color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              },
-                             y1: {
-                                 type: 'linear',
-                                 display: true,
-                                 position: 'right',
-                                 title: {
-                                     display: true,
-                                     text: 'Customer Count',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
+                                                         y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Customer Count',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF'
+                                },
                                  grid: {
                                      drawOnChartArea: false
                                  }
                              },
-                             x: {
-                                 title: {
-                                     display: true,
-                                     text: 'Month',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
+                                                         x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF'
+                                },
                                  grid: {
                                      color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
@@ -2849,10 +2944,10 @@
                                  title: {
                                      display: true,
                                      text: 'Average RFM Score',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                     color: '#FFFFFF'
                                  },
                                  ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                     color: '#FFFFFF'
                                  },
                                  grid: {
                                      color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
@@ -2862,10 +2957,10 @@
                                  title: {
                                      display: true,
                                      text: 'Time Period',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                     color: '#FFFFFF'
                                  },
                                  ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                     color: '#FFFFFF'
                                  },
                                  grid: {
                                      color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
@@ -3138,36 +3233,36 @@
                                  }
                              }
                          },
-                         scales: {
-                             y: {
-                                 beginAtZero: true,
-                                 max: 100,
-                                 title: {
-                                     display: true,
-                                     text: 'Retention Rate (%)',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                 }
-                             },
-                             x: {
-                                 title: {
-                                     display: true,
-                                     text: 'Customer Segments',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                 }
-                             }
-                         }
+                                                 scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Retention Rate (%)',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF'
+                                },
+                                grid: {
+                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Customer Segments',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF'
+                                },
+                                grid: {
+                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                }
+                            }
+                        }
                      }
                  });
              }
@@ -3435,38 +3530,38 @@
                                  }
                              }
                          },
-                         scales: {
-                             y: {
-                                 beginAtZero: true,
-                                 title: {
-                                     display: true,
-                                     text: 'Average CLV (£)',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                     callback: function(value) {
-                                         return '£' + value.toLocaleString();
-                                     }
-                                 },
-                                 grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                 }
-                             },
-                             x: {
-                                 title: {
-                                     display: true,
-                                     text: 'Customer Segments',
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 ticks: {
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
-                                 },
-                                 grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                 }
-                             }
-                         }
+                                                 scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Average CLV (£)',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF',
+                                    callback: function(value) {
+                                        return '£' + value.toLocaleString();
+                                    }
+                                },
+                                grid: {
+                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Customer Segments',
+                                    color: '#FFFFFF'
+                                },
+                                ticks: {
+                                    color: '#FFFFFF'
+                                },
+                                grid: {
+                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                }
+                            }
+                        }
                      }
                  });
              }
@@ -4288,7 +4383,7 @@
                             title: {
                                 display: true,
                                 text: getYAxisLabel(),
-                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                color: '#FFFFFF',
                                 font: {
                                     size: 14,
                                     weight: 'bold'
@@ -4304,7 +4399,7 @@
                                 lineWidth: 0.5
                             },
                             ticks: {
-                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                color: '#FFFFFF',
                                 font: {
                                     size: 12
                                 },
@@ -4325,7 +4420,7 @@
                             title: {
                                 display: true,
                                 text: getXAxisLabel(),
-                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                color: '#FFFFFF',
                                 font: {
                                     size: 14,
                                     weight: 'bold'
@@ -4341,7 +4436,7 @@
                                 lineWidth: 0.5
                             },
                             ticks: {
-                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                color: '#FFFFFF',
                                 font: {
                                     size: 11
                                 },
@@ -5111,5 +5206,85 @@
                 }, 300);
             }, 3000);
         }
+    </script>
+
+    <!-- Custom Features Enquiry Modal -->
+    <div id="customFeaturesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Custom Charts Enquiry</h3>
+                    <button onclick="closeCustomFeaturesModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="customFeaturesForm" class="space-y-4">
+                    <div>
+                        <label for="enquiryEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Email:</label>
+                        <input type="email" id="enquiryEmail" name="email" required 
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                               placeholder="your@email.com">
+                    </div>
+                    
+                    <div>
+                        <label for="enquiryMessage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Custom Charts Request:</label>
+                        <textarea id="enquiryMessage" name="message" rows="4" required
+                                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                  placeholder="Tell us about the custom charts and analysis you need for your business..."></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-3 pt-4">
+                        <button type="button" onclick="closeCustomFeaturesModal()" 
+                                class="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200">
+                            Send Enquiry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCustomFeaturesModal() {
+            document.getElementById('customFeaturesModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCustomFeaturesModal() {
+            document.getElementById('customFeaturesModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('customFeaturesModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCustomFeaturesModal();
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('customFeaturesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('enquiryEmail').value;
+            const message = document.getElementById('enquiryMessage').value;
+            
+            // Here you would typically send this to your backend
+            console.log('Custom Charts Enquiry:', { email, message });
+            
+            // Show success message
+            alert('Thank you for your enquiry! We\'ll get back to you soon.');
+            
+            // Close modal and reset form
+            closeCustomFeaturesModal();
+            this.reset();
+        });
     </script>
 </x-app-layout>
