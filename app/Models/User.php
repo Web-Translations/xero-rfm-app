@@ -23,8 +23,10 @@ class User extends Authenticatable
         'password',
         'subscription_plan',
         'gocardless_subscription_id',
+        'gocardless_mandate_id',
         'subscription_status',
         'subscription_ends_at',
+        'gc_last_completed_flow_id',
     ];
 
     /**
@@ -61,6 +63,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if subscription is eligible to use premium features (active or pending).
+     */
+    public function hasPremiumEligibleSubscription(): bool
+    {
+        return in_array($this->subscription_status, ['active', 'pending'], true)
+            && ($this->subscription_ends_at === null || $this->subscription_ends_at->isFuture());
+    }
+
+    /**
      * Check if user has specific plan
      */
     public function hasPlan(string $plan): bool
@@ -73,7 +84,8 @@ class User extends Authenticatable
      */
     public function canAccessPremium(): bool
     {
-        return $this->hasPlan('pro') || $this->hasPlan('pro_plus');
+        return in_array($this->subscription_plan, ['pro', 'pro_plus'], true)
+            && $this->hasPremiumEligibleSubscription();
     }
 
     /**
@@ -81,7 +93,7 @@ class User extends Authenticatable
      */
     public function canAccessAI(): bool
     {
-        return $this->hasPlan('pro_plus');
+        return $this->subscription_plan === 'pro_plus' && $this->hasPremiumEligibleSubscription();
     }
 
     /**
@@ -123,4 +135,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(ExcludedInvoice::class);
     }
+
+    /**
+     * Get the GoCardless customer for this user
+     */
+    public function gocardlessCustomer()
+    {
+        return $this->hasOne(GoCardlessCustomer::class);
+    }
 }
+

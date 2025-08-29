@@ -25,6 +25,14 @@
                 </div>
             @endif
 
+            <!-- Begin subscription form wrapper so selector can sit above payment card -->
+            <form id="subscription-form" method="POST" action="{{ route('memberships.process-payment') }}" class="space-y-6">
+                @csrf
+                <input type="hidden" name="plan" value="{{ $planId }}">
+                @if(auth()->user()->gocardless_mandate_id)
+                    <input type="hidden" id="confirm_use_mandate" name="confirm_use_mandate" value="0">
+                @endif
+
             <!-- Payment Summary -->
             <div class="bg-white/70 dark:bg-gray-900/80 backdrop-blur overflow-hidden shadow-sm sm:rounded-xl">
                 <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
@@ -37,9 +45,9 @@
                     </div>
 
                     <!-- Plan Details -->
-                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8">
+                    <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8 border border-gray-200 dark:border-gray-700">
                         <h3 class="text-xl font-semibold mb-4">Plan Details</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span class="text-gray-600 dark:text-gray-400">Plan:</span>
                                 <span class="font-medium ml-2">{{ $plan['name'] }}</span>
@@ -57,7 +65,41 @@
                                 <span class="font-medium ml-2">{{ $plan['currency'] }}</span>
                             </div>
                         </div>
+                        <div class="mt-5 flex items-start bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                            <svg class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                Payments are collected securely by Direct Debit through GoCardless. If you use your existing mandate, we’ll start the subscription immediately without leaving this page. If you choose a different bank account, you’ll be redirected to GoCardless to set it up.
+                            </p>
+                        </div>
                     </div>
+
+                    @if(auth()->user()->gocardless_mandate_id)
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
+                        <h3 class="text-xl font-semibold mb-4 text-blue-900 dark:text-blue-100">How would you like to set up this subscription?</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="cursor-pointer block rounded-lg border border-blue-200 dark:border-blue-800 p-4 hover:bg-blue-100/50 dark:hover:bg-blue-900/30" id="option-existing">
+                                <div class="flex items-start">
+                                    <input type="radio" name="use_mandate_option" value="existing" class="mt-1 text-blue-600" aria-describedby="existing-desc">
+                                    <div class="ml-3">
+                                        <div class="font-semibold text-blue-900 dark:text-blue-100">Use existing Direct Debit mandate</div>
+                                        <div id="existing-desc" class="text-sm text-blue-800 dark:text-blue-200">Fastest option. No bank details needed. We will use your saved mandate.</div>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-100/50 dark:hover:bg-gray-800/30" id="option-new">
+                                <div class="flex items-start">
+                                    <input type="radio" name="use_mandate_option" value="new" class="mt-1 text-blue-600" aria-describedby="new-desc">
+                                    <div class="ml-3">
+                                        <div class="font-semibold">Set up with a different bank account</div>
+                                        <div id="new-desc" class="text-sm text-gray-600 dark:text-gray-300">You’ll be redirected to GoCardless to enter details again.</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- GoCardless Integration -->
                     <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
@@ -65,26 +107,133 @@
                         <p class="text-blue-800 dark:text-blue-200 mb-4">
                             We use GoCardless for secure, reliable payment processing. Your payment will be taken via Direct Debit.
                         </p>
-                        
-                        <!-- GoCardless Payment Form -->
-                        <div id="gocardless-payment-form" class="mt-6">
-                            <div class="text-center">
-                                <div class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg">
-                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                    </svg>
-                                    Secure Payment Processing
+
+                        <!-- Customer Information / Confirmation -->
+                            <!-- Personal Information -->
+                            <div class="space-y-4" id="customer-fields">
+                                <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">Personal Information</h4>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="given_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name *</label>
+                                        <input type="text" name="given_name" id="given_name" 
+                                               value="{{ old('given_name', $existingCustomer->given_name ?? auth()->user()->name) }}" required
+                                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        @error('given_name')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="family_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name *</label>
+                                        <input type="text" name="family_name" id="family_name" 
+                                               value="{{ old('family_name', $existingCustomer->family_name ?? '') }}" required
+                                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        @error('family_name')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address *</label>
+                                    <input type="email" name="email" id="email" 
+                                           value="{{ old('email', $existingCustomer->email ?? auth()->user()->email) }}" required
+                                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error('email')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                
+                                <div>
+                                    <label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name (Optional)</label>
+                                    <input type="text" name="company_name" id="company_name" 
+                                           value="{{ old('company_name', $existingCustomer->company_name ?? '') }}"
+                                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error('company_name')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                             
-                            <!-- Payment Form Placeholder -->
-                            <div class="mt-6 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-                                <p class="text-gray-600 dark:text-gray-400 text-center">
-                                    GoCardless payment form will be integrated here.<br>
-                                    For now, this is a placeholder for the payment flow.
-                                </p>
+                            <!-- Address Information -->
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">Billing Address</h4>
+                                
+                                <div>
+                                    <label for="address_line1" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address Line 1 *</label>
+                                    <input type="text" name="address_line1" id="address_line1" 
+                                           value="{{ old('address_line1', $existingCustomer->address_line1 ?? '') }}" required
+                                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error('address_line1')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                
+                                <div>
+                                    <label for="address_line2" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address Line 2 (Optional)</label>
+                                    <input type="text" name="address_line2" id="address_line2" 
+                                           value="{{ old('address_line2', $existingCustomer->address_line2 ?? '') }}"
+                                           class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error('address_line2')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300">City *</label>
+                                        <input type="text" name="city" id="city" 
+                                               value="{{ old('city', $existingCustomer->city ?? '') }}" required
+                                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        @error('city')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="region" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Region/County</label>
+                                        <input type="text" name="region" id="region" 
+                                               value="{{ old('region', $existingCustomer->region ?? '') }}"
+                                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        @error('region')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Postal Code *</label>
+                                        <input type="text" name="postal_code" id="postal_code" 
+                                               value="{{ old('postal_code', $existingCustomer->postal_code ?? '') }}" required
+                                               class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        @error('postal_code')
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="country_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Country *</label>
+                                    <select name="country_code" id="country_code" required
+                                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="GB" {{ old('country_code', $existingCustomer->country_code ?? 'GB') === 'GB' ? 'selected' : '' }}>United Kingdom</option>
+                                        <option value="US" {{ old('country_code', $existingCustomer->country_code ?? '') === 'US' ? 'selected' : '' }}>United States</option>
+                                        <option value="CA" {{ old('country_code', $existingCustomer->country_code ?? '') === 'CA' ? 'selected' : '' }}>Canada</option>
+                                        <option value="AU" {{ old('country_code', $existingCustomer->country_code ?? '') === 'AU' ? 'selected' : '' }}>Australia</option>
+                                        <option value="DE" {{ old('country_code', $existingCustomer->country_code ?? '') === 'DE' ? 'selected' : '' }}>Germany</option>
+                                        <option value="FR" {{ old('country_code', $existingCustomer->country_code ?? '') === 'FR' ? 'selected' : '' }}>France</option>
+                                    </select>
+                                    @error('country_code')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             </div>
-                        </div>
+                            
+                                                    <!-- Payment Information -->
+                        
+
+                        
+                        </form>
 
                         <!-- Terms and Conditions -->
                         <div class="mt-6 text-sm text-gray-600 dark:text-gray-400">
@@ -106,17 +255,43 @@
                             Back to Plans
                         </a>
                         
-                        <form method="POST" action="{{ route('memberships.subscribe') }}" class="inline">
-                            @csrf
-                            <input type="hidden" name="plan" value="{{ $planId }}">
-                            <button type="submit" 
+                        <button type="submit" form="subscription-form"
                                     class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                                Complete Subscription
+                            Continue to Payment
                             </button>
-                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+        </form>
+@push('scripts')
+<script>
+    (function() {
+        const existingOption = document.querySelector('#option-existing input[name="use_mandate_option"]');
+        const newOption = document.querySelector('#option-new input[name="use_mandate_option"]');
+        const confirmField = document.getElementById('confirm_use_mandate');
+        const customerFields = document.getElementById('customer-fields');
+
+        function updateMode() {
+            if (existingOption && existingOption.checked) {
+                if (confirmField) confirmField.value = '1';
+                if (customerFields) customerFields.classList.add('hidden');
+            } else {
+                if (confirmField) confirmField.value = '0';
+                if (customerFields) customerFields.classList.remove('hidden');
+            }
+        }
+
+        if (existingOption) existingOption.addEventListener('change', updateMode);
+        if (newOption) newOption.addEventListener('change', updateMode);
+
+        // Default: require a choice when a mandate exists
+        if (existingOption) {
+            existingOption.checked = true;
+            updateMode();
+        }
+    })();
+</script>
+@endpush
 </x-app-layout>

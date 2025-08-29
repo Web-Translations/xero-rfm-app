@@ -12,6 +12,7 @@ use App\Http\Controllers\InvoicesController;
 use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\MembershipsController;
 use App\Http\Controllers\TokenController;
+use App\Http\Controllers\WebhookController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
@@ -42,13 +43,11 @@ Route::middleware('auth')->group(function () {
 
     // Memberships
     Route::get('/memberships', [MembershipsController::class, 'index'])->name('memberships.index');
+    Route::get('/memberships/manage', [MembershipsController::class, 'manage'])->name('memberships.manage');
     Route::post('/memberships/subscribe', [MembershipsController::class, 'subscribe'])->name('memberships.subscribe');
+    Route::post('/memberships/process-payment', [MembershipsController::class, 'processPayment'])->name('memberships.process-payment');
     Route::post('/memberships/cancel', [MembershipsController::class, 'cancel'])->name('memberships.cancel');
     Route::get('/memberships/payment', [MembershipsController::class, 'payment'])->name('memberships.payment');
-
-
-
-    // Token management (moved to auto-refresh group below)
 
     // User profile (Breeze expects these route names)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -56,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 });
+
+// GoCardless success callback (no auth middleware - handled in controller)
+Route::get('/memberships/success', [MembershipsController::class, 'success'])->name('memberships.success');
 
 // Token management (simplified for debugging)
 Route::post('/token/refresh', [TokenController::class, 'refresh'])->name('token.refresh')->middleware('auth');
@@ -113,9 +115,11 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     Route::get('/rfm/analysis/top-companies', [RfmAnalysisController::class, 'topCompaniesByComponent'])->name('rfm.analysis.top-companies');
 });
 
+// GoCardless webhook (no auth required, CSRF disabled)
+Route::post('/webhooks/gocardless', [WebhookController::class, 'gocardless'])
+    ->name('webhooks.gocardless')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
-
-// GoCardless webhook (no auth required)
-Route::post('/webhooks/gocardless', [MembershipsController::class, 'webhook'])->name('webhooks.gocardless');
+// Debug API route removed
 
 require __DIR__.'/auth.php';

@@ -4,8 +4,12 @@ namespace App\Services;
 
 use GoCardlessPro\Client;
 use GoCardlessPro\Environment;
+use GoCardlessPro\Webhook as GoCardlessWebhook;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\GoCardlessCustomer;
+use App\Models\GoCardlessSubscriptionEvent;
+use App\Models\GoCardlessPaymentEvent;
 
 class GoCardlessService
 {
@@ -48,19 +52,54 @@ class GoCardlessService
                 throw new \Exception("Mandate ID is required for paid plans");
             }
 
-            // Create subscription in GoCardless
+            // If user already has a subscription, cancel it to ensure only one active at a time
+            if (!empty($user->gocardless_subscription_id)) {
+                try {
+                    $this->client->subscriptions()->cancel($user->gocardless_subscription_id);
+                } catch (\Throwable $t) {
+                    $message = strtolower($t->getMessage());
+                    // Tolerate already-cancelled/invalid-state errors
+                    $isAlreadyCancelled = str_contains($message, 'invalid_state') || str_contains($message, 'cancelled');
+                    if ($isAlreadyCancelled) {
+                        Log::warning('Existing subscription already cancelled; proceeding to create new one', [
+                            'existing_subscription_id' => $user->gocardless_subscription_id,
+                        ]);
+                    } else {
+                        Log::error('Failed to cancel existing subscription before creating new one', [
+                        'existing_subscription_id' => $user->gocardless_subscription_id,
+                        'error' => $t->getMessage(),
+                        ]);
+                        return [
+                            'success' => false,
+                            'error' => 'Could not cancel existing subscription. Please try again shortly.',
+                        ];
+                    }
+                }
+            }
+
+            // Create subscription in GoCardless (SDK v7 requires 'params' envelope)
+            $subscriptionParams = [
+                'amount' => (int) $plan['price'],
+                'currency' => (string) $plan['currency'],
+                'interval_unit' => (string) $plan['interval'],
+                'links' => [
+                    'mandate' => (string) ($mandateId ?: ($user->gocardless_mandate_id ?? $mandateId)),
+                ],
+                'metadata' => [
+                    'user_id' => (string) $user->id,
+                    'plan_id' => (string) $planId,
+                ],
+            ];
+
+            // Create subscription
+
+            // Add an idempotency key to protect against duplicate creations
+            $idempotencyKey = 'sub_' . $user->id . '_' . $planId . '_' . substr((string) $mandateId, 0, 8);
             $subscription = $this->client->subscriptions()->create([
-                'params' => [
-                    'amount' => $plan['price'],
-                    'currency' => $plan['currency'],
-                    'interval_unit' => $plan['interval'],
-                    'links' => [
-                        'mandate' => $mandateId,
-                    ],
-                    'metadata' => [
-                        'user_id' => $user->id,
-                        'plan_id' => $planId,
-                    ],
+                'params' => $subscriptionParams,
+            ], [
+                'headers' => [
+                    'Idempotency-Key' => $idempotencyKey,
                 ],
             ]);
 
@@ -79,6 +118,145 @@ class GoCardlessService
 
         } catch (\Exception $e) {
             Log::error('GoCardless subscription creation failed: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Create a redirect flow for mandate setup
+     */
+    public function createRedirectFlow(User $user, string $planId, array $customerData = [])
+    {
+        try {
+            $plan = $this->config['plans'][$planId] ?? null;
+            
+            if (!$plan) {
+                throw new \Exception("Invalid plan: {$planId}");
+            }
+
+            if ($plan['price'] === 0) {
+                throw new \Exception("Redirect flow not needed for free plans");
+            }
+
+            // Get or create customer
+            $customerResult = $this->getOrCreateCustomer($user, $customerData);
+            if (!$customerResult['success']) {
+                throw new \Exception("Failed to create customer: " . $customerResult['error']);
+            }
+
+            // Determine success redirect URL (prefer explicit HTTPS URL when provided)
+            $baseSuccessUrl = !empty($this->config['success_url'])
+                ? $this->config['success_url']
+                : route('memberships.success');
+
+            // Create redirect flow (use SDK 'params' envelope)
+            $sessionToken = uniqid('session_', true);
+            // Include our session token in success URL so we don't rely solely on cookies
+            $successRedirectUrl = $baseSuccessUrl . (str_contains($baseSuccessUrl, '?') ? '&' : '?') . 'gcst=' . urlencode($sessionToken);
+            $redirectFlowParams = [
+                'description' => "Subscription to {$plan['name']} plan",
+                'session_token' => $sessionToken,
+                'success_redirect_url' => $successRedirectUrl,
+                'scheme' => 'bacs',
+                'prefilled_customer' => [
+                    'email' => (string) ($customerData['email'] ?? $user->email),
+                    'given_name' => (string) ($customerData['given_name'] ?? ''),
+                    'family_name' => (string) ($customerData['family_name'] ?? ''),
+                    'address_line1' => (string) ($customerData['address_line1'] ?? ''),
+                    // GoCardless requires strings only; send empty string if absent
+                    'address_line2' => (string) ($customerData['address_line2'] ?? ''),
+                    'city' => (string) ($customerData['city'] ?? ''),
+                    'postal_code' => (string) ($customerData['postal_code'] ?? ''),
+                    'country_code' => (string) ($customerData['country_code'] ?? 'GB'),
+                ],
+                'metadata' => [
+                    'user_id' => (string) $user->id,
+                    'plan_id' => $planId,
+                ],
+            ];
+
+            // Only include creditor link if configured
+            if (!empty($this->config['creditor_id'])) {
+                $redirectFlowParams['links'] = [
+                    'creditor' => $this->config['creditor_id'],
+                ];
+            }
+
+            Log::info('Creating GoCardless redirect flow with params:', $redirectFlowParams);
+
+            try {
+                $redirectFlow = $this->client->redirectFlows()->create([
+                    'params' => $redirectFlowParams,
+                ]);
+                Log::info('GoCardless redirect flow created successfully', ['id' => $redirectFlow->id]);
+            } catch (\Exception $e) {
+                Log::error('GoCardless API error details:', [
+                    'message' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                throw $e;
+            }
+
+            return [
+                'success' => true,
+                'redirect_url' => $redirectFlow->redirect_url,
+                'redirect_flow_id' => $redirectFlow->id,
+                'session_token' => $sessionToken,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('GoCardless redirect flow creation failed: ' . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Complete redirect flow and create mandate
+     */
+    public function completeRedirectFlow(string $redirectFlowId, string $sessionToken)
+    {
+        try {
+            // Complete the redirect flow to generate a mandate
+            $completed = $this->client->redirectFlows()->complete($redirectFlowId, [
+                'params' => [
+                    'session_token' => $sessionToken,
+                ],
+            ]);
+
+            if (empty($completed->links) || empty($completed->links->mandate)) {
+                throw new \Exception('Redirect flow completion did not return a mandate');
+            }
+
+            // Normalize metadata (SDK returns stdClass)
+            $metadataArray = (array) ($completed->metadata ?? []);
+
+            // Persist mandate to user for future plan switches (no extra redirect needed)
+            try {
+                $userIdFromMeta = isset($metadataArray['user_id']) ? (int) $metadataArray['user_id'] : null;
+                if ($userIdFromMeta) {
+                    $user = User::find($userIdFromMeta);
+                    if ($user) {
+                        $user->update(['gocardless_mandate_id' => (string) $completed->links->mandate]);
+                    }
+                }
+            } catch (\Throwable $t) {
+                Log::warning('Failed to persist mandate to user', ['error' => $t->getMessage()]);
+            }
+
+            return [
+                'success' => true,
+                'mandate_id' => $completed->links->mandate,
+                'customer_id' => $completed->links->customer ?? null,
+                'plan_id' => $metadataArray['plan_id'] ?? null,
+                'user_id' => isset($metadataArray['user_id']) ? (int) $metadataArray['user_id'] : null,
+                'redirect_flow_id' => $redirectFlowId,
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Failed to complete redirect flow: ' . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
@@ -116,6 +294,11 @@ class GoCardlessService
     }
 
     /**
+     * Schedule cancel at end of current billing period for a subscription
+     */
+    // scheduleCancelAtPeriodEnd removed per product decision
+
+    /**
      * Get subscription details
      */
     public function getSubscription(string $subscriptionId)
@@ -129,30 +312,70 @@ class GoCardlessService
     }
 
     /**
-     * Create a mandate (payment authorization)
+     * Get next payment (if any) for a subscription
      */
-    public function createMandate(User $user, string $bankAccountId)
+    public function getNextPaymentForSubscription(string $subscriptionId)
     {
         try {
-            $mandate = $this->client->mandates()->create([
+            // Fetch up to 50 payments for this subscription and pick the earliest
+            // relevant upcoming payment (pending_submission/submitted), otherwise fall back
+            // to the most recent payment with a charge_date if no upcoming item exists yet.
+            $list = $this->client->payments()->list([
                 'params' => [
-                    'links' => [
-                        'creditor' => $this->getCreditorId(),
-                        'customer_bank_account' => $bankAccountId,
-                    ],
-                    'scheme' => 'bacs',
-                    'metadata' => [
-                        'user_id' => $user->id,
-                    ],
+                    'subscription' => $subscriptionId,
+                    'limit' => 50,
                 ],
             ]);
 
-            return ['success' => true, 'mandate_id' => $mandate->id];
+            $items = $list->items ?? [];
+            if (!is_array($items)) {
+                $items = [];
+            }
 
+            $upcomingStatuses = ['pending_submission', 'submitted'];
+            $chosen = null;
+            foreach ($items as $payment) {
+                $status = $payment->status ?? null;
+                $chargeDate = $payment->charge_date ?? null;
+                if (!$status || !$chargeDate) {
+                    continue;
+                }
+                if (in_array($status, $upcomingStatuses, true)) {
+                    if ($chosen === null) {
+                        $chosen = $payment;
+                    } else {
+                        if (strtotime((string) $payment->charge_date) < strtotime((string) $chosen->charge_date)) {
+                            $chosen = $payment;
+                        }
+                    }
+                }
+            }
+
+            if ($chosen) {
+                return $chosen;
+            }
+
+            // Fallback: pick the most recent payment with a charge_date
+            foreach ($items as $payment) {
+                if (!empty($payment->charge_date)) {
+                    if ($chosen === null) {
+                        $chosen = $payment;
+                    } else {
+                        if (strtotime((string) $payment->charge_date) > strtotime((string) $chosen->charge_date)) {
+                            $chosen = $payment;
+                        }
+                    }
+                }
+            }
+
+            if ($chosen) {
+                return $chosen;
+            }
         } catch (\Exception $e) {
-            Log::error('GoCardless mandate creation failed: ' . $e->getMessage());
-            return ['success' => false, 'error' => $e->getMessage()];
+            Log::error('GoCardless get next payment failed: ' . $e->getMessage());
         }
+
+        return null;
     }
 
     /**
@@ -172,106 +395,255 @@ class GoCardlessService
     }
 
     /**
-     * Get creditor ID (you'll need to set this up in GoCardless)
+     * Create a customer in GoCardless
      */
-    protected function getCreditorId()
-    {
-        // You'll need to get this from your GoCardless dashboard
-        // For now, we'll use a placeholder
-        return env('GOCARDLESS_CREDITOR_ID', '');
-    }
-
-    /**
-     * Handle webhook events
-     */
-    public function handleWebhook($payload, $signature)
+    public function createCustomer(User $user, array $customerData)
     {
         try {
-            // Verify webhook signature
-            $expectedSignature = hash_hmac('sha256', $payload, $this->config['webhook_secret']);
-            
-            if (!hash_equals($expectedSignature, $signature)) {
-                throw new \Exception('Invalid webhook signature');
+            // Check if customer already exists
+            $existingCustomer = $user->gocardlessCustomer;
+            if ($existingCustomer) {
+                return ['success' => true, 'customer_id' => $existingCustomer->gocardless_customer_id];
             }
 
-            $events = json_decode($payload, true);
-            
-            foreach ($events['events'] as $event) {
-                $this->processWebhookEvent($event);
+            // Create customer in GoCardless
+            $customerParams = [
+                'email' => (string) $customerData['email'],
+                'given_name' => (string) ($customerData['given_name'] ?? ''),
+                'family_name' => (string) ($customerData['family_name'] ?? ''),
+                'address_line1' => (string) ($customerData['address_line1'] ?? ''),
+                'address_line2' => (string) ($customerData['address_line2'] ?? ''),
+                'city' => (string) ($customerData['city'] ?? ''),
+                'region' => (string) ($customerData['region'] ?? ''),
+                'postal_code' => (string) ($customerData['postal_code'] ?? ''),
+                'country_code' => (string) ($customerData['country_code'] ?? 'GB'),
+                'metadata' => [
+                    'user_id' => (string) $user->id,
+                ],
+            ];
+
+            // Only include company_name if present
+            if (!empty($customerData['company_name'])) {
+                $customerParams['company_name'] = (string) $customerData['company_name'];
             }
 
-            return ['success' => true];
+            // Create customer
+
+            $customer = $this->client->customers()->create([
+                'params' => $customerParams,
+            ]);
+
+            // Upsert customer to database (avoid duplicates per user)
+            GoCardlessCustomer::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'gocardless_customer_id' => $customer->id,
+                    'email' => $customer->email,
+                    'given_name' => $customer->given_name,
+                    'family_name' => $customer->family_name,
+                    'company_name' => $customer->company_name,
+                    'address_line1' => $customer->address_line1,
+                    'address_line2' => $customer->address_line2,
+                    'city' => $customer->city,
+                    'region' => $customer->region,
+                    'postal_code' => $customer->postal_code,
+                    'country_code' => $customer->country_code,
+                    'metadata' => $customer->metadata,
+                ]
+            );
+
+            return ['success' => true, 'customer_id' => $customer->id];
 
         } catch (\Exception $e) {
-            Log::error('GoCardless webhook processing failed: ' . $e->getMessage());
+            Log::error('GoCardless customer creation failed: ' . $e->getMessage());
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
     /**
-     * Process individual webhook events
+     * Get or create customer for a user
      */
-    protected function processWebhookEvent($event)
+    public function getOrCreateCustomer(User $user, array $customerData = [])
     {
-        $resourceType = $event['resource_type'];
+        // Check if customer already exists
+        $existingCustomer = $user->gocardlessCustomer;
+        if ($existingCustomer) {
+            return ['success' => true, 'customer_id' => $existingCustomer->gocardless_customer_id];
+        }
+
+        // Create new customer
+        return $this->createCustomer($user, $customerData);
+    }
+
+    /**
+     * Handle webhook events
+     */
+    public function handleWebhook(string $payload, string $signature)
+    {
+        try {
+            // Verify and parse using GoCardless SDK helper
+            $parsed = GoCardlessWebhook::parse($payload, $signature, (string) $this->config['webhook_secret']);
+
+            foreach ($parsed->events as $event) {
+                // Normalize to array for existing handlers
+                $normalized = [
+                    'action' => $event->action,
+                    'resource_type' => $event->resource_type,
+                    'links' => (array) $event->links,
+                    'metadata' => (array) ($event->metadata ?? []),
+                    'id' => $event->id ?? null,
+                ];
+                $this->processWebhookEvent($normalized);
+            }
+
+            return ['success' => true];
+
+        } catch (\Exception $e) {
+            Log::error('Webhook processing failed: ' . $e->getMessage());
+
+            // In local/dev, fall back to unsigned processing to aid debugging
+            if (config('app.env') === 'local') {
+                try {
+                    $decoded = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+                    foreach (($decoded['events'] ?? []) as $event) {
+                        $this->processWebhookEvent([
+                            'action' => $event['action'] ?? null,
+                            'resource_type' => $event['resource_type'] ?? null,
+                            'links' => $event['links'] ?? [],
+                            'metadata' => $event['metadata'] ?? [],
+                        ]);
+                    }
+                    Log::warning('Processed webhook without signature verification (local env only)');
+                    return ['success' => true, 'warning' => 'unsigned_webhook_processed_in_local'];
+                } catch (\Throwable $te) {
+                    Log::error('Unsigned webhook fallback also failed: ' . $te->getMessage());
+                }
+            }
+
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Process individual webhook event
+     */
+    private function processWebhookEvent(array $event)
+    {
         $action = $event['action'];
-        $resource = $event['links'][$resourceType];
+        $resourceType = $event['resource_type'];
+
+        // Map links key safely (webhook uses singular keys in links)
+        $links = $event['links'] ?? [];
+        $resourceId = $links['subscription']
+            ?? $links['mandate']
+            ?? $links['payment']
+            ?? $links['customer']
+            ?? null;
+
+        Log::info("Processing webhook event: {$action} for {$resourceType} " . ($resourceId ?? 'unknown'));
+
+        // De-duplication: if we have an event id, skip if already stored
+        $eventId = $event['id'] ?? null;
+        if ($eventId) {
+            if ($resourceType === 'subscriptions' && GoCardlessSubscriptionEvent::where('event_id', $eventId)->exists()) {
+                return;
+            }
+            if ($resourceType === 'payments' && GoCardlessPaymentEvent::where('event_id', $eventId)->exists()) {
+                return;
+            }
+        }
 
         switch ($resourceType) {
             case 'subscriptions':
-                $this->handleSubscriptionEvent($action, $resource);
+                $this->handleSubscriptionEvent($action, $resourceId, $eventId, $event);
                 break;
             case 'mandates':
-                $this->handleMandateEvent($action, $resource);
+                $this->handleMandateEvent($action, $resourceId);
                 break;
             case 'payments':
-                $this->handlePaymentEvent($action, $resource);
+                $this->handlePaymentEvent($action, $resourceId, $eventId, $event);
                 break;
         }
     }
 
     /**
-     * Handle subscription-related webhook events
+     * Handle subscription webhook events
      */
-    protected function handleSubscriptionEvent($action, $subscriptionId)
+    private function handleSubscriptionEvent(string $action, string $subscriptionId, ?string $eventId = null, array $rawEvent = [])
     {
+        // Find user by subscription ID
         $user = User::where('gocardless_subscription_id', $subscriptionId)->first();
-        
         if (!$user) {
+            Log::warning("No user found for subscription: {$subscriptionId}");
             return;
         }
 
         switch ($action) {
+            case 'created':
+            case 'submitted':
+                $user->update(['subscription_status' => 'pending']);
+                break;
+            case 'activated':
             case 'confirmed':
                 $user->update(['subscription_status' => 'active']);
                 break;
             case 'cancelled':
                 $user->update([
-                    'subscription_plan' => 'free',
                     'subscription_status' => 'cancelled',
+                    'subscription_plan' => 'free',
+                    'gocardless_subscription_id' => null,
                 ]);
                 break;
-            case 'payment_created':
-                // Handle payment creation
+            case 'customer_approval_denied':
+            case 'payment_failed':
+                $user->update(['subscription_status' => 'past_due']);
                 break;
+        }
+
+        if ($eventId) {
+            GoCardlessSubscriptionEvent::create([
+                'user_id' => $user->id,
+                'subscription_id' => $subscriptionId,
+                'event_id' => $eventId,
+                'action' => $action,
+                'payload' => $rawEvent,
+            ]);
         }
     }
 
     /**
-     * Handle mandate-related webhook events
+     * Handle mandate webhook events
      */
-    protected function handleMandateEvent($action, $mandateId)
+    private function handleMandateEvent(string $action, string $mandateId)
     {
-        // Handle mandate events (e.g., mandate activated, failed, etc.)
         Log::info("Mandate event: {$action} for mandate {$mandateId}");
     }
 
     /**
-     * Handle payment-related webhook events
+     * Handle payment webhook events
      */
-    protected function handlePaymentEvent($action, $paymentId)
+    private function handlePaymentEvent(string $action, string $paymentId, ?string $eventId = null, array $rawEvent = [])
     {
-        // Handle payment events (e.g., payment confirmed, failed, etc.)
         Log::info("Payment event: {$action} for payment {$paymentId}");
+        // Persist minimal payment info
+        if ($eventId) {
+            $userId = null;
+            try {
+                // Attempt to associate payment to a user via current subs (optional, best-effort)
+                $userId = User::whereNotNull('gocardless_subscription_id')->first()?->id;
+            } catch (\Throwable $t) {
+                // ignore
+            }
+            GoCardlessPaymentEvent::create([
+                'user_id' => $userId,
+                'payment_id' => $paymentId,
+                'event_id' => $eventId,
+                'status' => $rawEvent['action'] ?? 'unknown',
+                'charge_date' => $rawEvent['links']['charge_date'] ?? null,
+                'amount' => $rawEvent['links']['amount'] ?? null,
+                'currency' => $rawEvent['links']['currency'] ?? null,
+                'payload' => $rawEvent,
+            ]);
+        }
     }
 }
