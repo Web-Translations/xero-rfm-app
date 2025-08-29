@@ -186,6 +186,8 @@ class RfmAnalysisController extends Controller
         }
     }
 
+
+
     public function business(Request $request)
     {
         try {
@@ -224,6 +226,25 @@ class RfmAnalysisController extends Controller
         } catch (\Exception $e) {
             Log::error('RFM Business error: ' . $e->getMessage());
             return redirect()->route('dashboard')->withErrors('Failed to load RFM business analysis. Please try again.');
+        }
+    }
+
+    public function components(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $activeConnection = $user->getActiveXeroConnection();
+            
+            if (!$activeConnection) {
+                return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
+            }
+
+            return view('rfm.analysis.components', [
+                'activeConnection' => $activeConnection,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('RFM components error: ' . $e->getMessage());
+            return redirect()->route('rfm.analysis.index')->withErrors('Failed to load RFM components analysis.');
         }
     }
 
@@ -1031,6 +1052,254 @@ class RfmAnalysisController extends Controller
         }
 
         return $out;
+    }
+
+    /**
+     * Get RFM component breakdown trend data
+     */
+    public function rfmComponentTrends(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $activeConnection = $user->getActiveXeroConnection();
+            
+            if (!$activeConnection) {
+                return response()->json(['error' => 'No active organisation'], 400);
+            }
+
+            $monthsBack = (int) $request->get('months_back', 12);
+            $trendData = $this->getRfmComponentTrendData($user->id, $activeConnection->tenant_id, $monthsBack);
+            
+            return response()->json($trendData);
+        } catch (\Exception $e) {
+            Log::error('RFM component trends error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to load RFM component trend data'], 500);
+        }
+    }
+
+    /**
+     * Get top companies by RFM component
+     */
+    public function topCompaniesByComponent(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $activeConnection = $user->getActiveXeroConnection();
+            
+            if (!$activeConnection) {
+                return response()->json(['error' => 'No active organisation'], 400);
+            }
+
+            $topCompanies = $this->getTopCompaniesByComponent($user->id, $activeConnection->tenant_id);
+            
+            return response()->json($topCompanies);
+        } catch (\Exception $e) {
+            Log::error('Top companies by component error: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to load top companies data'], 500);
+        }
+    }
+
+    /**
+     * Get top companies by each RFM component
+     */
+    private function getTopCompaniesByComponent(int $userId, string $tenantId): array
+    {
+        // Get the most recent RFM data for each client
+        $latestRfmData = RfmReport::select([
+                'rfm_reports.client_id',
+                'rfm_reports.r_score',
+                'rfm_reports.f_score',
+                'rfm_reports.m_score',
+                'rfm_reports.rfm_score',
+                'rfm_reports.snapshot_date',
+                'clients.name as client_name',
+            ])
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+            ->where('rfm_reports.user_id', $userId)
+            ->where('clients.tenant_id', $tenantId)
+            ->where('rfm_reports.rfm_score', '>', 0) // Only include active customers
+            ->whereIn('rfm_reports.snapshot_date', function($query) use ($userId, $tenantId) {
+                $query->select(DB::raw('MAX(snapshot_date)'))
+                    ->from('rfm_reports')
+                    ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+                    ->where('rfm_reports.user_id', $userId)
+                    ->where('clients.tenant_id', $tenantId);
+            })
+            ->orderBy('rfm_reports.snapshot_date', 'desc')
+            ->get();
+
+        if ($latestRfmData->isEmpty()) {
+            return [
+                'recent' => [],
+                'frequent' => [],
+                'monetary' => []
+            ];
+        }
+
+        // Get top 5 by each component
+        $topRecent = $latestRfmData->sortByDesc('r_score')->take(5)->map(function($item) {
+            return [
+                'name' => $item->client_name,
+                'score' => round($item->r_score, 2),
+                'rfm_score' => round($item->rfm_score, 2),
+                'last_activity' => Carbon::parse($item->snapshot_date)->format('M Y')
+            ];
+        })->values();
+
+        $topFrequent = $latestRfmData->sortByDesc('f_score')->take(5)->map(function($item) {
+            return [
+                'name' => $item->client_name,
+                'score' => round($item->f_score, 2),
+                'rfm_score' => round($item->rfm_score, 2),
+                'last_activity' => Carbon::parse($item->snapshot_date)->format('M Y')
+            ];
+        })->values();
+
+        $topMonetary = $latestRfmData->sortByDesc('m_score')->take(5)->map(function($item) {
+            return [
+                'name' => $item->client_name,
+                'score' => round($item->m_score, 2),
+                'rfm_score' => round($item->rfm_score, 2),
+                'last_activity' => Carbon::parse($item->snapshot_date)->format('M Y')
+            ];
+        })->values();
+
+        return [
+            'recent' => $topRecent->toArray(),
+            'frequent' => $topFrequent->toArray(),
+            'monetary' => $topMonetary->toArray()
+        ];
+    }
+
+    /**
+     * Get RFM component breakdown trend data for the specified period
+     */
+    private function getRfmComponentTrendData(int $userId, string $tenantId, int $monthsBack = 12): array
+    {
+        $endDate = Carbon::now();
+        $startDate = $endDate->copy()->subMonths($monthsBack);
+
+        // Get RFM reports for the specified period
+        $rfmReports = RfmReport::select([
+                'rfm_reports.snapshot_date',
+                'rfm_reports.r_score',
+                'rfm_reports.f_score',
+                'rfm_reports.m_score',
+                'rfm_reports.rfm_score',
+            ])
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+            ->where('rfm_reports.user_id', $userId)
+            ->where('clients.tenant_id', $tenantId)
+            ->where('rfm_reports.snapshot_date', '>=', $startDate->toDateString())
+            ->where('rfm_reports.snapshot_date', '<=', $endDate->toDateString())
+            ->where('rfm_reports.rfm_score', '>', 0) // Only include active customers
+            ->orderBy('rfm_reports.snapshot_date', 'asc')
+            ->get();
+
+        if ($rfmReports->isEmpty()) {
+            return [
+                'labels' => [],
+                'datasets' => [
+                    [
+                        'label' => 'R Score (Recency)',
+                        'data' => [],
+                        'borderColor' => '#EF4444',
+                        'backgroundColor' => 'rgba(239, 68, 68, 0.1)',
+                        'borderWidth' => 3,
+                        'fill' => false,
+                        'tension' => 0.4
+                    ],
+                    [
+                        'label' => 'F Score (Frequency)',
+                        'data' => [],
+                        'borderColor' => '#10B981',
+                        'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                        'borderWidth' => 3,
+                        'fill' => false,
+                        'tension' => 0.4
+                    ],
+                    [
+                        'label' => 'M Score (Monetary)',
+                        'data' => [],
+                        'borderColor' => '#F59E0B',
+                        'backgroundColor' => 'rgba(245, 158, 11, 0.1)',
+                        'borderWidth' => 3,
+                        'fill' => false,
+                        'tension' => 0.4
+                    ]
+                ]
+            ];
+        }
+
+        // Group by month and calculate averages
+        $monthlyData = $rfmReports->groupBy(function ($report) {
+            return Carbon::parse($report->snapshot_date)->format('Y-m');
+        })->map(function ($monthReports) {
+            return [
+                'avg_r_score' => round($monthReports->avg('r_score'), 2),
+                'avg_f_score' => round($monthReports->avg('f_score'), 2),
+                'avg_m_score' => round($monthReports->avg('m_score'), 2),
+                'avg_rfm_score' => round($monthReports->avg('rfm_score'), 2),
+                'count' => $monthReports->count()
+            ];
+        });
+
+        // Sort by month
+        $monthlyData = $monthlyData->sortKeys();
+
+        // Prepare chart data
+        $labels = [];
+        $rScores = [];
+        $fScores = [];
+        $mScores = [];
+
+        foreach ($monthlyData as $month => $data) {
+            $labels[] = Carbon::createFromFormat('Y-m', $month)->format('M Y');
+            $rScores[] = $data['avg_r_score'];
+            $fScores[] = $data['avg_f_score'];
+            $mScores[] = $data['avg_m_score'];
+        }
+
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'R Score (Recency)',
+                    'data' => $rScores,
+                    'borderColor' => '#EF4444',
+                    'backgroundColor' => 'rgba(239, 68, 68, 0.1)',
+                    'borderWidth' => 3,
+                    'fill' => false,
+                    'tension' => 0.4
+                ],
+                [
+                    'label' => 'F Score (Frequency)',
+                    'data' => $fScores,
+                    'borderColor' => '#10B981',
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                    'borderWidth' => 3,
+                    'fill' => false,
+                    'tension' => 0.4
+                ],
+                [
+                    'label' => 'M Score (Monetary)',
+                    'data' => $mScores,
+                    'borderColor' => '#F59E0B',
+                    'backgroundColor' => 'rgba(245, 158, 11, 0.1)',
+                    'borderWidth' => 3,
+                    'fill' => false,
+                    'tension' => 0.4
+                ]
+            ],
+            'summary' => [
+                'total_months' => count($labels),
+                'avg_r_score' => round($monthlyData->avg('avg_r_score'), 2),
+                'avg_f_score' => round($monthlyData->avg('avg_f_score'), 2),
+                'avg_m_score' => round($monthlyData->avg('avg_m_score'), 2),
+                'avg_rfm_score' => round($monthlyData->avg('avg_rfm_score'), 2),
+                'total_customers' => $monthlyData->sum('count')
+            ]
+        ];
     }
 
 }
