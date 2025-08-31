@@ -11,14 +11,73 @@
     </script>
 
     <div class="p-6 space-y-6">
+        @php
+            $hasRfmData = ($filteredCount ?? 0) > 0;
+        @endphp
+        <!-- Intro Card -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-100 dark:bg-indigo-900 rounded-full mb-3">
+                    <svg class="w-7 h-7 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">RFM Scores</h1>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Calculate and review customer RFM scores to unlock reports and analysis.
+                </p>
+            </div>
+        </div>
         @if (session('status'))
             <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div class="text-green-800 dark:text-green-200">{{ session('status') }}</div>
             </div>
         @endif
 
+        @if(isset($needsRecalc) && $needsRecalc)
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <div class="text-yellow-800 dark:text-yellow-200">
+                    Your RFM settings or invoice exclusions changed. Recalculate RFM to apply the changes.
+                    <form method="POST" action="{{ route('rfm.sync') }}" class="inline ml-2">
+                        @csrf
+                        <button type="submit" name="action" value="sync_all" class="text-sm underline">Recalculate RFM</button>
+                    </form>
+                </div>
+            </div>
+        @endif
+
+        @if (! $hasInvoices)
+            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-5 text-center">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Sync invoices to get started</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">You need invoice data before calculating RFM scores.</p>
+                    <a href="{{ route('invoices.index') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Go to Invoices</a>
+                </div>
+            </div>
+        @elseif (! $hasRfmData)
+            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-5 text-center">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Calculate RFM scores to begin</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">This will compute the RFM scoreboard and create historical snapshots for reporting and analysis.</p>
+                    <form method="POST" action="{{ route('rfm.sync') }}" class="inline" id="rfm-initial-form">
+                        @csrf
+                        <button type="submit" name="action" value="sync_all" id="rfm-initial-btn" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm">
+                            <svg id="rfm-initial-icon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                            </svg>
+                            <span id="rfm-initial-text">Calculate RFM scores</span>
+                        </button>
+                    </form>
+                    <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                        Want to change how scores are calculated? <a href="{{ route('rfm.config.index') }}" class="underline">Configure RFM settings</a>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-700 dark:text-gray-300 hidden" id="rfm-initial-counter">Calculating…</div>
+                </div>
+            </div>
+        @endif
+
         <!-- Combined Configuration and Calculate Card -->
-        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasRfmData ? '' : 'opacity-50 pointer-events-none' }}">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">RFM Configuration & Analysis</h3>
@@ -28,7 +87,7 @@
                         </a>
                         <form method="POST" action="{{ route('rfm.sync') }}" class="inline" id="rfm-calculation-form">
                             @csrf
-                            <button type="submit" name="action" value="sync_all" id="calculate-btn" class="relative px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-500 disabled:cursor-not-allowed text-white font-medium transition-all duration-200 flex items-center justify-center min-w-[160px]">
+                            <button type="submit" name="action" value="sync_all" id="calculate-btn" class="relative px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-500 disabled:cursor-not-allowed text-white font-medium transition-all duration-200 flex items-center justify-center min-w-[160px]" {{ $hasRfmData ? '' : 'disabled' }}>
                                 <span id="calculate-text" class="flex items-center gap-2">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
@@ -75,9 +134,13 @@
                     </div>
                 </div>
                 
-                <!-- RFM Formulas -->
+                <!-- RFM Formulas (collapsible) -->
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">RFM Calculation Formulas</h4>
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300">RFM Calculation Formulas</h4>
+                        <button type="button" id="toggle-formulas" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Hide</button>
+                    </div>
+                    <div id="formulas-block" class="mt-3">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                         <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                             <div class="font-medium text-blue-600 dark:text-blue-400 mb-1">Recency (R)</div>
@@ -107,12 +170,13 @@
                             \[ \text{RFM} = \frac{R + F + M}{3} \]
                         </div>
                     </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- View Options Card -->
-        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasRfmData ? '' : 'opacity-50 pointer-events-none' }}">
             <!-- Card header -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -164,7 +228,7 @@
         </div>
 
         <!-- Results Card -->
-        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasRfmData ? '' : 'opacity-50 pointer-events-none' }}">
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">RFM Leaderboard</h3>
             </div>
@@ -274,6 +338,11 @@
             const button = document.getElementById('calculate-btn');
             const buttonText = document.getElementById('calculate-text');
             const loadingDiv = document.getElementById('calculate-loading');
+            const initialForm = document.getElementById('rfm-initial-form');
+            const initialBtn = document.getElementById('rfm-initial-btn');
+            const initialIcon = document.getElementById('rfm-initial-icon');
+            const initialText = document.getElementById('rfm-initial-text');
+            const initialCounter = document.getElementById('rfm-initial-counter');
 
             form.addEventListener('submit', function(e) {
                 // Show loading state with smooth transition
@@ -294,6 +363,29 @@
                     loadingDiv.style.transform = 'scale(1)';
                 }, 150);
             });
+
+            if (initialForm && initialBtn) {
+                initialForm.addEventListener('submit', function(e) {
+                    initialBtn.disabled = true;
+                    if (initialIcon) initialIcon.classList.add('animate-spin');
+                    if (initialText) initialText.textContent = 'Starting…';
+                    if (initialCounter) initialCounter.classList.remove('hidden');
+                });
+            }
+
+            const toggleBtn = document.getElementById('toggle-formulas');
+            const formulas = document.getElementById('formulas-block');
+            if (toggleBtn && formulas) {
+                toggleBtn.addEventListener('click', function() {
+                    if (formulas.classList.contains('hidden')) {
+                        formulas.classList.remove('hidden');
+                        this.textContent = 'Hide';
+                    } else {
+                        formulas.classList.add('hidden');
+                        this.textContent = 'Show';
+                    }
+                });
+            }
         });
     </script>
 </x-app-layout>

@@ -28,10 +28,17 @@ class RfmReportsController extends Controller
         // Get available snapshot dates for report builder (1st of month only for comparison compatibility)
         $availableSnapshots = RfmReport::getReportBuilderSnapshotDates($user->id, $activeConnection->tenant_id);
 
+        // Flags for UX prompts
+        $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+        $invoiceCount = \App\Models\XeroInvoice::where('user_id', $user->id)->where('tenant_id', $activeConnection->tenant_id)->count();
+        $hasInvoices = $invoiceCount > 0;
+
         return view('rfm.reports.index', [
             'activeConnection' => $activeConnection,
             'config' => $config,
             'availableSnapshots' => $availableSnapshots,
+            'hasRfm' => $hasRfm,
+            'hasInvoices' => $hasInvoices,
         ]);
     }
 

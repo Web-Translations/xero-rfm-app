@@ -68,6 +68,11 @@ class RfmAnalysisController extends Controller
                 'rfm_with_tenant' => RfmReport::where('user_id', $user->id)->whereHas('client', function($q) use ($activeConnection) { $q->where('tenant_id', $activeConnection->tenant_id); })->count(),
             ]);
 
+            $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+            $hasInvoices = \App\Models\XeroInvoice::where('user_id', $user->id)
+                ->where('tenant_id', $activeConnection->tenant_id)
+                ->exists();
+
             return view('rfm.analysis.index', [
                 'activeConnection' => $activeConnection,
                 'summaryStats'     => $summaryStats,
@@ -75,6 +80,8 @@ class RfmAnalysisController extends Controller
                 'rfmData'          => $rfmData,
                 'revenueData'      => $revenueData,
                 'topRevenueClients' => $topRevenueClients,
+                'hasRfm'           => $hasRfm,
+                'hasInvoices'      => $hasInvoices,
             ]);
         } catch (\Exception $e) {
             Log::error('RFM Analysis index error: ' . $e->getMessage());
@@ -173,6 +180,8 @@ class RfmAnalysisController extends Controller
                 ];
             }
 
+            $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+
             return view('rfm.analysis.trends', [
                 'activeConnection' => $activeConnection,
                 'labels'           => $labels,
@@ -180,6 +189,7 @@ class RfmAnalysisController extends Controller
                 'metric'           => $metric,
                 'monthsBack'       => $monthsBack,
                 'limit'            => $limit,
+                'hasRfm'           => $hasRfm,
             ]);
         } catch (\Exception $e) {
             Log::error('RFM Trends error: ' . $e->getMessage());
@@ -201,8 +211,11 @@ class RfmAnalysisController extends Controller
                 return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
             }
 
+            $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+
             return view('rfm.analysis.components', [
                 'activeConnection' => $activeConnection,
+                'hasRfm'           => $hasRfm,
             ]);
         } catch (\Exception $e) {
             Log::error('RFM components error: ' . $e->getMessage());
@@ -297,10 +310,13 @@ class RfmAnalysisController extends Controller
                 'client_data_count' => count($clientData),
             ]);
 
+            $hasRfm = $rfmData->count() > 0;
+
             return view('rfm.analysis.distributions', [
                 'activeConnection' => $activeConnection,
                 'rfmData' => $rfmData,
                 'hasData' => $hasData,
+                'hasRfm'  => $hasRfm,
                 'allDates' => $allDates,
                 'allClients' => $allClients,
                 'clientData' => $clientData,
@@ -641,6 +657,7 @@ class RfmAnalysisController extends Controller
             $includePartial = (bool) $request->boolean('partial');   // include current month?
 
             $segTS = $this->getMonthlySegmentSeries($user->id, $activeConnection->tenant_id, $from, $to, $includePartial);
+            $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
 
             return view('rfm.analysis.segments', [
                 'activeConnection'    => $activeConnection,
@@ -652,6 +669,7 @@ class RfmAnalysisController extends Controller
                 'from'                => $from,
                 'to'                  => $to,
                 'includePartial'      => $includePartial,
+                'hasRfm'              => $hasRfm,
             ]);
         } catch (\Exception $e) {
             Log::error('RFM Segments error: ' . $e->getMessage());
@@ -670,9 +688,12 @@ class RfmAnalysisController extends Controller
         // JS can also hit predictiveSeries() for fresh data
         $predictiveData = $this->getPredictiveData($user->id, $activeConnection->tenant_id);
 
+        $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+
         return view('rfm.analysis.predictive', [
             'activeConnection' => $activeConnection,
             'predictiveData'   => $predictiveData,
+            'hasRfm'           => $hasRfm,
         ]);
     }
 
@@ -686,9 +707,12 @@ class RfmAnalysisController extends Controller
 
         $cohortData = $this->getCohortData($user->id, $activeConnection->tenant_id);
 
+        $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+
         return view('rfm.analysis.cohort', [
             'activeConnection' => $activeConnection,
             'cohortData'       => $cohortData,
+            'hasRfm'           => $hasRfm,
         ]);
     }
 
@@ -705,11 +729,14 @@ class RfmAnalysisController extends Controller
 
         $comparativeData = $this->getComparativeData($user->id, $activeConnection->tenant_id, $period1, $period2);
 
+        $hasRfm = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id)->count() > 0;
+
         return view('rfm.analysis.comparative', [
             'activeConnection' => $activeConnection,
             'comparativeData'  => $comparativeData,
             'period1'          => $period1,
             'period2'          => $period2,
+            'hasRfm'           => $hasRfm,
         ]);
     }
 

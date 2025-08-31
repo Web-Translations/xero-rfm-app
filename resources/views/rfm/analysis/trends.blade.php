@@ -18,6 +18,14 @@
             </div>
 
             <div class="p-6">
+                @if(isset($hasRfm) && !$hasRfm)
+                    <div class="mb-6 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+                        <div class="text-sm text-yellow-800 dark:text-yellow-200">
+                            Analysis requires RFM scores. Calculate them to begin.
+                            <a href="{{ route('rfm.index') }}" class="underline ml-2">Go to RFM Scores</a>
+                        </div>
+                    </div>
+                @endif
                 {{-- Tabs --}}
                 <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
                     <nav class="-mb-px flex gap-6 overflow-x-auto">
@@ -46,7 +54,7 @@
                 {{-- Trend Analysis Content --}}
                 <div class="space-y-6">
         {{-- Filters --}}
-        <form method="GET" class="bg-white dark:bg-gray-800 shadow trend-card p-4 flex flex-wrap gap-3 items-end">
+        <form method="GET" class="bg-white dark:bg-gray-800 shadow trend-card p-4 flex flex-wrap gap-3 items-end {{ (isset($hasRfm) && !$hasRfm) ? 'opacity-50 pointer-events-none' : '' }}">
             <div>
                 <label for="months_back" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Months back</label>
                 <input type="number" id="months_back" name="months_back" value="{{ $monthsBack ?? 12 }}" min="1" max="36"
@@ -74,7 +82,7 @@
         </form>
 
         {{-- Chart --}}
-        <div class="bg-white dark:bg-gray-800 shadow trend-card">
+        <div class="bg-white dark:bg-gray-800 shadow trend-card {{ (isset($hasRfm) && !$hasRfm) ? 'opacity-50 pointer-events-none' : '' }}">
             <div class="trend-chart-container">
                 <canvas id="customerTrend"></canvas>
             </div>

@@ -56,6 +56,31 @@ class RfmController extends Controller
             ->count();
         $filteredCount = $rows->total();
 
+        // Determine if any invoices exist yet (controls guidance cards)
+        $hasInvoices = \App\Models\XeroInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->exists();
+
+        // Determine if recalculation is needed based on config/exclusions updates
+        $lastSnapshotDate = RfmReport::where('rfm_reports.user_id', $user->id)
+            ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+            ->where('clients.tenant_id', $activeConnection->tenant_id)
+            ->max('rfm_reports.snapshot_date');
+        // Treat last compute as the end of the snapshot day to avoid false-positive recalc on the same day
+        $lastComputedAt = $lastSnapshotDate ? \Illuminate\Support\Carbon::parse($lastSnapshotDate)->endOfDay() : null;
+        $exclusionsUpdatedAt = \App\Models\ExcludedInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->max('updated_at');
+        $needsRecalc = false;
+        if ($lastComputedAt) {
+            if ($config->updated_at && \Illuminate\Support\Carbon::parse($config->updated_at)->gt($lastComputedAt)) {
+                $needsRecalc = true;
+            }
+            if ($exclusionsUpdatedAt && \Illuminate\Support\Carbon::parse($exclusionsUpdatedAt)->gt($lastComputedAt)) {
+                $needsRecalc = true;
+            }
+        }
+
         return view('rfm.index', [
             'rows' => $rows,
             'search' => $search,
@@ -65,6 +90,8 @@ class RfmController extends Controller
             'filteredCount' => $filteredCount,
             'currentDate' => now()->toDateString(),
             'config' => $config,
+            'needsRecalc' => $needsRecalc,
+            'hasInvoices' => $hasInvoices,
         ]);
     }
 

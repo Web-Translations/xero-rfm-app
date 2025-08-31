@@ -32,20 +32,19 @@
                 </div>
             </div>
 
-            <!-- Status Cards -->
+            <!-- Setup Checklist & Status Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- Data Sync Status -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Data Sync Status</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">{{ $platformStatus['sync_status'] ?? 'Connected' }}</p>
-                            <p class="text-sm text-green-600 dark:text-green-400 mt-1 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Up to date
-                            </p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">{{ $activeConnection?->org_name ? 'Connected: '.$activeConnection->org_name : 'Not connected' }}</p>
+                            @if($lastSyncAt)
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Last invoice sync: {{ $daysSinceSync }} day{{ $daysSinceSync === 1 ? '' : 's' }} ago</p>
+                            @else
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">No invoice sync yet</p>
+                            @endif
                         </div>
                         <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                             <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,6 +94,65 @@
                             </svg>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Setup Checklist Card -->
+            <div class="mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Setup Checklist</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">Step 1: Connect Xero</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Connect your Xero account to begin.</div>
+                            </div>
+                            <div class="ml-4">
+                                @if($hasConnection)
+                                    <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Done</span>
+                                @else
+                                    <a href="{{ route('xero.connect') }}" class="inline-flex items-center px-3 py-1.5 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-700">Connect</a>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">Step 2: Sync invoices (all time)</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Import your invoices to get started.</div>
+                            </div>
+                            <div class="ml-4">
+                                @if($hasInvoices)
+                                    <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Done</span>
+                                @else
+                                    <a href="{{ route('invoices.index') }}" class="inline-flex items-center px-3 py-1.5 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-700">Sync invoices</a>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">Step 3: Calculate RFM scores</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">See the RFM scoreboard along with reports and analysis.</div>
+                            </div>
+                            <div class="ml-4">
+                                @if($hasRfm)
+                                    <span class="inline-flex items-center px-2 py-1 text-xs rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">Done</span>
+                                @else
+                                    <a href="{{ route('rfm.index') }}" class="inline-flex items-center px-3 py-1.5 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-700">Calculate</a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    @if($needsRecalc)
+                        <div class="mt-4 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 text-sm text-yellow-800 dark:text-yellow-200">
+                            Your RFM settings or invoice exclusions changed. Recalculate RFM to apply the changes.
+                            <a href="{{ route('rfm.index') }}" class="ml-2 underline">Recalculate RFM</a>
+                        </div>
+                    @endif
+
+                    @if($lastSyncAt)
+                        <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">Last invoice sync: {{ $lastSyncAt->format('M j, Y g:i A') }} ({{ $daysSinceSync }} day{{ $daysSinceSync === 1 ? '' : 's' }} ago)</div>
+                    @endif
                 </div>
             </div>
 

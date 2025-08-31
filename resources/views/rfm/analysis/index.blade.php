@@ -5,24 +5,25 @@
 
     <div class="py-6 px-4 sm:px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
-            <!-- Header Section -->
-            <div class="mb-8">
-                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">RFM Analysis</h1>
-                            <p class="text-gray-600 dark:text-gray-400 mt-1">Comprehensive customer behavior analysis and insights</p>
+
+            
+
+            <!-- Content Area -->
+            <div class="space-y-6">
+                <!-- Intro Card (full-width consistent) -->
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-100 dark:bg-indigo-900 rounded-full mb-3">
+                            <svg class="w-7 h-7 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <div class="text-sm text-gray-500">
-                                <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full">Active</span>
-                            </div>
-                        </div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">RFM Analysis</h1>
+                        <p class="text-gray-600 dark:text-gray-400">Explore trends, segmentation, and component breakdowns powered by your RFM scores.</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Navigation Tabs -->
+                <!-- Navigation Tabs -->
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
                 <div class="border-b border-gray-200 dark:border-gray-700">
                     <nav class="flex space-x-8 px-6" aria-label="Tabs">
@@ -69,8 +70,24 @@
                 </div>
             </div>
 
-            <!-- Content Area -->
-            <div class="space-y-6">
+
+                @if(isset($hasInvoices) && !$hasInvoices)
+                    <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="px-6 py-5 text-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Sync invoices to get started</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">You need invoice data before calculating RFM scores.</p>
+                            <a href="{{ route('invoices.index') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Go to Invoices</a>
+                        </div>
+                    </div>
+                @elseif(isset($hasRfm) && !$hasRfm)
+                    <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div class="px-6 py-5 text-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Analysis requires RFM scores</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Calculate RFM scores to view analysis and charts.</p>
+                            <a href="{{ route('rfm.index') }}" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm">Go to RFM Scores</a>
+                        </div>
+                    </div>
+                @endif
                 @php
                     $hasData = isset($rfmData) && $rfmData->count() > 0;
                     
@@ -119,77 +136,61 @@
 
                 <!-- Overview Tab -->
                 <div id="tab-content-overview" class="tab-content">
-                    <!-- Welcome Section -->
-                    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                </svg>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Welcome to RFM Analysis</h3>
-                            <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                                Explore comprehensive customer behavior analysis through advanced RFM metrics and interactive visualizations. 
-                                Navigate between different analysis views using the tabs above.
-                            </p>
-                        </div>
-                        
-                        <!-- Tour Controls -->
-                        <div class="flex flex-wrap justify-center gap-4 mb-6">
-                            <div id="tour-restart-section" class="hidden">
-                                <button onclick="restartTour()" class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg text-sm transition-colors">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Restart Tour
-                                </button>
-                            </div>
-                            
-                            @if(config('app.debug'))
-                            <button onclick="testTour()" class="inline-flex items-center px-4 py-2 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm transition-colors">
+                    <!-- Tour Controls -->
+                    <div class="flex flex-wrap justify-center gap-4 mb-6">
+                        <div id="tour-restart-section" class="hidden">
+                            <button onclick="restartTour()" class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg text-sm transition-colors">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Test Tour (Dev)
+                                Restart Tour
                             </button>
-                            @endif
                         </div>
                         
-                        <!-- Feature Overview -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-                                <div class="flex items-center mb-2">
-                                    <div class="p-2 bg-blue-500 rounded-lg mr-3">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                                        </svg>
-                                    </div>
-                                    <h4 class="font-semibold text-blue-900 dark:text-blue-100">Client Trends</h4>
+                        @if(config('app.debug'))
+                        <button onclick="testTour()" class="inline-flex items-center px-4 py-2 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Test Tour (Dev)
+                        </button>
+                        @endif
+                    </div>
+                    
+                    <!-- Feature Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                            <div class="flex items-center mb-2">
+                                <div class="p-2 bg-blue-500 rounded-lg mr-3">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                    </svg>
                                 </div>
-                                <p class="text-sm text-blue-700 dark:text-blue-300">Track individual client performance over time with interactive charts</p>
+                                <h4 class="font-semibold text-blue-900 dark:text-blue-100">Client Trends</h4>
                             </div>
-                            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
-                                <div class="flex items-center mb-2">
-                                    <div class="p-2 bg-green-500 rounded-lg mr-3">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                        </svg>
-                                    </div>
-                                    <h4 class="font-semibold text-green-900 dark:text-green-100">RFM Breakdown</h4>
+                            <p class="text-sm text-blue-700 dark:text-blue-300">Track individual client performance over time with interactive charts</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                            <div class="flex items-center mb-2">
+                                <div class="p-2 bg-green-500 rounded-lg mr-3">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
                                 </div>
-                                <p class="text-sm text-green-700 dark:text-green-300">View aggregated RFM metrics and top performers</p>
+                                <h4 class="font-semibold text-green-900 dark:text-green-100">RFM Breakdown</h4>
                             </div>
-                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
-                                <div class="flex items-center mb-2">
-                                    <div class="p-2 bg-purple-500 rounded-lg mr-3">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <h4 class="font-semibold text-purple-900 dark:text-purple-100">Segmentation</h4>
+                            <p class="text-sm text-green-700 dark:text-green-300">View aggregated RFM metrics and top performers</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                            <div class="flex items-center mb-2">
+                                <div class="p-2 bg-purple-500 rounded-lg mr-3">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
                                 </div>
-                                <p class="text-sm text-purple-700 dark:text-purple-300">Analyze customer segments and behavior patterns</p>
+                                <h4 class="font-semibold text-purple-900 dark:text-purple-100">Segmentation</h4>
                             </div>
+                            <p class="text-sm text-purple-700 dark:text-purple-300">Analyze customer segments and behavior patterns</p>
                         </div>
                     </div>
 
@@ -415,7 +416,6 @@
 
 
                 </div>
-
                 <!-- Client RFM Trends Tab -->
                 <div id="tab-content-client-trends" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -782,9 +782,6 @@
                         </div>
                                          </div>
                  </div>
-
-
-
                 <!-- RFM Score Over Time Tab -->
                 <div id="tab-content-rfm-score-over-time" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -1261,7 +1258,6 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Customer Segmentation Tab -->
                 <div id="tab-content-customer-segmentation" class="tab-content" style="display: none;">
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -1619,7 +1615,6 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Global variables for chart data
@@ -2103,7 +2098,6 @@
                  updateRfmBreakdownChart();
              }
          }
-
         // Chart initialization
         function initializeChart(tabName) {
             switch(tabName) {
@@ -2435,11 +2429,6 @@
                  }
              });
          }
-         
-
-         
-
-         
          // Update RFM Monthly Distribution Chart with filtered data
          function updateRfmMonthlyDistributionChart() {
              const filteredDates = filterDatesByRange(allDates, monthlyDistStartDate, monthlyDistEndDate);
@@ -2747,8 +2736,6 @@
          }
          
          // Update Customer Value Distribution Chart with filtered data
-
-         
          // Update RFM Score Over Time Chart
          function updateRfmScoreOverTimeChart() {
              // Process RFM data
@@ -3200,7 +3187,6 @@
                      borderSkipped: false
                  }]
              };
-             
              // Update or create chart
              const ctx = document.getElementById('customerRetentionChart');
              if (ctx) {
@@ -3690,7 +3676,6 @@
                 });
             }
         }
-
         function initializeSegmentationChart() {
             const ctx = document.getElementById('segmentationChart');
             if (ctx && !ctx.chart) {
@@ -4178,7 +4163,6 @@
                 updateCustomerSegmentationChart();
             }
         }
-        
         // Update Customer Value Distribution Chart
         function updateCustomerValueDistributionChart() {
             // Process RFM data
@@ -4677,7 +4661,6 @@
                 default: return 'Value';
             }
         }
-        
         function getTypeLabel() {
             switch(valueDistributionType) {
                 case 'histogram': return 'Histogram';
@@ -5171,7 +5154,6 @@
                 });
             }
         }
-        
         function showNotification(message, type = 'info') {
             const colors = {
                 success: 'bg-green-500',
