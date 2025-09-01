@@ -24,11 +24,11 @@
                     <x-nav-link :href="route('rfm.reports.index')" :active="request()->routeIs('rfm.reports.*')">
                         {{ __('RFM Reports') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('rfm.config.index')" :active="request()->routeIs('rfm.config.*')">
-                        {{ __('RFM Config') }}
-                    </x-nav-link>
                     <x-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                         {{ __('RFM Analysis') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('rfm.config.index')" :active="request()->routeIs('rfm.config.*')">
+                        {{ __('RFM Config') }}
                     </x-nav-link>
                     
                 </div>
@@ -101,11 +101,11 @@
             <x-responsive-nav-link :href="route('rfm.reports.index')" :active="request()->routeIs('rfm.reports.*')">
                 {{ __('RFM Reports') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('rfm.config.index')" :active="request()->routeIs('rfm.config.*')">
-                {{ __('RFM Config') }}
-            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('rfm.analysis.index')" :active="request()->routeIs('rfm.analysis.*')">
                 {{ __('RFM Analysis') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('rfm.config.index')" :active="request()->routeIs('rfm.config.*')">
+                {{ __('RFM Config') }}
             </x-responsive-nav-link>
             
         </div>

@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Webfox\Xero\Exceptions\OAuthException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,5 +19,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Gracefully handle user cancelling Xero consent and any OAuthException from the package
+        $exceptions->renderable(function (OAuthException $e, Request $request) {
+            return redirect()->route('dashboard')
+                ->withErrors('Xero connection was cancelled. You can connect your Xero account from the dashboard.');
+        });
+
+        // Defensive: if callback includes access_denied without throwing first
+        $exceptions->renderable(function (\Throwable $e, Request $request) {
+            if ($request->routeIs('xero.auth.callback') && $request->get('error') === 'access_denied') {
+                return redirect()->route('dashboard')
+                    ->withErrors('Xero connection was cancelled. You can connect your Xero account from the dashboard.');
+            }
+        });
     })->create();

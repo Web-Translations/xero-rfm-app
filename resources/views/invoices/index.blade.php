@@ -3,15 +3,50 @@
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">Invoices</h2>
     </x-slot>
 
-    <div class="p-6 space-y-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        @php
+            $hasInvoices = ($totalInvoices ?? 0) > 0;
+        @endphp
+        <!-- Intro Card (always visible) -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-indigo-100 dark:bg-indigo-900 rounded-full mb-3">
+                    <svg class="w-7 h-7 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">Invoices</h1>
+                <p class="text-gray-600 dark:text-gray-400">
+                    Sync your Xero sales invoices to power RFM analysis and reporting.
+                </p>
+            </div>
+        </div>
         @if (session('status'))
             <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div class="text-green-800 dark:text-green-200">{{ session('status') }}</div>
             </div>
         @endif
 
-        <!-- Filters Card -->
-        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        @if (! $hasInvoices)
+            <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="px-6 py-5 text-center">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Import your invoices to get started</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">We’ll fetch your full invoice history from Xero to power your RFM analysis.</p>
+                    <button
+                        id="sync-button-empty"
+                        class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm border border-indigo-600 text-sm">
+                        <svg id="sync-icon-empty" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span id="sync-button-text-empty">Start full sync</span>
+                    </button>
+                    <span id="sync-counter-empty" class="hidden ml-3 text-sm text-gray-700 dark:text-gray-300">Syncing <span id="sync-count-empty">0</span> invoices...</span>
+                </div>
+            </div>
+        @endif
+
+        <!-- Filters Card (disabled/greyed when no invoices yet) -->
+        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasInvoices ? '' : 'opacity-50 pointer-events-none' }}">
             <!-- Card header -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -23,6 +58,8 @@
                     <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center mr-4">
                         @if($lastSyncInfo['last_sync_at'])
                             <span>Last synced {{ number_format($lastSyncInfo['last_sync_invoice_count']) }} invoices at {{ $lastSyncInfo['last_sync_at']->format('M j, Y g:i A') }}</span>
+                        @else
+                            <span>No invoice sync yet</span>
                         @endif
                         
                         <!-- Sync Counter (hidden by default) -->
@@ -122,8 +159,8 @@
             </form>
         </div>
 
-        <!-- Results Card -->
-        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700">
+        <!-- Results Card (disabled/greyed when no invoices yet) -->
+        <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasInvoices ? '' : 'opacity-50 pointer-events-none' }}">
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Results</h3>
             </div>
@@ -172,8 +209,8 @@
                             <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 {{ $isExcluded ? 'line-through opacity-60' : '' }}">
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 font-mono">{{ $inv->invoice_number }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ optional($clients->get($inv->contact_id))->name }}</td>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->date?->format('Y-m-d') }}</td>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->due_date?->format('Y-m-d') }}</td>
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->date?->format('M j, Y') }}</td>
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->due_date?->format('M j, Y') }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format((float) $inv->subtotal, 2) }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format((float) $inv->total, 2) }} {{ $inv->currency }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">
@@ -321,6 +358,41 @@
                     alert('Failed to start sync: ' + error.message);
                 });
             }
+            // Empty-state sync button hooks same flow
+            const emptyBtn = document.getElementById('sync-button-empty');
+            if (emptyBtn) {
+                emptyBtn.addEventListener('click', function() {
+                    if (syncInProgress) return;
+                    // Mirror main startSync but simpler UI
+                    syncInProgress = true;
+                    this.disabled = true;
+                    document.getElementById('sync-icon-empty').classList.add('animate-spin');
+                    document.getElementById('sync-button-text-empty').textContent = 'Starting...';
+                    fetch('{{ route("invoices.sync") }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (!d.success) throw new Error(d.message || 'Failed to start');
+                        startProgressPolling();
+                        fetchNextBatch();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        this.disabled = false;
+                        document.getElementById('sync-icon-empty').classList.remove('animate-spin');
+                        document.getElementById('sync-button-text-empty').textContent = 'Start full sync';
+                        alert('Failed to start sync: ' + err.message);
+                        syncInProgress = false;
+                    });
+                });
+            }
 
             function startProgressPolling() {
                 progressInterval = setInterval(() => {
@@ -414,6 +486,12 @@
                 if (progress.processed_invoices > 0) {
                     // Simple counter update
                     syncCount.textContent = progress.processed_invoices.toLocaleString();
+                    const emptyCounter = document.getElementById('sync-counter-empty');
+                    const emptyCount = document.getElementById('sync-count-empty');
+                    if (emptyCounter && emptyCount) {
+                        emptyCounter.classList.remove('hidden');
+                        emptyCount.textContent = progress.processed_invoices.toLocaleString();
+                    }
                 }
             }
 
