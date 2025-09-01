@@ -54,6 +54,19 @@ class RfmAnalysisController extends Controller
                 ->orderBy('rfm_reports.snapshot_date', 'asc')
                 ->get();
 
+            // Total clients for this tenant (broader than just those in rfm reports)
+            $clientCount = Client::where('user_id', $user->id)
+                ->where('tenant_id', $activeConnection->tenant_id)
+                ->count();
+
+            // Lifetime unique customers across all snapshots (includes inactive/zero-score)
+            $lifetimeClientCount = RfmReport::where('user_id', $user->id)
+                ->whereHas('client', function($q) use ($activeConnection) {
+                    $q->where('tenant_id', $activeConnection->tenant_id);
+                })
+                ->distinct('client_id')
+                ->count('client_id');
+
             // Revenue data removed to focus on RFM analysis only
             $revenueData = collect();
             $topRevenueClients = collect();
@@ -78,6 +91,8 @@ class RfmAnalysisController extends Controller
                 'summaryStats'     => $summaryStats,
                 'recentRfmData'    => $recentRfmData,
                 'rfmData'          => $rfmData,
+                'clientCount'      => $clientCount,
+                'lifetimeClientCount' => $lifetimeClientCount,
                 'revenueData'      => $revenueData,
                 'topRevenueClients' => $topRevenueClients,
                 'hasRfm'           => $hasRfm,

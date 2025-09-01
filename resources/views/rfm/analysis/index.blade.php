@@ -141,50 +141,70 @@
                     
                     <!-- Getting Started Guide -->
                     <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                        @php
+                            $monthsCount = isset($allDates) ? $allDates->count() : 0;
+                            $clientCount = isset($allClients) ? $allClients->count() : 0;
+                            $recTab = 'client-trends';
+                            $recLabel = 'Client RFM Trends';
+                            if ($clientCount < 8) { $recTab = 'rfm-breakdown'; $recLabel = 'Overall RFM Breakdown'; }
+                            elseif ($monthsCount < 4) { $recTab = 'customer-segmentation'; $recLabel = 'Customer Segmentation'; }
+                        @endphp
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center justify-between">
                             <svg class="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             Getting Started Guide
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Follow the steps, or jump straight in</span>
                         </h3>
+                        <div class="mb-4 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-sm text-blue-900 dark:text-blue-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <span>Recommended first view: <strong>{{ $recLabel }}</strong></span>
+                            </div>
+                            <button onclick="showTab('{{ $recTab }}')" class="text-xs px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white">Open</button>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-4">
-                                <div class="flex items-start space-x-3">
+                                <div class="flex items-start space-x-3" id="gs-step-1">
                                     <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">1</span>
+                                        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 step-index">1</span>
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">Client RFM Trends</h4>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Start by exploring individual client performance over time to identify your best customers.</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Explore individual client performance over time. Spot improving or declining customers.</p>
+                                        <button data-step-key="client-trends" onclick="showTab('client-trends')" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Open trends ↗</button>
                                     </div>
                                 </div>
-                                <div class="flex items-start space-x-3">
+                                <div class="flex items-start space-x-3" id="gs-step-2">
                                     <div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-semibold text-green-600 dark:text-green-400">2</span>
+                                        <span class="text-sm font-semibold text-green-600 dark:text-green-400 step-index">2</span>
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">Overall RFM Breakdown</h4>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Review aggregated metrics to understand your customer base distribution.</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">See distribution across recency, frequency, and monetary to understand the base.</p>
+                                        <button data-step-key="rfm-breakdown" onclick="showTab('rfm-breakdown')" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Open breakdown ↗</button>
                                     </div>
                                 </div>
                             </div>
                             <div class="space-y-4">
-                                <div class="flex items-start space-x-3">
+                                <div class="flex items-start space-x-3" id="gs-step-3">
                                     <div class="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-semibold text-purple-600 dark:text-purple-400">3</span>
+                                        <span class="text-sm font-semibold text-purple-600 dark:text-purple-400 step-index">3</span>
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">Customer Segmentation</h4>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Use segmentation tools to group customers by behavior and value.</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Group customers by behavior and value to target actions that matter.</p>
+                                        <button data-step-key="customer-segmentation" onclick="showTab('customer-segmentation')" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Open segments ↗</button>
                                     </div>
                                 </div>
-                                <div class="flex items-start space-x-3">
+                                <div class="flex items-start space-x-3" id="gs-step-4">
                                     <div class="flex-shrink-0 w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
-                                        <span class="text-sm font-semibold text-orange-600 dark:text-orange-400">4</span>
+                                        <span class="text-sm font-semibold text-orange-600 dark:text-orange-400 step-index">4</span>
                                     </div>
                                     <div>
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">Advanced Analysis</h4>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Explore retention, lifetime value, and time-based analysis for deeper insights.</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Dive into trends and comparisons over time to track movement and impact.</p>
+                                        <button data-step-key="trends" onclick="showTab('trends')" class="mt-2 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Open trends & comparisons ↗</button>
                                     </div>
                                 </div>
                             </div>
@@ -193,7 +213,7 @@
                     
                     <!-- Quick Stats Section -->
                     @if($hasData)
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                             <div class="flex items-center">
                                 <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
@@ -202,8 +222,8 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Clients</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $allClients->count() }}</p>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers (lifetime, connected org)</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ isset($lifetimeClientCount) ? $lifetimeClientCount : (isset($clientCount) ? $clientCount : $allClients->count()) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -224,14 +244,14 @@
                         
                         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                             <div class="flex items-center">
-                                <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
-                                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                <div class="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg mr-4">
+                                    <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M5 21h14M7 13h10" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Avg RFM Score</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($rfmData->avg('rfm_score'), 1) }}</p>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Months Covered</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $monthsCount }}</p>
                                 </div>
                             </div>
                         </div>
