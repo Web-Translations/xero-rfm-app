@@ -11,29 +11,33 @@
             <div class="mb-8">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                             Welcome back, {{ Auth::user()->name }}
                         </h1>
                         <p class="text-gray-600 dark:text-gray-300">
                             Here's what's happening with your business today
                         </p>
                     </div>
-                    <div class="hidden md:flex items-center space-x-6">
+                    <div class="hidden md:flex items-center space-x-4">
                         <div class="text-right">
                             <p class="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
-                            <p class="font-semibold text-gray-900 dark:text-white">Free</p>
+                            <p class="font-semibold text-gray-900 dark:text-white inline-flex items-center gap-3">
+                                Free
+                                <a href="{{ route('memberships.index') }}" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Upgrade →</a>
+                            </p>
                         </div>
                         <div class="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
-                        <div class="text-right">
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Last Updated</p>
-                            <p class="font-semibold text-gray-900 dark:text-white">{{ now()->format('M j, Y') }}</p>
-                        </div>
+                        <button onclick="restartDashboardTour()" class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300" title="Show onboarding tour">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Setup Checklist & Status Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Status Card -->
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
                 <!-- Data Sync Status -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                     <div class="flex items-center justify-between">
@@ -41,56 +45,17 @@
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Data Sync Status</p>
                             <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">{{ $activeConnection?->org_name ? 'Connected: '.$activeConnection->org_name : 'Not connected' }}</p>
                             @if($lastSyncAt)
-                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Last invoice sync: {{ $daysSinceSync }} day{{ $daysSinceSync === 1 ? '' : 's' }} ago</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Last invoice sync: {{ $lastSyncAt->format('M j, Y g:i A') }}</p>
                             @else
                                 <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">No invoice sync yet</p>
+                            @endif
+                            @if($hasConnection && ($otherOrgCount ?? 0) > 0)
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">Other organisations connected: {{ $otherOrgCount }}</p>
                             @endif
                         </div>
                         <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                             <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Platform Health -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Platform Health</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">{{ $platformStatus['platform_health'] ?? 'Excellent' }}</p>
-                            <p class="text-sm text-green-600 dark:text-green-400 mt-1 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                All systems operational
-                            </p>
-                        </div>
-                        <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Next Sync -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Next Sync</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-2">{{ $platformStatus['next_sync'] ?? '2:30 PM' }}</p>
-                            <p class="text-sm text-blue-600 dark:text-blue-400 mt-1 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                In 45 minutes
-                            </p>
-                        </div>
-                        <div class="p-3 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                            <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
                     </div>
@@ -117,7 +82,7 @@
                         </div>
                         <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                             <div>
-                                <div class="text-sm font-medium text-gray-900 dark:text-white">Step 2: Sync invoices (all time)</div>
+                                <div class="text-sm font-medium text-gray-900 dark:text-white">Step 2: Sync invoices</div>
                                 <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Import your invoices to get started.</div>
                             </div>
                             <div class="ml-4">
@@ -151,259 +116,165 @@
                     @endif
 
                     @if($lastSyncAt)
-                        <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">Last invoice sync: {{ $lastSyncAt->format('M j, Y g:i A') }} ({{ $daysSinceSync }} day{{ $daysSinceSync === 1 ? '' : 's' }} ago)</div>
+                        <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">Last invoice sync: {{ $lastSyncAt->format('M j, Y g:i A') }}</div>
                     @endif
                 </div>
             </div>
 
-            <!-- Onboarding Buttons -->
-            <div class="mb-8 flex flex-wrap gap-4">
-                <div id="tour-restart-section" class="hidden">
-                    <button onclick="restartDashboardTour()" class="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg text-sm transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Restart Onboarding Tour
-                    </button>
-                </div>
-                
-                @if(config('app.debug'))
-                <button onclick="restartDashboardTour()" class="inline-flex items-center px-4 py-2 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Test Onboarding (Dev)
-                </button>
-                @endif
-            </div>
+            
                      
-                                 <!-- About Us Banner -->
-            <div class="bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl p-6 mb-8 text-white">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <h2 class="text-2xl font-bold mb-3">Advanced Customer Analytics Platform</h2>
-                        <p class="text-blue-100 mb-4 text-lg">
-                            We transform your Xero data into actionable customer insights using advanced RFM analysis, 
-                            helping you identify your most valuable customers, predict churn, and optimize your marketing strategies.
-                        </p>
-                        <div class="bg-white/10 rounded-lg p-4 border border-white/20">
-                            <h3 class="font-semibold mb-2">🚀 Custom Features Available</h3>
-                            <p class="text-blue-100 text-sm">
-                                Need a specific graph or analysis tailored to your business? Pro+ members can request custom features 
-                                and we'll build them into your subscription. Contact us to discuss your requirements!
-                            </p>
-                        </div>
-                    </div>
-                    <div class="hidden lg:flex items-center space-x-6 ml-8">
-                        <div class="text-center">
-                            <div class="text-3xl font-bold">RFM</div>
-                            <div class="text-sm text-blue-100">Analysis</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold">AI</div>
-                            <div class="text-sm text-blue-100">Insights</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold">Custom</div>
-                            <div class="text-sm text-blue-100">Features</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
 
             <!-- Main Content -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Quick Actions -->
-                <div class="lg:col-span-2">
+            <div class="grid grid-cols-1 gap-8">
+                <!-- Quick Actions (expanded) -->
+                <div>
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">Get started with your analysis</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Explore key areas</span>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <a href="{{ route('rfm.analysis.index') }}" class="group">
-                                <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-xl p-6 hover:shadow-lg transition-all duration-200 group-hover:scale-105">
-                                    <div class="flex items-center mb-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-2">
+                            <a href="{{ route('invoices.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
                                         <div class="p-3 bg-blue-500 rounded-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Invoices</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Sync and filter your invoice data</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Start here to power RFM calculations and reports.</p>
+                                </div>
+                            </a>
+
+                            <a href="{{ route('rfm.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <div class="p-3 bg-green-500 rounded-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">RFM Scores</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Calculate and review RFM</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Compute scores and access snapshots for reports.</p>
+                                </div>
+                            </a>
+
+                            <a href="{{ route('rfm.analysis.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <div class="p-3 bg-purple-500 rounded-lg">
                                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                                             </svg>
                                         </div>
                                         <div class="ml-4">
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">RFM Analysis</h3>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Customer behavior insights</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Charts and insights</p>
                                         </div>
                                     </div>
-                                    <p class="text-gray-700 dark:text-gray-300 text-sm">Analyze customer behavior and identify growth opportunities with advanced RFM metrics.</p>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Explore trends, segments, and opportunities.</p>
                                 </div>
                             </a>
 
-                            <a href="{{ route('memberships.index') }}" class="group">
-                                <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-700 rounded-xl p-6 hover:shadow-lg transition-all duration-200 group-hover:scale-105">
-                                    <div class="flex items-center mb-4">
-                                        <div class="p-3 bg-green-500 rounded-lg">
+                            <a href="{{ route('rfm.reports.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-amber-50 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-800/20 border border-amber-200 dark:border-amber-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <div class="p-3 bg-amber-500 rounded-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">RFM Reports</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Generate reports</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Build and download RFM analysis reports.</p>
+                                </div>
+                            </a>
+
+                            <a href="{{ route('rfm.config.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-indigo-50 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-200 dark:border-indigo-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <div class="p-3 bg-indigo-500 rounded-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">RFM Config</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Adjust settings</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Tweak scoring windows and benchmarks.</p>
+                                </div>
+                            </a>
+                            <a href="{{ route('organisations.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-cyan-50 to-teal-100 dark:from-cyan-900/20 dark:to-teal-800/20 border border-cyan-200 dark:border-cyan-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <div class="p-3 bg-cyan-500 rounded-lg">
+                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Organisations</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Manage connections</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Connect, switch, and view token status for organisations.</p>
+                                </div>
+                            </a>
+                            <a href="{{ route('memberships.index') }}" class="group h-full">
+                                <div class="bg-gradient-to-r from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-800/20 border border-pink-200 dark:border-rose-700 rounded-xl p-4 hover:shadow-lg transition-all duration-200 group-hover:scale-105 h-full min-h-[200px] flex flex-col">
+                                    <div class="flex items-center mb-2">
+                                        <div class="p-3 bg-pink-500 rounded-lg">
                                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                                             </svg>
                                         </div>
                                         <div class="ml-4">
-                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Upgrade Plan</h3>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Unlock premium features</p>
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Memberships</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Billing & plans</p>
                                         </div>
                                     </div>
-                                    <p class="text-gray-700 dark:text-gray-300 text-sm">Unlock advanced features, AI insights, and deeper analytics with our Pro plans.</p>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">Manage your plan and billing from within the app.</p>
                                 </div>
                             </a>
 
-                            <a href="#" class="group">
-                                <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200 dark:border-purple-700 rounded-xl p-6 hover:shadow-lg transition-all duration-200 group-hover:scale-105">
-                                    <div class="flex items-center mb-4">
-                                        <div class="p-3 bg-purple-500 rounded-lg">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="ml-4">
-                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Help & Support</h3>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Get assistance</p>
-                                        </div>
-                                    </div>
-                                    <p class="text-gray-700 dark:text-gray-300 text-sm">Get help with setup, learn best practices, and access our knowledge base.</p>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Custom Features Banner -->
-                    <div class="bg-gradient-to-r from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700 mt-8">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">🎯 Custom Features Available</h3>
-                                <p class="text-gray-700 dark:text-gray-300 mb-4">
-                                    Pro+ members can request custom graphs, analyses, and features tailored specifically to their business needs.
-                                </p>
-                                <div class="flex items-center space-x-6">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Custom dashboards</span>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Industry-specific metrics</span>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">Integration with other tools</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="openCustomFeaturesModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 ml-6">
-                                Enquire About Custom Features
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sidebar -->
-                <div class="space-y-6">
-
-
-                    <!-- Feature Highlights -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Feature Highlights</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
-                                <div class="flex items-center space-x-3">
-                                    <div class="p-2 bg-orange-500 rounded-lg">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            <!-- Other Links Card -->
+                            <div class="bg-gradient-to-r from-gray-50 to-slate-100 dark:from-gray-900/20 dark:to-slate-800/20 border border-gray-200 dark:border-gray-700 rounded-xl p-4 h-full min-h-[200px] flex flex-col">
+                                <div class="flex items-center mb-2">
+                                    <div class="p-3 bg-gray-600 rounded-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15"/>
                                         </svg>
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Customer Segmentation</p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">Identify high-value customers</p>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Other</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Profile & legal</p>
                                     </div>
                                 </div>
-                                <span class="text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded-full">Free</span>
-                            </div>
-                            
-                            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 rounded-lg border border-teal-200 dark:border-teal-700">
-                                <div class="flex items-center space-x-3">
-                                    <div class="p-2 bg-teal-500 rounded-lg">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Interactive Charts</p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">Visualize customer trends</p>
-                                    </div>
+                                <div class="grid grid-cols-1 gap-1 text-sm mt-2">
+                                    <a href="{{ route('profile.edit') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">Profile</a>
+                                    <a href="{{ route('terms') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">Terms of Service</a>
+                                    <a href="{{ route('privacy') }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</a>
                                 </div>
-                                <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 px-2 py-1 rounded-full">Free</span>
-                            </div>
-                            
-                            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-lg border border-violet-200 dark:border-violet-700">
-                                <div class="flex items-center space-x-3">
-                                    <div class="p-2 bg-violet-500 rounded-lg">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">AI Recommendations</p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">Smart business insights</p>
-                                    </div>
-                                </div>
-                                <span class="text-xs bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200 px-2 py-1 rounded-full">Pro+</span>
-                            </div>
-                            
-                            <div class="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
-                                <div class="flex items-center space-x-3">
-                                    <div class="p-2 bg-amber-500 rounded-lg">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">Custom Features</p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">Tailored to your business</p>
-                                    </div>
-                                </div>
-                                <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-2 py-1 rounded-full">Pro+</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Platform Status -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Platform Status</h3>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">System Uptime</span>
-                                <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $platformStatus['system_uptime'] ?? '99.9%' }}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Data Security</span>
-                                <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ $platformStatus['data_security'] ?? 'Enterprise' }}</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Support Response</span>
-                                <span class="text-sm font-semibold text-purple-600 dark:text-purple-400">{{ $platformStatus['support_response'] ?? '< 2 hours' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pro Tip -->
-                    <div class="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">💡 Pro Tip</h3>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                            Connect your Xero account to unlock powerful RFM analysis that can help you identify your most valuable customers and growth opportunities.
-                        </p>
-                        <button class="text-sm text-green-600 dark:text-green-400 font-medium hover:underline">
-                            Learn more about RFM analysis →
-                        </button>
-                    </div>
+                    
                 </div>
             </div>
                 </div>
@@ -470,10 +341,10 @@
                             <button id="tour-prev" class="px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm font-medium hidden">
                                 Previous
                             </button>
-                            <button id="tour-action" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 hidden">
+                            <button id="tour-action" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 hidden">
                                 Connect to Xero
                             </button>
-                            <button id="tour-next" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
+                            <button id="tour-next" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105">
                                 Next
                             </button>
                         </div>
@@ -621,12 +492,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>`
                         },
-                        action: {
-                            text: "Start Analysis",
-                            url: "{{ route('rfm.analysis.index') }}",
-                            type: "primary",
-                            isExternal: true
-                        }
+                        
                     }
                 ];
                 
@@ -639,7 +505,9 @@
             }
             
             bindEvents() {
-                document.getElementById('tour-next').addEventListener('click', () => this.nextStep());
+                // Centralized handler management + transition guard
+                this.nextHandlerRef = null;
+                this.isAnimating = false;
                 document.getElementById('tour-prev').addEventListener('click', () => this.prevStep());
                 document.getElementById('tour-action').addEventListener('click', () => this.handleAction());
                 document.getElementById('tour-skip').addEventListener('click', () => this.endTour());
@@ -651,6 +519,22 @@
                         this.endTour();
                     }
                 });
+            }
+
+            // Attach a single next-click handler at a time with a short lock
+            attachNext(handler) {
+                const nextBtn = document.getElementById('tour-next');
+                if (this.nextHandlerRef) {
+                    nextBtn.removeEventListener('click', this.nextHandlerRef);
+                }
+                this.nextHandlerRef = (e) => {
+                    if (this.isAnimating || nextBtn.disabled) return;
+                    nextBtn.disabled = true;
+                    try { handler(e); } finally {
+                        setTimeout(() => { nextBtn.disabled = false; }, 400);
+                    }
+                };
+                nextBtn.addEventListener('click', this.nextHandlerRef);
             }
             
             checkIfNewUser() {
@@ -683,6 +567,8 @@
             }
             
             showStep() {
+                // Prevent double-next during content swap
+                this.isAnimating = true;
                 const step = this.steps[this.currentStep];
                 const titleEl = document.getElementById('tour-title');
                 const descEl = document.getElementById('tour-description');
@@ -736,15 +622,11 @@
                     actionBtn.textContent = step.action.text;
                     actionBtn.onclick = () => this.handleAction();
                     
-                    // Set action button color based on type
-                    if (step.action.type === 'primary') {
-                        actionBtn.className = 'px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105';
-                    } else {
-                        actionBtn.className = 'px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105';
-                    }
+                    // Use consistent indigo styling for action button
+                    actionBtn.className = 'px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105';
                     
-                    // Reset next button to normal behavior
-                    nextBtn.onclick = () => this.nextStep();
+                    // Next advances normally; ensure single handler
+                    this.attachNext(() => this.nextStep());
                 } else {
                     // Hide action button for steps without external actions
                     actionBtn.classList.add('hidden');
@@ -752,17 +634,20 @@
                     // Update next button for steps with internal actions
                     if (step.action) {
                         nextBtn.textContent = step.action.text;
-                        nextBtn.onclick = () => {
+                        this.attachNext(() => {
                             if (step.action.url && step.action.url !== '#') {
                                 window.location.href = step.action.url;
                             } else {
                                 this.nextStep();
                             }
-                        };
+                        });
                     } else {
-                        nextBtn.onclick = () => this.nextStep();
+                        this.attachNext(() => this.nextStep());
                     }
                 }
+
+                // Release animation lock shortly after DOM updates
+                setTimeout(() => { this.isAnimating = false; }, 200);
             }
             
             nextStep() {
@@ -978,3 +863,4 @@
         });
     </script>
 </x-app-layout>
+

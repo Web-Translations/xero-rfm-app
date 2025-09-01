@@ -14,8 +14,8 @@
 
   @vite(['resources/js/rfm-config.js'])
 
-  <div class="py-12">
-    <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+  <div class="py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Intro Card -->
       <div class="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-indigo-200 dark:border-indigo-800">
         <div class="text-center">
@@ -24,7 +24,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
             </svg>
           </div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">RFM Configuration</h1>
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">RFM Configuration</h1>
           <p class="text-gray-600 dark:text-gray-400">Adjust R, F, and M settings. After saving, recalculate RFM scores to apply changes.</p>
         </div>
       </div>

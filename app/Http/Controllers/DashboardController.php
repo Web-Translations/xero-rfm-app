@@ -10,6 +10,7 @@ use App\Models\XeroConnection;
 use App\Models\RfmReport;
 use App\Models\RfmConfiguration;
 use App\Models\ExcludedInvoice;
+use App\Models\XeroConnection as XeroConn;
 
 class DashboardController extends Controller
 {
@@ -25,6 +26,11 @@ class DashboardController extends Controller
         $tenantId = $activeConnection?->tenant_id;
 
         $hasConnection = (bool) $activeConnection;
+        $otherOrgCount = $hasConnection
+            ? XeroConn::where('user_id', $user->id)
+                ->where('id', '!=', $activeConnection->id)
+                ->count()
+            : 0;
         $invoiceCount = $hasConnection
             ? XeroInvoice::where('user_id', $user->id)->where('tenant_id', $tenantId)->count()
             : 0;
@@ -40,7 +46,8 @@ class DashboardController extends Controller
                 ->max('snapshot_date')
             : null;
         $hasRfm = !empty($latestSnapshotDate);
-        $lastRfmComputedAt = $latestSnapshotDate ? Carbon::parse($latestSnapshotDate) : null;
+        // Treat last compute as end of snapshot day to avoid false positives when comparing timestamps
+        $lastRfmComputedAt = $latestSnapshotDate ? Carbon::parse($latestSnapshotDate)->endOfDay() : null;
 
         // Config/exclusions recalc checks
         $config = $hasConnection ? RfmConfiguration::getOrCreateDefault($user->id, $tenantId) : null;
@@ -63,6 +70,7 @@ class DashboardController extends Controller
             'platformStatus'   => $platformStatus,
             'activeConnection' => $activeConnection,
             'hasConnection'    => $hasConnection,
+            'otherOrgCount'    => $otherOrgCount,
             'hasInvoices'      => $hasInvoices,
             'invoiceCount'     => $invoiceCount,
             'lastSyncAt'       => $lastSyncAt,

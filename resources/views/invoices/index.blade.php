@@ -3,7 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200">Invoices</h2>
     </x-slot>
 
-    <div class="p-6 space-y-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         @php
             $hasInvoices = ($totalInvoices ?? 0) > 0;
         @endphp
@@ -15,7 +15,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Invoices</h1>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">Invoices</h1>
                 <p class="text-gray-600 dark:text-gray-400">
                     Sync your Xero sales invoices to power RFM analysis and reporting.
                 </p>
@@ -209,8 +209,8 @@
                             <tr class="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 {{ $isExcluded ? 'line-through opacity-60' : '' }}">
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 font-mono">{{ $inv->invoice_number }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ optional($clients->get($inv->contact_id))->name }}</td>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->date?->format('Y-m-d') }}</td>
-                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->due_date?->format('Y-m-d') }}</td>
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->date?->format('M j, Y') }}</td>
+                                <td class="p-3 border-b border-gray-200 dark:border-gray-700">{{ $inv->due_date?->format('M j, Y') }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format((float) $inv->subtotal, 2) }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700 text-right">{{ number_format((float) $inv->total, 2) }} {{ $inv->currency }}</td>
                                 <td class="p-3 border-b border-gray-200 dark:border-gray-700">
