@@ -1,252 +1,126 @@
 # Xero RFM Analysis Platform
 
-A comprehensive Laravel application that integrates with Xero to perform RFM (Recency, Frequency, Monetary) analysis on client data. The platform provides multi-organization support, invoice management, RFM scoring, and advanced analytics capabilities.
+A Laravel application that integrates with Xero to perform RFM (Recency, Frequency, Monetary) analysis on client data. It provides multi‑organisation support, invoice synchronisation, configurable RFM scoring, subscription management via GoCardless, and optional AI insights via OpenAI.
 
-## 🚀 Features
+## Overview
 
-### Core Functionality
-- **Multi-Organization Xero Integration**: Connect and manage multiple Xero organizations per user
-- **OAuth 2.0 Authentication**: Secure Xero API access with automatic token refresh
-- **Invoice Synchronization**: Import and manage sales invoices from Xero
-- **RFM Analysis**: Calculate and track Recency, Frequency, and Monetary scores for clients
-- **Historical Data Tracking**: Monthly snapshots for trend analysis
-- **Invoice Exclusion System**: Mark specific invoices to exclude from RFM calculations
-- **Subscription Management**: GoCardless integration for premium plans (Free, Pro, Pro+)
-- **Dark/Light Mode UI**: Modern, responsive interface with Tailwind CSS
+- Multi‑organisation Xero OAuth2 with automatic token refresh
+- Invoice import and management with exclusion controls
+- RFM scoring snapshots with historical trends
+- Memberships (Free, Pro, Pro+) via GoCardless subscriptions
+- Optional AI-generated narrative insights (configurable)
 
-### Pages & Functionality
-- **Dashboard**: Organization overview, connection status, and quick navigation
-- **Organizations**: Multi-org management with switching capabilities
-- **Memberships**: Subscription management with GoCardless integration
-- **Invoices**: View, filter, and manage imported invoices with exclusion controls
-- **RFM Scores**: Current and historical RFM leaderboard with filtering
-- **RFM Reports**: Generate custom reports and analytics (in development)
-- **RFM Analysis**: Advanced analytics and trend analysis (in development)
+## Architecture
 
-## 🛠 Tech Stack
+- Backend: Laravel 12 (PHP 8.2+)
+- Frontend: Blade + Tailwind CSS, Vite
+- Auth: Laravel Breeze
+- Database: SQLite by default (MySQL/MariaDB ready)
+- Integrations: `webfox/laravel-xero-oauth2`, `gocardless/gocardless-pro`, OpenAI via Guzzle
 
-- **Backend**: Laravel 12 (PHP 8.4+)
-- **Frontend**: Blade templates with Tailwind CSS
-- **Authentication**: Laravel Breeze
-- **Database**: SQLite (development), MySQL/MariaDB ready
-- **Xero Integration**: webfox/laravel-xero-oauth2
-- **Payment Processing**: GoCardless Pro API
-- **Build Tool**: Vite
-
-## 💳 GoCardless Integration Setup
-
-### Prerequisites
-1. **GoCardless Account**: Sign up at [gocardless.com](https://gocardless.com)
-2. **API Access**: Get your access token from the GoCardless dashboard
-3. **Webhook URL**: Set up webhook endpoint for payment notifications
-
-### Environment Variables
-Add these to your `.env` file:
-
-```env
-# GoCardless Configuration
-GOCARDLESS_ACCESS_TOKEN=your_access_token_here
-GOCARDLESS_ENVIRONMENT=sandbox
-GOCARDLESS_WEBHOOK_SECRET=your_webhook_secret_here
-GOCARDLESS_CREDITOR_ID=your_creditor_id_here
-GOCARDLESS_SUCCESS_URL=https://your-ngrok-url.ngrok.io/memberships/success
-GOCARDLESS_FORCE_TEST_MODE=true
-```
-
-### Subscription Plans
-The system supports three subscription tiers:
-
-- **Free Plan**: £0/month - Basic RFM analysis and insights
-- **Pro Plan**: £5.99/month - Enhanced insights and recommendations
-- **Pro+ Plan**: £11.99/month - AI-powered insights and chat features
-
-### Webhook Configuration
-1. Set your webhook URL to: `https://yourdomain.com/webhooks/gocardless`
-2. Configure webhook events for: `subscriptions`, `mandates`, `payments`
-3. Use the webhook secret for signature verification
-
-### Testing
-- Use GoCardless sandbox environment for testing
-- Test payment flows with sandbox bank details
-- Verify webhook processing with test events
-
-### Local Development Options
-
-#### Option 1: Test Mode (Recommended for Development)
-For local development, you can use test mode which bypasses the actual GoCardless API:
-
-1. **Set test mode**: Add to your `.env`:
-   ```env
-   GOCARDLESS_FORCE_TEST_MODE=true
-   ```
-2. **Test the flow**: The payment process will simulate success without calling GoCardless
-
-#### Option 2: ngrok (For Full Integration Testing)
-If you need to test the full GoCardless integration:
-
-1. **Install ngrok**: Download from [ngrok.com](https://ngrok.com)
-2. **Start your Laravel app**: `php artisan serve`
-3. **Start ngrok**: `ngrok http 8000` (or your Laravel port)
-4. **Set the success URL**: Add the ngrok URL to your `.env`:
-   ```env
-   GOCARDLESS_SUCCESS_URL=https://your-ngrok-url.ngrok.io/memberships/success
-   ```
-5. **Update GoCardless webhook URL** (if needed): Use the ngrok URL for webhooks too
-
-## 📊 Database Schema
-
-### Core Tables
-
-#### `users`
-- Standard Laravel user authentication
-- Supports multiple Xero organizations
-- `subscription_plan` - Current subscription plan (free, pro, pro_plus)
-- `gocardless_subscription_id` - GoCardless subscription identifier
-- `subscription_status` - Subscription status (active, cancelled, etc.)
-- `subscription_ends_at` - Subscription end date (nullable)
-
-#### `xero_connections`
-- `user_id` - Foreign key to users
-- `tenant_id` - Xero organization identifier
-- `org_name` - Organization display name
-- `access_token` - Encrypted OAuth access token
-- `refresh_token` - Encrypted OAuth refresh token
-- `expires_at` - Token expiration timestamp
-- `is_active` - Boolean flag for active organization
-
-#### `clients`
-- `user_id` - Foreign key to users
-- `tenant_id` - Xero organization identifier
-- `contact_id` - Xero contact GUID
-- `name` - Client/contact name
-
-#### `xero_invoices`
-- `user_id` - Foreign key to users
-- `tenant_id` - Xero organization identifier
-- `invoice_id` - Xero invoice GUID
-- `contact_id` - Foreign key to clients
-- `invoice_number` - Invoice number
-- `reference` - Invoice reference
-- `status` - Invoice status (AUTHORISED, PAID, etc.)
-- `type` - Invoice type (ACCREC for sales invoices)
-- `date` - Invoice date
-- `due_date` - Payment due date
-- `sub_total` - Invoice subtotal
-- `total_tax` - Tax amount
-- `total` - Total invoice amount
-- `currency_code` - Currency code
-- `line_amount_types` - Line amount type
-- `updated_date_utc` - Last update timestamp
-
-#### `excluded_invoices`
-- `user_id` - Foreign key to users
-- `invoice_id` - Foreign key to xero_invoices
-- `created_at` - Exclusion timestamp
-
-#### `rfm_reports`
-- `user_id` - Foreign key to users
-- `client_id` - Foreign key to clients
-- `snapshot_date` - Date of RFM calculation
-- `r_score` - Recency score (0-10)
-- `f_score` - Frequency score (0-10)
-- `m_score` - Monetary score (0-10)
-- `rfm_score` - Overall RFM score (0-10)
-- `months_since_last` - Months since last transaction (nullable)
-- `txn_count` - Number of transactions in period
-- `monetary_sum` - Total revenue in period
-- `last_txn_date` - Date of last transaction
-
-## 🔗 API Endpoints
-
-### Authentication & Core
-- `GET /` - Landing page
-- `GET /dashboard` - Main dashboard
-- `GET /profile` - User profile management
-- `POST /profile` - Update profile
-
-### Subscription Management
-- `GET /memberships` - View subscription plans
-- `POST /memberships/subscribe` - Subscribe to a plan
-- `POST /memberships/cancel` - Cancel subscription
-- `GET /memberships/payment` - Payment page for paid plans
-- `POST /webhooks/gocardless` - GoCardless webhook endpoint
-
-### Xero Integration
-- `GET /xero/connect` - Initiate Xero OAuth flow
-- `GET /xero/callback` - OAuth callback handler
-
-### Organization Management
-- `GET /organizations` - List user's Xero organizations
-- `POST /organizations/{id}/switch` - Switch active organization
-- `DELETE /organizations/{id}/disconnect` - Disconnect organization
-
-### Invoice Management
-- `GET /invoices` - View and filter invoices
-- `POST /invoices/sync` - Sync invoices from Xero
-- `POST /invoices/{id}/exclude` - Exclude invoice from RFM calculations
-- `DELETE /invoices/{id}/exclude` - Remove invoice exclusion
-
-### RFM Analysis
-- `GET /rfm` - RFM Scores leaderboard
-- `POST /rfm/sync` - Calculate current and historical RFM scores
-- `GET /rfm/reports` - RFM Reports page (in development)
-- `GET /rfm/reports/generate` - Generate RFM reports (in development)
-- `GET /rfm/analysis` - RFM Analysis tools (in development)
-- `GET /rfm/analysis/trends` - Trend analysis (in development)
-
-## 🏗 Project Structure
+## Directory Structure (selected)
 
 ```
 app/
-├── Http/
-│   ├── Controllers/
-│   │   ├── XeroController.php          # Xero OAuth and API integration
-│   │   ├── OrganizationController.php  # Multi-org management
-│   │   ├── InvoicesController.php      # Invoice management and sync
-│   │   ├── RfmController.php           # RFM scores and calculations
-│   │   ├── RfmReportsController.php    # Report generation (in dev)
-│   │   ├── RfmAnalysisController.php   # Advanced analytics (in dev)
-│   │   └── ProfileController.php       # User profile management
-│   └── Middleware/
-│       └── EnsureXeroLinked.php        # Enforce Xero connection
-├── Models/
-│   ├── User.php                        # User model with Xero relations
-│   ├── XeroConnection.php              # Xero organization connections
-│   ├── Client.php                      # Client/contact data
-│   ├── XeroInvoice.php                 # Invoice data
-│   ├── ExcludedInvoice.php             # Excluded invoice tracking
-│   └── RfmReport.php                   # RFM calculation results
-└── Services/
-    └── Rfm/
-        └── RfmCalculator.php           # RFM calculation logic
-
-resources/views/
-├── layouts/
-│   └── navigation.blade.php            # Main navigation
-├── dashboard.blade.php                 # Dashboard overview
-├── organizations/
-│   └── index.blade.php                 # Organization management
-├── invoices/
-│   └── index.blade.php                 # Invoice listing and filters
-├── rfm/
-│   ├── index.blade.php                 # RFM Scores leaderboard
-│   ├── reports/
-│   │   └── index.blade.php             # Reports page (in dev)
-│   └── analysis/
-│       ├── index.blade.php             # Analysis tools (in dev)
-│       └── trends.blade.php            # Trend analysis (in dev)
-└── landing.blade.php                   # Public landing page
+  Http/
+    Controllers/            # Xero, Invoices, RFM, Memberships, etc.
+    Middleware/             # AutoRefreshXeroToken, EnsureXeroLinked
+  Models/                   # User, XeroConnection, XeroInvoice, Client, RfmReport, ...
+  Services/
+    GoCardlessService.php   # GoCardless API wrapper (subscriptions, webhook handling)
+    Narrative/AiInsightService.php  # OpenAI-backed (optional) narrative insights
+    Rfm/RfmCalculator.php   # Core RFM computation and snapshots
+    Xero/DatabaseCredentialManager.php # Token storage/refresh (used by package)
+config/
+  xero.php                  # Xero client/scopes/redirect
+  gocardless.php            # Plans and credentials
+  ai.php                    # AI provider and model settings
+routes/
+  web.php, auth.php         # Pages, API endpoints, webhooks
+resources/views/            # Blade templates (dashboard, rfm, invoices, memberships, ...)
+database/migrations/        # Schema (users, xero_connections, xero_invoices, rfm_reports, ...)
 ```
 
-## 🔧 Installation & Setup
+## Dependencies
 
-### Prerequisites
-- PHP 8.4+
-- Composer
-- Node.js & npm
-- Xero Developer Account
+- PHP (composer.json)
+  - laravel/framework ^12.0
+  - webfox/laravel-xero-oauth2 ^6.1
+  - gocardless/gocardless-pro ^7.2
+  - barryvdh/laravel-dompdf ^3.1, elibyy/tcpdf-laravel ^11.5 (PDF)
+  - laravel/tinker ^2.10.1
+  - Dev: laravel/breeze, pestphp/pest (+ plugin), laravel/pint, laravel/sail, nunomaduro/collision
 
-### 1. Clone and Install Dependencies
+- Node (package.json)
+  - devDependencies: tailwindcss, @tailwindcss/forms, @tailwindcss/vite, vite, laravel-vite-plugin, axios, alpinejs, postcss, autoprefixer, concurrently
+  - dependencies: chart.js
+
+Locations:
+- Composer packages: `composer.json`
+- Node packages: `package.json`
+- Integration config: `config/xero.php`, `config/gocardless.php`, `config/ai.php`
+
+## Environment Configuration (.env)
+
+Create `.env` (see template below) and run `php artisan key:generate`. Never commit real secrets.
+
+```dotenv
+# Application
+APP_NAME="Xero RFM App"
+APP_ENV=local
+APP_KEY=base64:generate_with_artisan
+APP_DEBUG=true
+APP_URL=http://localhost:8080
+
+# Logging
+LOG_CHANNEL=stack
+LOG_LEVEL=debug
+
+# Database (default: SQLite)
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+
+# Runtime (simple local defaults)
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+FILESYSTEM_DISK=local
+
+# Mail (logs to storage/logs/laravel.log)
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Xero OAuth2
+XERO_CLIENT_ID=your_xero_client_id
+XERO_CLIENT_SECRET=your_xero_client_secret
+XERO_CREDENTIAL_DISK=local
+XERO_REDIRECT_URI=http://localhost:8080/xero/callback
+
+# GoCardless
+GOCARDLESS_ACCESS_TOKEN=your_gocardless_token
+GOCARDLESS_ENVIRONMENT=sandbox   # sandbox|live
+GOCARDLESS_WEBHOOK_SECRET=your_webhook_secret
+GOCARDLESS_CREDITOR_ID=your_creditor_id_optional
+GOCARDLESS_SUCCESS_URL=http://localhost:8080/memberships/success
+
+# OpenAI (optional)
+OPENAI_API_KEY=your_openai_key_optional
+AI_PROVIDER=openai
+AI_INSIGHTS_ENABLED=true
+
+# Frontend
+VITE_APP_NAME="${APP_NAME}"
+
+# Sessions / HTTPS (adjust for production)
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=false      # true when behind HTTPS
+SESSION_SAME_SITE=lax            # consider none for cross-site iframes
+FORCE_HTTPS=false                # true in production with HTTPS
+```
+
+## Setup
+
+1) Clone and install
 ```bash
 git clone <repository-url>
 cd xero-rfm
@@ -254,173 +128,124 @@ composer install
 npm install
 ```
 
-### 2. Environment Configuration
+2) Bootstrap
 ```bash
-cp .env.example .env
+cp .env.example .env  # if present, else create using the template above
 php artisan key:generate
-```
-
-Configure your `.env` file:
-```dotenv
-APP_NAME="Xero RFM Analysis"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8080
-
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
-
-# Xero Configuration
-XERO_CLIENT_ID=your_xero_client_id
-XERO_CLIENT_SECRET=your_xero_client_secret
-XERO_CREDENTIAL_DISK=local
-XERO_REDIRECT_URI=http://localhost:8080/xero/callback
-
-# GoCardless Configuration
-GOCARDLESS_ACCESS_TOKEN=your_gocardless_access_token
-GOCARDLESS_ENVIRONMENT=sandbox
-GOCARDLESS_WEBHOOK_SECRET=your_webhook_secret
-GOCARDLESS_CREDITOR_ID=your_creditor_id
-```
-
-### 3. Database Setup
-```bash
-# Create SQLite database
-mkdir -p database
-touch database/database.sqlite
-
-# Run migrations
+mkdir -p database && type NUL > database\database.sqlite  # Windows
 php artisan migrate
 ```
 
-### 4. Build Frontend Assets
+3) Run (development)
+```bash
+# Option A: single processes
+php artisan serve --host=127.0.0.1 --port=8080
+npm run dev
+
+# Option B: combined
+composer run dev  # serves app, queue listener, logs, and Vite
+```
+
+4) Build assets (production)
 ```bash
 npm run build
-# or for development with hot reload:
-npm run dev
 ```
 
-### 5. Start the Application
-```bash
-# Option A: Laravel's built-in server
-php artisan serve --host=127.0.0.1 --port=8080
+## Integrations
 
-# Option B: PHP built-in server
-php -S localhost:8080 -t public
-```
+### Xero
 
-## 🔐 Xero App Configuration
+- Package: `webfox/laravel-xero-oauth2`
+- Config: `config/xero.php`
+- Scopes: `openid`, `profile`, `email`, `offline_access`, `accounting.transactions.read`
+- Middleware: `auto.refresh.xero` (access token refresh), `EnsureXeroLinked` (enforce connection)
+- Routes:
+  - `GET /xero/connect` (`xero.connect`) – initiate OAuth
+  - Callback handled by package route `xero.auth.callback` (compat shim: `GET /xero/callback` redirects)
 
-### Required Scopes
-- `openid` - OpenID Connect authentication
-- `profile` - User profile information
-- `email` - Email address access
-- `offline_access` - Refresh token access
-- `accounting.transactions.read` - Read invoice data
+Setup steps (Xero Developer portal):
+1) Create a new app in the Xero Developer portal.
+2) Add the redirect URI exactly as in your `.env` `XERO_REDIRECT_URI` (example: `http://localhost:8080/xero/callback`). The value must match character-for-character, including protocol, hostname, and port.
+3) Copy the Client ID and Client Secret into `.env` as `XERO_CLIENT_ID` and `XERO_CLIENT_SECRET`.
+4) Ensure required scopes are configured in `config/xero.php` (defaults already set).
+5) Start the app and visit `GET /xero/connect` to complete the OAuth flow.
 
-### Redirect URI
-Configure in Xero Developer Portal:
-- `http://localhost:8080/xero/callback`
+Redirect URI matching notes:
+- If you change local ports or domains (e.g., using ngrok for demos), update both Xero app settings and `.env` `XERO_REDIRECT_URI` to the exact same URL.
+- After changing `.env`, run `php artisan config:clear` to reload configuration.
 
-## 📈 RFM Analysis Methodology
+### GoCardless
 
-### Score Calculation
-- **Recency (R)**: `10 - months_since_last_transaction` (minimum 0)
-- **Frequency (F)**: Number of invoices in past 12 months (capped at 10)
-- **Monetary (M)**: Total revenue normalized to 0-10 scale using min-max scaling
-- **Overall RFM**: `(R + F + M) / 3`
+- SDK: `gocardless/gocardless-pro`
+- Config: `config/gocardless.php` (plans, environment, credentials)
+- Success redirect: `.env` `GOCARDLESS_SUCCESS_URL` (e.g., `/memberships/success`)
+- Webhook endpoint: `POST /webhooks/gocardless` (CSRF disabled for this route)
+- Service: `App\Services\GoCardlessService` handles customers, redirect flows, mandates, subscriptions, and webhook processing
+- Plans: defined in `config/gocardless.php` (`free`, `pro`, `pro_plus`)
 
-### Data Processing
-- Rolling 12-month analysis window
-- Sales invoices only (ACCREC type)
-- Excluded invoices are filtered out
-- Monthly snapshots for historical tracking
-- Zero scores for clients with no transactions
+Setup steps (GoCardless Dashboard):
+1) Create/get an Access Token in the GoCardless dashboard. Use Sandbox for demos.
+2) Set `.env` values: `GOCARDLESS_ACCESS_TOKEN`, `GOCARDLESS_ENVIRONMENT=sandbox|live`, optionally `GOCARDLESS_CREDITOR_ID`.
+3) Configure the success URL in `.env` as `GOCARDLESS_SUCCESS_URL` (example: `http://localhost:8080/memberships/success`).
+4) Configure Webhooks in GoCardless dashboard with URL `https://your-domain/webhooks/gocardless` (use your ngrok/host). Set the Webhook Secret and copy it to `.env` as `GOCARDLESS_WEBHOOK_SECRET`.
+5) Verify signatures: ensure your server is reachable via HTTPS for production; for local development, signature verification is gracefully handled and logged.
 
-## 🔄 Database Management
+Important matching notes:
+- The webhook secret configured in GoCardless must match `.env` `GOCARDLESS_WEBHOOK_SECRET`.
+- The webhook URL in the GoCardless dashboard must be the public URL for your app (ngrok or production domain) and match your deployment environment.
 
-### Reset Database
-```bash
-# Fresh migration (drops all data)
-php artisan migrate:fresh
+### OpenAI (optional)
 
-# Complete SQLite reset
-rm -f database/database.sqlite
-touch database/database.sqlite
-php artisan migrate
-```
+- Config: `config/ai.php` (`AI_PROVIDER`, `OPENAI_API_KEY`, model, limits)
+- Service: `App\Services\Narrative\AiInsightService` (falls back to deterministic text if disabled or on error)
+- Toggle: set `AI_INSIGHTS_ENABLED=false` to disable outbound API calls
 
-### Windows PowerShell
-```powershell
-del database\database.sqlite
-ni database\database.sqlite -ItemType File
-php artisan migrate
-```
+Setup steps:
+1) Create an API key in the OpenAI platform.
+2) Add `OPENAI_API_KEY` to `.env`. Optionally configure `OPENAI_MODEL`, `OPENAI_MAX_TOKENS`, and `OPENAI_TEMPERATURE` in `.env` to override defaults.
+3) Keep keys secret and do not commit `.env`.
 
-## 🚨 Troubleshooting
+## Pages and Routes (high level)
 
-### Common Issues
+- Public: `GET /` (landing), `GET /terms`, `GET /privacy`
+- Auth: Breeze routes in `routes/auth.php` (login, register, password reset, verification)
+- Dashboard: `GET /dashboard`
+- Organisations: `GET /organisations`, switch/disconnect actions
+- Memberships: `GET /memberships`, `GET /memberships/manage`, subscribe/cancel, payment flow, `GET /memberships/success`
+- Invoices: list/sync/exclude and RFM timeline data
+- RFM: `GET /rfm`, `POST /rfm/sync`, reports and PDF endpoints, analysis pages
+- Webhooks: `POST /webhooks/gocardless`
 
-**404 after OAuth consent**
-- Verify `XERO_REDIRECT_URI` matches Xero app configuration exactly
-- Check port numbers and protocol (http/https)
+## Database
 
-**"Invalid redirect_uri" error**
-- Clear config cache: `php artisan config:clear`
-- Ensure redirect URI is identical in Xero portal and .env
+Key tables (see migrations): `users` (Breeze), `xero_connections`, `clients`, `xero_invoices`, `excluded_invoices`, `rfm_configurations`, `rfm_reports`, `gocardless_customers`, `gocardless_subscription_events`, `gocardless_payment_events`.
 
-**"id_token missing" error**
-- Verify scopes include `openid profile email`
+Run migrations: `php artisan migrate`
 
-**Port conflicts**
-- Change port in both server command and Xero redirect URI
-- Update `.env` `APP_URL` accordingly
+## Testing and Quality
 
-### Token Management
-- Access/refresh tokens are encrypted in database
-- Automatic token refresh handled by Xero package
-- "Resync connection" re-runs OAuth flow
+- Tests: Pest/PHPUnit – run `composer test`
+- Linting: Laravel Pint – run `vendor/bin/pint`
 
-## 🔮 Roadmap
+## Production Notes
 
-### Completed Features
-- ✅ Multi-organization Xero integration
-- ✅ Invoice synchronization and management
-- ✅ RFM score calculation and historical tracking
-- ✅ Invoice exclusion system
-- ✅ Organization switching
-- ✅ Dark/light mode UI
+- Set `APP_URL` to your HTTPS domain and enable `FORCE_HTTPS=true`
+- Use secure cookies: `SESSION_SECURE_COOKIE=true`, consider `SESSION_SAME_SITE=none` if embedding cross-site
+- Use a robust database (MySQL/PostgreSQL) and update `DB_*`
+- Configure `QUEUE_CONNECTION` (e.g., `redis`) and `CACHE_STORE` in production
+- Set GoCardless to `live` and update webhook URL to `https://your-domain/webhooks/gocardless`
+- Ensure `XERO_REDIRECT_URI` matches the production URL exactly
 
-### In Development
-- 🔄 RFM Reports generation
-- 🔄 Advanced analytics and trend analysis
-- 🔄 Chart.js integration for visualizations
-- 🔄 Export functionality (PDF, CSV)
+## Demo Release Note
 
-### Planned Features
-- 📋 Email notifications for score changes
-- 📋 Automated monthly RFM calculations
-- 📋 Client segmentation analysis
-- 📋 Predictive churn modeling
-- 📋 API endpoints for external integrations
-- 📋 Bulk invoice operations
-- 📋 Advanced filtering and search
+For this demo release, all features are currently available on the Free plan, and new users are automatically onboarded to the Free plan. The membership payment flow is functional, but keep GoCardless in sandbox mode for ease of demonstration. If you later switch to production, update `GOCARDLESS_ENVIRONMENT=live`, set real credentials, and update webhook and success URLs to your HTTPS domain.
 
-## 📝 License
+## Troubleshooting
 
-MIT License - see LICENSE file for details.
+- OAuth callback issues: clear config cache (`php artisan config:clear`) and verify redirect URIs and scopes
+- GoCardless webhook signature errors: confirm correct `GOCARDLESS_WEBHOOK_SECRET` and HTTPS endpoint
+- Token expiry: automatic refresh is handled; if refresh token expired, reconnect Xero via `/xero/connect`
 
-## 🤝 Contributing
+## License
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📞 Support
-
-For issues and questions:
-- Check the troubleshooting section above
-- Review Laravel and Xero API documentation
-- Open an issue in the repository
+MIT License. See `LICENSE`.
