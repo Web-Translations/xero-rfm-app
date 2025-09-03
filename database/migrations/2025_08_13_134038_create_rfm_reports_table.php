@@ -26,7 +26,7 @@ return new class extends Migration
             $t->decimal('rfm_score', 4, 2);
             $t->string('methodology', 50)->default('B2B_baseline_v1');
             $t->timestamps();
-            $t->unique(['client_id','period_granularity','period_start','period_end']);
+            $t->unique(['client_id','period_granularity','period_start','period_end'], 'uq_client_id_period');
             $t->index(['user_id','period_granularity','period_start']);
         });
     }
