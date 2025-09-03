@@ -28,6 +28,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // MariaDB compatibility: limit default string length to avoid index byte-size issues on older MariaDB
+        try {
+            if (config('database.default') === 'mariadb') {
+                \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+            }
+        } catch (\Throwable $e) {
+            // no-op if Schema not available in this context
+        }
         // Force HTTPS URL generation when configured (e.g., using ngrok)
         if (config('app.force_https')) {
             URL::forceScheme('https');
@@ -64,7 +72,7 @@ class AppServiceProvider extends ServiceProvider
                             'org_name'      => $orgName,
                             'access_token'  => Crypt::encryptString($event->token),
                             'refresh_token' => Crypt::encryptString($event->refresh_token),
-                            'expires_at'    => $event->expires, // Store raw UTC timestamp
+                            'expires_at'    => \Carbon\CarbonImmutable::createFromTimestampUTC((int) $event->expires)->toDateTimeString(),
                             'is_active'     => true, // Set as active when reconnecting
                         ]);
                         
@@ -80,7 +88,7 @@ class AppServiceProvider extends ServiceProvider
                             'org_name'      => $orgName,
                             'access_token'  => Crypt::encryptString($event->token),
                             'refresh_token' => Crypt::encryptString($event->refresh_token),
-                            'expires_at'    => $event->expires, // Store raw UTC timestamp
+                            'expires_at'    => \Carbon\CarbonImmutable::createFromTimestampUTC((int) $event->expires)->toDateTimeString(),
                             'is_active'     => $isFirstConnection,
                         ]);
                         
@@ -128,7 +136,7 @@ class AppServiceProvider extends ServiceProvider
                         'org_name'      => $orgName,
                         'access_token'  => Crypt::encryptString($event->token),
                         'refresh_token' => Crypt::encryptString($event->refresh_token),
-                        'expires_at'    => $event->expires, // Store raw UTC timestamp
+                        'expires_at'    => \Carbon\CarbonImmutable::createFromTimestampUTC((int) $event->expires)->toDateTimeString(),
                         'is_active'     => true, // Set as active when reconnecting
                     ]);
                     
@@ -146,7 +154,7 @@ class AppServiceProvider extends ServiceProvider
                         'org_name'      => $orgName,
                         'access_token'  => Crypt::encryptString($event->token),
                         'refresh_token' => Crypt::encryptString($event->refresh_token),
-                        'expires_at'    => $event->expires, // Store raw UTC timestamp
+                        'expires_at'    => \Carbon\CarbonImmutable::createFromTimestampUTC((int) $event->expires)->toDateTimeString(),
                         'is_active'     => $isFirstConnection,
                     ]);
                     

@@ -8,7 +8,7 @@ class XeroConnection extends Model
 {
     protected $fillable = ['user_id','tenant_id','org_name','access_token','refresh_token','expires_at','is_active','last_sync_at','last_sync_invoice_count'];
     protected $casts = [
-        'expires_at' => 'datetime:U', // Store as UTC timestamp
+        'expires_at' => 'datetime', // Store as standard UTC datetime
         'is_active' => 'boolean',
         'last_sync_at' => 'datetime',
     ];

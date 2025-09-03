@@ -12,9 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('xero_connections', function (Blueprint $table) {
-            // Remove the problematic unique constraint entirely
-            // We'll handle uniqueness in the application logic instead
-            $table->dropUnique('unique_active_connection_per_user');
+            // Ensure supporting index exists for foreign keys before dropping composite unique
+            $table->index('user_id');
+        });
+
+        Schema::table('xero_connections', function (Blueprint $table) {
+            // Remove the problematic unique constraint safely
+            if (Schema::hasColumn('xero_connections', 'is_active')) {
+                try {
+                    $table->dropUnique('unique_active_connection_per_user');
+                } catch (\Throwable $e) {
+                    // Some MariaDB versions require explicit index name resolution; ignore if already dropped
+                }
+            }
         });
     }
 

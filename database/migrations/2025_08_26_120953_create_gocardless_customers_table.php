@@ -14,6 +14,9 @@ return new class extends Migration
         if (Schema::hasTable('gocardless_customers')) {
             return; // already created earlier in the chain
         }
+        if (Schema::hasTable('gocardless_customers')) {
+            return;
+        }
         Schema::create('gocardless_customers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
