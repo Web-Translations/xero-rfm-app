@@ -1,0 +1,31 @@
+server {
+  listen 8080;
+  listen [::]:8080;
+
+  server_name ${APP_DOMAIN} localhost;
+  access_log /dev/stdout;
+
+  client_max_body_size 100m;
+
+  error_page 404 /error/index.php;
+  error_page 403 =404 /error/index.php;
+
+  root   /srv/xero-rfm/public;
+  index index.php index.html index.htm;
+
+  location ~ /\.(?!well-known).* {
+    deny all;
+  }
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  location ~ \.php(/|$) {
+
+    fastcgi_pass ${NOMAD_ADDR_fastcgi};
+    fastcgi_index index.php;
+
+    include fastcgi.conf;
+  }
+}
