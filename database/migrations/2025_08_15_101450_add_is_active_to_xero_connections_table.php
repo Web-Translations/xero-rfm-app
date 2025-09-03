@@ -15,6 +15,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(false)->after('expires_at');
             
             // Ensure only one active connection per user
+            // Name the index explicitly; MariaDB uses the same name for the backing index
             $table->unique(['user_id', 'is_active'], 'unique_active_connection_per_user');
         });
     }
