@@ -1,0 +1,33 @@
+.git*
+
+# Dependencies
+node_modules
+vendor
+
+# Environment
+.env*
+.editorconfig
+
+# Storage
+bootstrap/cache/*
+storage/logs
+storage/framework/sessions
+storage/framework/cache
+storage/framework/testing
+storage/framework/views
+
+# Public
+public/hot
+public/storage
+
+# Tests
+/tests
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+compose.yaml
+
+# Documentation
+README.md

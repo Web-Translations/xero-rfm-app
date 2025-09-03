@@ -1,0 +1,30 @@
+#!/bin/sh
+set -e
+
+[ -f /local/msmtprc ] && cp /local/msmtprc /etc/msmtprc && chmod 644 /etc/msmtprc
+
+if [ -z "$(ls -A "/srv/xero-rfm/storage")" ]; then
+  echo "Initializing storage directory /srv/xero-rfm/storage ..."
+  cp -R /srv/xero-rfm/storage-init/. /srv/xero-rfm/storage/
+  chown -R www-data:www-data /srv/xero-rfm/storage
+fi
+
+chown -R www-data:www-data storage
+chown -R www-data:www-data bootstrap/cache
+chmod -R u+rwX storage
+chmod -R u+rwX bootstrap/cache
+
+php artisan migrate --force
+
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+
+umask 0027
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+        set -- php-fpm "$@"
+fi
+
+exec "$@"
