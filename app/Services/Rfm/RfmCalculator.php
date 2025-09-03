@@ -308,12 +308,31 @@ class RfmCalculator
     {
         $today = Carbon::now()->toDateString();
         
+        // Use DB-driver-specific day-of-month expression for portability
+        $dayExpr = $this->dayOfMonthExpression('snapshot_date');
+
         $deleted = RfmReport::where('user_id', $userId)
-            ->whereRaw("CAST(strftime('%d', snapshot_date) AS INTEGER) != 1")
+            ->whereRaw("{$dayExpr} != 1")
             ->where('snapshot_date', '!=', $today)
             ->delete();
             
         return $deleted;
+    }
+
+    /**
+     * Build a portable SQL expression that extracts day-of-month from a date column.
+     */
+    private function dayOfMonthExpression(string $column): string
+    {
+        $driver = DB::getDriverName();
+        switch ($driver) {
+            case 'pgsql':
+                return "EXTRACT(DAY FROM {$column})";
+            case 'sqlite':
+                return "CAST(strftime('%d', {$column}) AS INTEGER)";
+            default: // mysql/mariadb
+                return "DAY({$column})";
+        }
     }
 
     /**
