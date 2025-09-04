@@ -13,6 +13,7 @@ use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\MembershipsController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\AdminController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
@@ -32,6 +33,9 @@ Route::get('/xero/callback', function (Request $request) {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+
+    // Admin (restricted to admin users)
+    Route::get('/admin', [AdminController::class, 'index'])->middleware('admin')->name('admin.index');
 
     // Xero OAuth flow (package handles authorize + callback)
     Route::get('/xero/connect',  [XeroController::class, 'connect'])->name('xero.connect');
