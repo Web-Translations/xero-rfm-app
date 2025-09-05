@@ -101,6 +101,7 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
         Route::post('/', [RfmConfigController::class, 'store'])->name('store');
         Route::post('/reset', [RfmConfigController::class, 'reset'])->name('reset');
         Route::post('/recalculate', [RfmConfigController::class, 'recalculate'])->name('recalculate');
+        Route::get('/benchmark-preview', [RfmConfigController::class, 'benchmarkPreview'])->name('benchmark-preview');
     });
     
     // RFM Analysis

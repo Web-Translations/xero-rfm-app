@@ -16,6 +16,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const bmModeRadios = document.querySelectorAll('.bmMode');
     const bmPercentileWrap = document.getElementById('bmPercentileWrap');
     const bmValueWrap = document.getElementById('bmValueWrap');
+    const bmPercent = document.getElementById('bmPercent');
+    const bmPreview = document.getElementById('bmPreview');
+    const bmPreviewLoading = document.getElementById('bmPreviewLoading');
+    const bmPreviewContent = document.getElementById('bmPreviewContent');
+    const bmPreviewEmpty = document.getElementById('bmPreviewEmpty');
+    const bmPreviewError = document.getElementById('bmPreviewError');
 
     // Show/hide custom fields
     function toggleCustom(selectEl, wrapEl) {
@@ -61,6 +67,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const mode = Array.from(bmModeRadios).find(r => r.checked)?.value || 'percentile';
         bmPercentileWrap.classList.toggle('hidden', mode !== 'percentile');
         bmValueWrap.classList.toggle('hidden', mode !== 'direct_value');
+
+        // Trigger preview when switching to percentile
+        if (mode === 'percentile') {
+            fetchBenchmarkPreview();
+        }
     }
 
     // Event wiring
@@ -107,6 +118,54 @@ document.addEventListener('DOMContentLoaded', function() {
         bmModeRadios.forEach(r => r.addEventListener('change', updateBmModeUI));
     }
 
+    // Debounced preview fetcher
+    let bmPreviewTimer = null;
+    function fetchBenchmarkPreview() {
+        if (!bmPercent || !monetaryWindow || !bmPreview) return;
+        const mode = Array.from(bmModeRadios).find(r => r.checked)?.value || 'percentile';
+        if (mode !== 'percentile') return;
+
+        const percentile = parseFloat(bmPercent.value);
+        const windowMonths = monetaryWindow.value === 'custom' && monetaryWindowCustom ? monetaryWindowCustom.value : monetaryWindow.value;
+        if (!percentile || !windowMonths) return;
+
+        // UI states
+        bmPreviewLoading?.classList.remove('hidden');
+        bmPreviewContent?.classList.add('hidden');
+        bmPreviewEmpty?.classList.add('hidden');
+        bmPreviewError?.classList.add('hidden');
+
+        // Debounce network
+        if (bmPreviewTimer) clearTimeout(bmPreviewTimer);
+        bmPreviewTimer = setTimeout(async () => {
+            try {
+                const url = `/rfm/config/benchmark-preview?monetary_window_months=${encodeURIComponent(windowMonths)}&percentile=${encodeURIComponent(percentile)}`;
+                const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await res.json();
+                bmPreviewLoading?.classList.add('hidden');
+
+                if (!res.ok) {
+                    bmPreviewError?.classList.remove('hidden');
+                    return;
+                }
+
+                if (!data || data.sampleSize === 0 || data.benchmark == null) {
+                    bmPreviewEmpty?.classList.remove('hidden');
+                    return;
+                }
+
+                const formatter = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'GBP', maximumFractionDigits: 2 });
+                const value = formatter.format(Number(data.benchmark));
+                const content = `Benchmark ≈ ${value} (from ${data.sampleSize} customers, ${data.windowStart} → ${data.windowEnd})`;
+                bmPreviewContent.textContent = content;
+                bmPreviewContent?.classList.remove('hidden');
+            } catch (e) {
+                bmPreviewLoading?.classList.add('hidden');
+                bmPreviewError?.classList.remove('hidden');
+            }
+        }, 300);
+    }
+
     // Initialize
     if (recencyWindow && recencyWindowCustomWrap) {
         toggleCustom(recencyWindow, recencyWindowCustomWrap);
@@ -118,4 +177,9 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleCustom(monetaryWindow, monetaryWindowCustomWrap);
     }
     updateBmModeUI();
+
+    // Re-run preview on changes
+    if (bmPercent) bmPercent.addEventListener('input', fetchBenchmarkPreview);
+    if (monetaryWindow) monetaryWindow.addEventListener('change', fetchBenchmarkPreview);
+    if (monetaryWindowCustom) monetaryWindowCustom.addEventListener('input', fetchBenchmarkPreview);
 });
