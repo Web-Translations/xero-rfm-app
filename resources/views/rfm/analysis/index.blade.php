@@ -25,42 +25,42 @@
 
                 <!-- Navigation Tabs -->
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-                <div class="border-b border-gray-200 dark:border-gray-700">
-                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <div class="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                    <nav class="flex flex-nowrap gap-2 px-4 min-w-max" aria-label="Tabs">
                         <button onclick="showTab('overview')" id="tab-overview" 
-                                class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-white dark:text-white">
+                                class="tab-button active py-2 px-2 border rounded-md font-medium text-sm text-blue-600 dark:text-white border-blue-500 bg-blue-50 dark:bg-blue-900/30 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Overview
                         </button>
                         <button onclick="showTab('client-trends')" id="tab-client-trends" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Client RFM Trends
                         </button>
                         <button onclick="showTab('rfm-breakdown')" id="tab-rfm-breakdown" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Overall RFM Breakdown
                         </button>
                         <button onclick="showTab('rfm-monthly-distribution')" id="tab-rfm-monthly-distribution" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             RFM Monthly Distribution
                         </button>
                         <button onclick="showTab('rfm-score-over-time')" id="tab-rfm-score-over-time" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             RFM Score Over Time
                         </button>
                         <button onclick="showTab('customer-retention')" id="tab-customer-retention" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Customer Retention
                         </button>
                         <button onclick="showTab('customer-lifetime-value')" id="tab-customer-lifetime-value" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[10rem]">
                             Customer Lifetime Value
                         </button>
                         <button onclick="showTab('customer-segmentation')" id="tab-customer-segmentation" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[10rem]">
                             Customer Segmentation
                         </button>
                         <button onclick="showTab('customer-value-distribution')" id="tab-customer-value-distribution" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[10rem]">
                             Customer Value Distribution
                         </button>
 
@@ -1547,8 +1547,8 @@
             
             // Remove active class from all tabs
             document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400', 'text-white', 'dark:text-white');
-                button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400', 'text-white', 'dark:text-white', 'bg-blue-50', 'dark:bg-blue-900/30');
+                button.classList.add('border-transparent', 'text-gray-600', 'dark:text-gray-300', 'bg-transparent');
             });
             
             // Show selected tab content
@@ -1557,8 +1557,10 @@
             // Add active class to selected tab
             const activeTab = document.getElementById('tab-' + tabName);
             if (activeTab) {
-                activeTab.classList.add('active', 'border-blue-500', 'text-white', 'dark:text-white');
-                activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400', 'text-blue-600', 'dark:text-blue-400');
+                // Active tab colors and subtle background
+                activeTab.classList.add('active', 'border-blue-500', 'text-blue-600', 'bg-blue-50');
+                activeTab.classList.add('dark:text-white', 'dark:bg-blue-900/30');
+                activeTab.classList.remove('border-transparent', 'text-gray-600', 'dark:text-gray-300');
             }
             
             // Initialize chart for the selected tab
