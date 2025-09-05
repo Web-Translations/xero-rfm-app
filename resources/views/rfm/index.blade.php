@@ -9,6 +9,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
             onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});">
     </script>
+    <style>
+        /* Ensure KaTeX text is readable in light mode; keep default in dark mode */
+        html:not(.dark) .katex, html:not(.dark) .katex * { color: #111 !important; }
+    </style>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         @php
