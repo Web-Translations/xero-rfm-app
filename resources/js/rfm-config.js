@@ -182,4 +182,54 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bmPercent) bmPercent.addEventListener('input', fetchBenchmarkPreview);
     if (monetaryWindow) monetaryWindow.addEventListener('change', fetchBenchmarkPreview);
     if (monetaryWindowCustom) monetaryWindowCustom.addEventListener('input', fetchBenchmarkPreview);
+
+    // Keep Save & Recalculate hidden inputs in sync so server receives latest selections
+    function syncSaveRecalcHidden() {
+        const srRec = document.getElementById('sr_recency');
+        const srFreq = document.getElementById('sr_frequency');
+        const srMon = document.getElementById('sr_monetary');
+        const srMode = document.getElementById('sr_mode');
+        const srPercent = document.getElementById('sr_percent');
+        const srValue = document.getElementById('sr_value');
+        if (srRec && recencyWindow) srRec.value = (recencyWindow.value === 'custom' ? recencyWindowCustom?.value : recencyWindow.value) || srRec.value;
+        if (srFreq && freqPeriod) srFreq.value = (freqPeriod.value === 'custom' ? freqPeriodCustom?.value : freqPeriod.value) || srFreq.value;
+        if (srMon && monetaryWindow) srMon.value = (monetaryWindow.value === 'custom' ? monetaryWindowCustom?.value : monetaryWindow.value) || srMon.value;
+        if (srMode && bmModeRadios?.length) srMode.value = Array.from(bmModeRadios).find(r => r.checked)?.value || srMode.value;
+        if (srPercent && bmPercent) srPercent.value = bmPercent.value || srPercent.value;
+        if (srValue) {
+            const directVal = document.getElementById('bmValue');
+            if (directVal) srValue.value = directVal.value || srValue.value;
+        }
+    }
+
+    const saveRecalcForm = document.getElementById('save-recalc-form');
+    const saveRecalcBtn = document.getElementById('save-recalc-btn');
+    const saveRecalcText = document.getElementById('save-recalc-text');
+    const saveRecalcLoading = document.getElementById('save-recalc-loading');
+    const saveRecalcOverlay = document.getElementById('save-recalc-overlay');
+    if (saveRecalcForm && saveRecalcBtn) {
+        saveRecalcForm.addEventListener('submit', function() {
+            // Ensure main hidden fields are in sync first
+            updateHiddenFields();
+            syncSaveRecalcHidden();
+            // Show loading state
+            saveRecalcBtn.disabled = true;
+            if (saveRecalcText) saveRecalcText.classList.add('hidden');
+            if (saveRecalcLoading) saveRecalcLoading.classList.remove('hidden');
+            if (saveRecalcOverlay) saveRecalcOverlay.classList.remove('hidden');
+            // Dim the row of buttons above for clarity
+            const saveBtn = document.getElementById('save-btn');
+            const gotoBtn = document.getElementById('goto-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            [saveBtn, gotoBtn, resetBtn].forEach(el => { if (el) el.classList.add('opacity-50','pointer-events-none'); });
+        });
+    }
+
+    // Ensure standard Save submission also syncs hidden values
+    const mainForm = document.getElementById('rfm-config-form');
+    if (mainForm) {
+        mainForm.addEventListener('submit', function() {
+            updateHiddenFields();
+        });
+    }
 });

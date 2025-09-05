@@ -25,10 +25,14 @@ class RfmConfigController extends Controller
         }
 
         $config = $this->configManager->getConfiguration($user->id, $activeConnection->tenant_id);
+        $hasInvoices = \App\Models\XeroInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->exists();
         
         return view('rfm-config.index', [
             'config' => $config,
             'defaults' => $this->configManager->getDefaultConfiguration(),
+            'hasInvoices' => $hasInvoices,
         ]);
     }
 
@@ -79,6 +83,57 @@ class RfmConfigController extends Controller
                 ->withErrors($e->errors())
                 ->withInput();
         }
+    }
+
+    /**
+     * Save configuration and run a full recalculation (current + historical), same as RFM page.
+     */
+    public function saveAndRecalculate(Request $request, \App\Services\Rfm\RfmCalculator $calculator)
+    {
+        $user = $request->user();
+        $activeConnection = $user->getActiveXeroConnection();
+        if (!$activeConnection) {
+            return redirect()->route('dashboard')->withErrors('Please connect a Xero organisation first.');
+        }
+
+        // Block if no invoices exist
+        $hasInvoices = \App\Models\XeroInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->exists();
+        if (!$hasInvoices) {
+            return redirect()->route('rfm.config.index')->withErrors('No invoices found. Please sync invoices before recalculating.');
+        }
+
+        // Reuse store() validation to persist config
+        $data = $request->validate([
+            'recency_window_months' => 'required|integer|min:1|max:60',
+            'frequency_period_months' => 'required|integer|min:1|max:60',
+            'monetary_window_months' => 'required|integer|min:1|max:60',
+            'monetary_benchmark_mode' => 'required|in:percentile,direct_value',
+            'monetary_benchmark_percentile' => 'required_if:monetary_benchmark_mode,percentile|numeric|min:0.1|max:50',
+            'monetary_benchmark_value' => 'nullable|numeric|min:0.01',
+            'monetary_use_largest_invoice' => 'sometimes|boolean',
+        ]);
+
+        // Normalize checkbox (even though not shown in UI now)
+        $data['monetary_use_largest_invoice'] = $request->has('monetary_use_largest_invoice');
+        if ($data['monetary_benchmark_mode'] === 'percentile') {
+            $data['monetary_benchmark_value'] = null;
+        } elseif (empty($data['monetary_benchmark_value'])) {
+            return redirect()->back()->withErrors(['monetary_benchmark_value' => 'A benchmark value is required in direct value mode.'])->withInput();
+        }
+
+        $config = $this->configManager->updateConfiguration($user->id, $activeConnection->tenant_id, $data);
+
+        // Perform the same computation as the RFM Scores sync
+        $currentResult = $calculator->computeSnapshot($user->id, null, $config);
+        $historicalResults = $calculator->computeHistoricalSnapshots($user->id, 36, $config);
+        $totalHistorical = array_sum(array_column($historicalResults, 'computed'));
+        $cleanedUp = $calculator->cleanupOldSnapshots($user->id);
+
+        $status = "Saved configuration. Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created. Cleaned up {$cleanedUp} old snapshots.";
+
+        return redirect()->route('rfm.index')->with('status', $status);
     }
 
     /**

@@ -49,6 +49,14 @@
             </div>
           @endif
 
+          @if(isset($hasInvoices) && !$hasInvoices)
+            <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <div class="text-yellow-800 dark:text-yellow-200">
+                You need invoice data before you can calculate RFM scores. Please sync invoices first.
+              </div>
+            </div>
+          @endif
+
           <div class="mb-6">
             <h3 class="text-lg font-semibold mb-2">RFM Scoring Configuration</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -56,7 +64,7 @@
             </p>
           </div>
 
-          <form method="POST" action="{{ route('rfm.config.store') }}" class="space-y-8">
+          <form id="rfm-config-form" method="POST" action="{{ route('rfm.config.store') }}" class="space-y-8">
             @csrf
 
             <!-- Recency (R) -->
@@ -263,20 +271,52 @@
 
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button type="submit"
+              <button id="save-btn" type="submit"
                       class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 Save Configuration
               </button>
-              <a href="{{ route('rfm.index') }}"
+              <a id="goto-btn" href="{{ route('rfm.index') }}"
                  class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
                 Go to RFM Scores
               </a>
-              <button type="button" onclick="document.getElementById('reset-form').submit()"
+              <button id="reset-btn" type="button" onclick="document.getElementById('reset-form').submit()"
                       class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                 Reset to Defaults
               </button>
             </div>
+
           </form>
+
+          <!-- Save & Recalculate - full width under the three buttons (separate form; avoid nested forms) -->
+          <div class="mt-4">
+            <form id="save-recalc-form" method="POST" action="{{ route('rfm.config.save-recalculate') }}">
+              @csrf
+              <!-- Mirror the key inputs so save+recalc receives the same payload -->
+              <input type="hidden" name="recency_window_months" id="sr_recency" value="{{ $config->recency_window_months }}">
+              <input type="hidden" name="frequency_period_months" id="sr_frequency" value="{{ $config->frequency_period_months }}">
+              <input type="hidden" name="monetary_window_months" id="sr_monetary" value="{{ $config->monetary_window_months ?? 12 }}">
+              <input type="hidden" name="monetary_benchmark_mode" id="sr_mode" value="{{ $config->monetary_benchmark_mode }}">
+              <input type="hidden" name="monetary_benchmark_percentile" id="sr_percent" value="{{ $config->monetary_benchmark_percentile }}">
+              <input type="hidden" name="monetary_benchmark_value" id="sr_value" value="{{ $config->monetary_benchmark_value }}">
+
+              <button type="submit" id="save-recalc-btn" class="relative w-full inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-500 disabled:cursor-not-allowed overflow-hidden" {{ (isset($hasInvoices) && !$hasInvoices) ? 'disabled' : '' }}>
+                <div id="save-recalc-overlay" class="hidden absolute inset-0 bg-indigo-500/70 animate-pulse"></div>
+                <span id="save-recalc-text" class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                  </svg>
+                  Save & Recalculate
+                </span>
+                <div id="save-recalc-loading" class="hidden flex items-center gap-2">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing…</span>
+                </div>
+              </button>
+            </form>
+          </div>
 
           <!-- Hidden reset form -->
           <form id="reset-form" method="POST" action="{{ route('rfm.config.reset') }}" class="hidden">

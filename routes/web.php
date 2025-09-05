@@ -99,6 +99,7 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     Route::prefix('rfm/config')->name('rfm.config.')->group(function () {
         Route::get('/', [RfmConfigController::class, 'index'])->name('index');
         Route::post('/', [RfmConfigController::class, 'store'])->name('store');
+        Route::post('/save-recalculate', [RfmConfigController::class, 'saveAndRecalculate'])->name('save-recalculate');
         Route::post('/reset', [RfmConfigController::class, 'reset'])->name('reset');
         Route::post('/recalculate', [RfmConfigController::class, 'recalculate'])->name('recalculate');
         Route::get('/benchmark-preview', [RfmConfigController::class, 'benchmarkPreview'])->name('benchmark-preview');

@@ -62,12 +62,12 @@ class RfmController extends Controller
             ->exists();
 
         // Determine if recalculation is needed based on config/exclusions updates
-        $lastSnapshotDate = RfmReport::where('rfm_reports.user_id', $user->id)
+        // Use the most recent compute timestamp across all reports for this tenant
+        $lastComputedUpdatedAt = RfmReport::where('rfm_reports.user_id', $user->id)
             ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
             ->where('clients.tenant_id', $activeConnection->tenant_id)
-            ->max('rfm_reports.snapshot_date');
-        // Treat last compute as the end of the snapshot day to avoid false-positive recalc on the same day
-        $lastComputedAt = $lastSnapshotDate ? \Illuminate\Support\Carbon::parse($lastSnapshotDate)->endOfDay() : null;
+            ->max('rfm_reports.updated_at');
+        $lastComputedAt = $lastComputedUpdatedAt ? \Illuminate\Support\Carbon::parse($lastComputedUpdatedAt) : null;
         $exclusionsUpdatedAt = \App\Models\ExcludedInvoice::where('user_id', $user->id)
             ->where('tenant_id', $activeConnection->tenant_id)
             ->max('updated_at');
