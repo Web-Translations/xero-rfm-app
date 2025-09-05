@@ -24,17 +24,26 @@ class RfmController extends Controller
         
         $search = trim((string) $request->get('q', ''));
         $viewMode = $request->get('view', 'current'); // 'current' or a specific date
+        $sortBy = $request->get('sort_by', 'rfm'); // rfm, r, f, m, client
+        $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         // Get current RFM configuration
         $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
 
         // Get RFM data based on view mode
+        $activeSnapshotDate = null;
         if ($viewMode === 'current') {
             // Get current RFM scores (today's date)
             $query = RfmReport::getCurrentScoresForUser($user->id, $activeConnection->tenant_id);
+            // Determine which snapshot date is being shown for labeling
+            $activeSnapshotDate = RfmReport::where('rfm_reports.user_id', $user->id)
+                ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+                ->where('clients.tenant_id', $activeConnection->tenant_id)
+                ->max('rfm_reports.snapshot_date');
         } else {
             // Get historical snapshot for specific date (viewMode is the date)
             $query = RfmReport::getForSnapshotDate($user->id, $viewMode, $activeConnection->tenant_id);
+            $activeSnapshotDate = $viewMode;
         }
 
         // Apply search filter
@@ -44,6 +53,18 @@ class RfmController extends Controller
 
         // Filter out clients with RFM score of 0 (no point showing inactive clients)
         $query->where('rfm_score', '>', 0);
+
+        // Apply sorting
+        $columnMap = [
+            'rfm' => 'rfm_reports.rfm_score',
+            'r'   => 'rfm_reports.r_score',
+            'f'   => 'rfm_reports.f_score',
+            'm'   => 'rfm_reports.m_score',
+            'client' => 'client_name',
+        ];
+        $sortColumn = $columnMap[$sortBy] ?? $columnMap['rfm'];
+        // Remove any default orderings from model helpers and apply ours
+        $query->reorder()->orderBy($sortColumn, $sortDir)->orderBy('client_name', 'asc');
 
         $rows = $query->paginate(15)->withQueryString();
 
@@ -117,6 +138,9 @@ class RfmController extends Controller
             'config' => $config,
             'needsRecalc' => $needsRecalc,
             'hasInvoices' => $hasInvoices,
+            'sortBy' => $sortBy,
+            'sortDir' => $sortDir,
+            'activeSnapshotDate' => $activeSnapshotDate,
         ]);
     }
 

@@ -201,6 +201,8 @@
                                 </option>
                             @endforeach
                         </select>
+                        <input type="hidden" name="sort_by" value="{{ $sortBy ?? 'rfm' }}" />
+                        <input type="hidden" name="sort_dir" value="{{ $sortDir ?? 'desc' }}" />
                     </div>
 
                     <!-- Search -->
@@ -228,17 +230,45 @@
         <!-- Results Card -->
         <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasRfmData ? '' : 'opacity-50 pointer-events-none' }}">
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">RFM Leaderboard</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">RFM Leaderboard</h3>
+                    <form method="GET" class="flex items-center gap-3 text-xs">
+                        <input type="hidden" name="view" value="{{ $viewMode }}" />
+                        <input type="hidden" name="q" value="{{ $search }}" />
+                        <label class="text-gray-600 dark:text-gray-400">Order by</label>
+                        <select name="sort_by" class="h-9 min-w-[110px] px-3 pr-8 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="rfm" {{ ($sortBy ?? 'rfm') === 'rfm' ? 'selected' : '' }}>RFM</option>
+                            <option value="r" {{ ($sortBy ?? 'rfm') === 'r' ? 'selected' : '' }}>R</option>
+                            <option value="f" {{ ($sortBy ?? 'rfm') === 'f' ? 'selected' : '' }}>F</option>
+                            <option value="m" {{ ($sortBy ?? 'rfm') === 'm' ? 'selected' : '' }}>M</option>
+                            <option value="client" {{ ($sortBy ?? 'rfm') === 'client' ? 'selected' : '' }}>Client</option>
+                        </select>
+                        <select name="sort_dir" class="h-9 min-w-[140px] px-3 pr-8 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="desc" {{ ($sortDir ?? 'desc') === 'desc' ? 'selected' : '' }}>Descending</option>
+                            <option value="asc" {{ ($sortDir ?? 'desc') === 'asc' ? 'selected' : '' }}>Ascending</option>
+                        </select>
+                        <button class="h-9 px-4 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">Apply</button>
+                    </form>
+                </div>
             </div>
 
             <!-- Active Filters -->
-            <div class="px-4 py-2 flex gap-2 text-xs">
+            <div class="px-4 py-2 flex flex-wrap gap-2 text-xs">
                 <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                     View: <span class="font-medium">
-                        @if($viewMode === 'date')
+                        @if($viewMode !== 'current')
                             {{ \Carbon\Carbon::parse($viewMode)->format('M j, Y') }} Snapshot
+                        @else
+                            @if(!empty($activeSnapshotDate))
+                                {{ \Carbon\Carbon::parse($activeSnapshotDate)->format('M j, Y') }} Snapshot
+                            @else
+                                Default
+                            @endif
                         @endif
                     </span>
+                </span>
+                <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                    Order: <span class="font-medium uppercase">{{ ($sortBy ?? 'rfm') }}</span> • <span class="font-medium">{{ strtoupper($sortDir ?? 'desc') }}</span>
                 </span>
                 @if($search !== '')
                     <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
@@ -253,11 +283,62 @@
                     <thead class="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 sticky top-0 z-10">
                         <tr class="text-left">
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold w-12">#</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Client</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">R</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">F</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">M</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">RFM</th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'client', 'sort_dir' => ($sortBy==='client' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">
+                                    Client
+                                    @if(($sortBy ?? 'rfm') === 'client')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'r', 'sort_dir' => ($sortBy==='r' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">R
+                                    @if(($sortBy ?? 'rfm') === 'r')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'f', 'sort_dir' => ($sortBy==='f' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">F
+                                    @if(($sortBy ?? 'rfm') === 'f')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'm', 'sort_dir' => ($sortBy==='m' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">M
+                                    @if(($sortBy ?? 'rfm') === 'm')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'rfm', 'sort_dir' => ($sortBy==='rfm' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">RFM
+                                    @if(($sortBy ?? 'rfm') === 'rfm')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Snapshot Date</th>
                         </tr>
                     </thead>
