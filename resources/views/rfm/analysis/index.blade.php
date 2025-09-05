@@ -1530,7 +1530,75 @@
          let valueDistributionType = 'histogram';
          let valueDistributionPeriod = '6m';
          
-
+         // --- Theme helpers for Chart.js ---
+         const allCharts = new Set();
+         function isDarkTheme() {
+             if (document.documentElement && document.documentElement.classList.contains('dark')) return true;
+             if (window.matchMedia) {
+                 try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (_) {}
+             }
+             return false;
+         }
+         function getChartTheme() {
+             const dark = isDarkTheme();
+             return {
+                 text: dark ? '#D1D5DB' : '#374151',
+                 textStrong: dark ? '#FFFFFF' : '#111111',
+                 grid: dark ? '#374151' : '#E5E7EB',
+                 tooltipBg: dark ? '#1F2937' : '#FFFFFF',
+                 tooltipTitle: dark ? '#D1D5DB' : '#374151',
+                 tooltipBody: dark ? '#D1D5DB' : '#374151',
+                 tooltipBorder: dark ? '#4B5563' : '#E5E7EB'
+             };
+         }
+         function styleChart(chart) {
+             if (!chart || !chart.options) return;
+             const c = getChartTheme();
+             if (Chart && Chart.defaults) {
+                 Chart.defaults.color = c.textStrong;
+                 Chart.defaults.borderColor = c.grid;
+             }
+             if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                 chart.options.plugins.legend.labels.color = c.text;
+             }
+             if (chart.options.plugins && chart.options.plugins.tooltip) {
+                 chart.options.plugins.tooltip.backgroundColor = c.tooltipBg;
+                 chart.options.plugins.tooltip.titleColor = c.tooltipTitle;
+                 chart.options.plugins.tooltip.bodyColor = c.tooltipBody;
+                 chart.options.plugins.tooltip.borderColor = c.tooltipBorder;
+             }
+             if (chart.options.scales) {
+                 Object.values(chart.options.scales).forEach(scale => {
+                     if (!scale) return;
+                     if (scale.ticks) scale.ticks.color = c.textStrong;
+                     if (scale.title) scale.title.color = c.textStrong;
+                     if (scale.grid) scale.grid.color = c.grid;
+                 });
+             }
+             chart.update('none');
+         }
+         function registerChart(chart) {
+             if (!chart) return;
+             allCharts.add(chart);
+             styleChart(chart);
+         }
+         function refreshAllChartsTheme() {
+             allCharts.forEach(ch => styleChart(ch));
+         }
+         const __themeObserver = new MutationObserver(mutations => {
+             for (const m of mutations) {
+                 if (m.type === 'attributes' && m.attributeName === 'class') {
+                     refreshAllChartsTheme();
+                     break;
+                 }
+             }
+         });
+         __themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+         try {
+             const mq = window.matchMedia('(prefers-color-scheme: dark)');
+             if (mq && mq.addEventListener) mq.addEventListener('change', refreshAllChartsTheme);
+             else if (mq && mq.addListener) mq.addListener(refreshAllChartsTheme);
+         } catch (_) {}
          
 
          
@@ -1705,6 +1773,7 @@
                     }
                 }
             });
+            registerChart(clientTrendsChart);
 
             updateClientLegend(filteredClients);
         }
@@ -2273,6 +2342,9 @@
                             },
                             ticks: {
                                 color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                             }
                         },
                         x: {
@@ -2283,6 +2355,9 @@
                             },
                             ticks: {
                                 color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                             }
                         }
                      },
@@ -2293,6 +2368,7 @@
                      }
                  }
              });
+             registerChart(rfmBreakdownChart);
          }
          // Update RFM Monthly Distribution Chart with filtered data
          function updateRfmMonthlyDistributionChart() {
@@ -2509,6 +2585,7 @@
                          }
                      }
                  });
+                 registerChart(rfmMonthlyDistChart);
              }
              
              // Update monthly breakdown table
@@ -2779,14 +2856,7 @@
                                  titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                  bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                  borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                 borderWidth: 1,
-                                 callbacks: {
-                                     label: function(context) {
-                                         const value = context.parsed.y;
-                                         const period = periodStats[context.dataIndex];
-                                         return `Avg Score: ${value} | Records: ${period.count}`;
-                                     }
-                                 }
+                                 borderWidth: 1
                              }
                          },
                          scales: {
@@ -2806,11 +2876,6 @@
                                  }
                              },
                              x: {
-                                 title: {
-                                     display: true,
-                                     text: 'Time Period',
-                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
-                                 },
                                  ticks: {
                                      color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
@@ -2821,6 +2886,7 @@
                          }
                      }
                  });
+                 registerChart(rfmScoreOverTimeChart);
              }
              
              // Update period breakdown table
@@ -3069,53 +3135,54 @@
                          maintainAspectRatio: false,
                          plugins: {
                              legend: {
-                                 display: false
+                                 position: 'top',
+                                 labels: {
+                                     usePointStyle: true,
+                                     padding: 20,
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 }
                              },
                              tooltip: {
                                  backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
                                  titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                  bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                  borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                 borderWidth: 1,
-                                 callbacks: {
-                                     label: function(context) {
-                                         return `Retention Rate: ${context.parsed.y}%`;
-                                     }
-                                 }
+                                 borderWidth: 1
                              }
                          },
-                                                 scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                title: {
-                                    display: true,
-                                    text: 'Retention Rate (%)',
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
-                                },
-                                ticks: {
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
-                                },
-                                grid: {
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Customer Segments',
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
-                                },
-                                ticks: {
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
-                                },
-                                grid: {
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
-                                }
-                            }
-                        }
+                         scales: {
+                             y: {
+                                 beginAtZero: true,
+                                 max: 100,
+                                 title: {
+                                     display: true,
+                                     text: 'Retention Rate (%)',
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 ticks: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 grid: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             },
+                             x: {
+                                 title: {
+                                     display: true,
+                                     text: 'Customer Segments',
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 ticks: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 grid: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             }
+                         }
                      }
                  });
+                 registerChart(customerRetentionChart);
              }
              
              // Update insights
@@ -3415,6 +3482,7 @@
                         }
                      }
                  });
+                 registerChart(customerLifetimeValueChart);
              }
              
              // Update statistics
@@ -3893,11 +3961,9 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'right',
+                                position: 'top',
                                 labels: {
-                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
-                                    padding: 20,
-                                    usePointStyle: true
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151'
                                 }
                             },
                             tooltip: {
@@ -3905,20 +3971,12 @@
                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        const segment = context.label;
-                                        const count = context.parsed;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((count / total) * 100).toFixed(1);
-                                        return `${segment}: ${count} customers (${percentage}%)`;
-                                    }
-                                }
+                                borderWidth: 1
                             }
                         }
                     }
                 });
+                registerChart(customerSegmentationChart);
             }
             
             // Update statistics
@@ -4180,7 +4238,7 @@
                             }
                         },
                         legend: {
-                            display: chartType === 'bar' && valueDistributionType === 'boxplot',
+                            display: chartType !== 'histogram',
                             position: 'top',
                             labels: {
                                 color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
@@ -4226,114 +4284,22 @@
                             }
                         }
                     },
-                    scales: {
+                    scales: chartType === 'histogram' ? {
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: getYAxisLabel(),
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                padding: {
-                                    top: 10,
-                                    bottom: 10
-                                }
-                            },
-                            grid: {
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB',
-                                drawBorder: false,
-                                lineWidth: 0.5
-                            },
-                            ticks: {
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
-                                font: {
-                                    size: 12
-                                },
-                                padding: 8,
-                                callback: function(value, index, values) {
-                                    if (valueDistributionType === 'histogram') {
-                                        return value + ' customers';
-                                    }
-                                    return value;
-                                }
-                            },
-                            border: {
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                width: 1
-                            }
+                            title: { display: true, text: 'Clients', color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            ticks: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            grid: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB' }
                         },
                         x: {
-                            title: {
-                                display: true,
-                                text: getXAxisLabel(),
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                padding: {
-                                    top: 10,
-                                    bottom: 10
-                                }
-                            },
-                            grid: {
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB',
-                                drawBorder: false,
-                                lineWidth: 0.5
-                            },
-                            ticks: {
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
-                                font: {
-                                    size: 11
-                                },
-                                padding: 8,
-                                maxRotation: 45,
-                                minRotation: 0,
-                                callback: function(value, index, values) {
-                                    if (valueDistributionType === 'histogram') {
-                                        // Shorten long labels
-                                        const label = this.getLabelForValue(value);
-                                        if (label.length > 8) {
-                                            return label.split('-')[0] + '-';
-                                        }
-                                        return label;
-                                    }
-                                    return value;
-                                }
-                            },
-                            border: {
-                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                width: 1
-                            }
+                            title: { display: true, text: 'RFM Score', color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            ticks: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            grid: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB' }
                         }
-                    },
-                    elements: {
-                        bar: {
-                            borderRadius: 4,
-                            borderSkipped: false
-                        },
-                        point: {
-                            radius: 4,
-                            hoverRadius: 6,
-                            borderWidth: 2
-                        },
-                        line: {
-                            tension: 0.2
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    animation: {
-                        duration: 750,
-                        easing: 'easeInOutQuart'
-                    }
+                    } : undefined
                 }
             });
+            registerChart(customerValueDistributionChart);
             
             // Update statistics
             document.getElementById('meanValue').textContent = mean.toFixed(2);
