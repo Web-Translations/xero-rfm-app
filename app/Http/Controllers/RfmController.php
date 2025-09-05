@@ -62,21 +62,46 @@ class RfmController extends Controller
             ->exists();
 
         // Determine if recalculation is needed based on config/exclusions updates
-        // Use the most recent compute timestamp across all reports for this tenant
-        $lastComputedUpdatedAt = RfmReport::where('rfm_reports.user_id', $user->id)
+        // 1) Identify latest snapshot date for this tenant
+        $latestSnapshot = RfmReport::where('rfm_reports.user_id', $user->id)
             ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
             ->where('clients.tenant_id', $activeConnection->tenant_id)
-            ->max('rfm_reports.updated_at');
-        $lastComputedAt = $lastComputedUpdatedAt ? \Illuminate\Support\Carbon::parse($lastComputedUpdatedAt) : null;
+            ->max('rfm_reports.snapshot_date');
+
+        // 2) Compute compute-timestamp for that specific snapshot date (represents last compute event for tenant)
+        $lastComputedAt = null;
+        $latestConfigIdUsed = null;
+        if ($latestSnapshot) {
+            $lastComputedUpdatedAt = RfmReport::where('rfm_reports.user_id', $user->id)
+                ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+                ->where('clients.tenant_id', $activeConnection->tenant_id)
+                ->where('rfm_reports.snapshot_date', $latestSnapshot)
+                ->max('rfm_reports.updated_at');
+            $lastComputedAt = $lastComputedUpdatedAt ? \Illuminate\Support\Carbon::parse($lastComputedUpdatedAt) : null;
+
+            // Capture the configuration id used in that compute (any row for the latest snapshot)
+            $latestConfigIdUsed = RfmReport::where('rfm_reports.user_id', $user->id)
+                ->join('clients', 'clients.id', '=', 'rfm_reports.client_id')
+                ->where('clients.tenant_id', $activeConnection->tenant_id)
+                ->where('rfm_reports.snapshot_date', $latestSnapshot)
+                ->value('rfm_reports.rfm_configuration_id');
+        }
         $exclusionsUpdatedAt = \App\Models\ExcludedInvoice::where('user_id', $user->id)
             ->where('tenant_id', $activeConnection->tenant_id)
             ->max('updated_at');
         $needsRecalc = false;
-        if ($lastComputedAt) {
+        if (!$lastComputedAt) {
+            // No compute exists yet for this tenant
+            $needsRecalc = true;
+        } else {
+            // Config changed after compute or different config was used
             if ($config->updated_at && \Illuminate\Support\Carbon::parse($config->updated_at)->gt($lastComputedAt)) {
                 $needsRecalc = true;
             }
             if ($exclusionsUpdatedAt && \Illuminate\Support\Carbon::parse($exclusionsUpdatedAt)->gt($lastComputedAt)) {
+                $needsRecalc = true;
+            }
+            if ($latestConfigIdUsed && (int)$latestConfigIdUsed !== (int)$config->id) {
                 $needsRecalc = true;
             }
         }

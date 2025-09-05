@@ -153,11 +153,14 @@ class RfmCalculator
                 // Overall RFM score: simple average of R, F, M
                 $rfmScore = round(($rScore + $fScore + $mScore) / 3, 2);
 
+                $nowTs = Carbon::now();
                 $insertData = [
                     'user_id' => $userId,
                     'client_id' => $client->id,
                     'snapshot_date' => $effectiveSnapshotDate->toDateString(),
                     'rfm_configuration_id' => $config->id,
+                    'created_at' => $nowTs,
+                    'updated_at' => $nowTs,
                 ];
                 
                 $updateData = [
@@ -165,9 +168,27 @@ class RfmCalculator
                     'f_score' => $fScore,
                     'm_score' => $mScore,
                     'rfm_score' => $rfmScore,
+                    // Ensure latest config id is stamped on updates as well
+                    'rfm_configuration_id' => $config->id,
+                    'updated_at' => $nowTs,
                 ];
 
-                DB::table('rfm_reports')->updateOrInsert($insertData, $updateData);
+                // Perform update-first to preserve created_at; insert if missing
+                $attributes = [
+                    'user_id' => $userId,
+                    'client_id' => $client->id,
+                    'snapshot_date' => $effectiveSnapshotDate->toDateString(),
+                ];
+
+                $affected = DB::table('rfm_reports')
+                    ->where($attributes)
+                    ->update($updateData);
+
+                if ($affected === 0) {
+                    DB::table('rfm_reports')->insert(array_merge($attributes, $updateData, [
+                        'created_at' => $nowTs,
+                    ]));
+                }
                 $computedCount++;
 
 

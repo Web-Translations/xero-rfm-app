@@ -25,7 +25,8 @@ class RfmConfigurationManager
         
         $config = RfmConfiguration::getOrCreateDefault($userId, $tenantId);
         $config->update($data);
-        
+        // Always bump updated_at so recalculation detection is intent-based
+        $config->touch();
         return $config->fresh();
     }
 
