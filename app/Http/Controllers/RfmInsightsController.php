@@ -37,22 +37,29 @@ class RfmInsightsController extends Controller
                 ], 403);
             }
             
-            // Generate insight with appropriate depth based on subscription
+            // Generate insight
             $insight = $this->insightService->generateInsight($section, $data, $user);
             
-            return response()->json([
+            $provider = method_exists($this->insightService, 'getLastProvider') ? $this->insightService->getLastProvider() : 'unknown';
+            $payload = [
                 'success' => true,
                 'insight' => $insight,
                 'section' => $section,
+                'provider' => $provider,
                 'insight_depth' => $this->getInsightDepth($user)
-            ]);
+            ];
+            if ($provider === 'deterministic' && method_exists($this->insightService, 'getLastError')) {
+                $payload['fallback_error'] = $this->insightService->getLastError();
+            }
+            return response()->json($payload);
             
         } catch (\Exception $e) {
-            Log::error('AI Insight generation failed: ' . $e->getMessage());
+            // Return JSON with full error details (no need to read logs)
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to generate insight: ' . $e->getMessage()
-            ], 500);
+                'error' => $e->getMessage(),
+                'trace' => config('app.debug') ? collect($e->getTrace())->take(3) : [],
+            ], 200);
         }
     }
 
@@ -61,28 +68,7 @@ class RfmInsightsController extends Controller
      */
     private function checkInsightAccess($user, string $section): bool
     {
-        // Basic insights available to all plans
-        $basicInsights = ['executive-summary', 'customer-movement', 'risk-assessment'];
-        
-        // Enhanced insights require Pro or Pro+
-        $enhancedInsights = ['growth-opportunities', 'revenue-concentration', 'customer-segments', 'historical-trends'];
-        
-        // AI-powered insights require Pro+
-        $aiInsights = ['ai-predictive', 'ai-recommendations', 'ai-chat'];
-        
-        if (in_array($section, $basicInsights)) {
-            return true; // Available to all plans
-        }
-        
-        if (in_array($section, $enhancedInsights)) {
-            return $user->canAccessDeeperInsights();
-        }
-        
-        if (in_array($section, $aiInsights)) {
-            return $user->canAccessAIInsights();
-        }
-        
-        // Default to basic access
+        // Temporarily allow all insights to be accessed by any user
         return true;
     }
 

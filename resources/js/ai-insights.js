@@ -33,11 +33,15 @@ function generateAIInsight(section, data) {
             data: data
         })
     })
-    .then(response => {
+    .then(async response => {
+        // Parse JSON if possible and surface backend error details
+        let json;
+        try { json = await response.json(); } catch (_) { json = null; }
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const msg = (json && (json.error || json.message)) ? `HTTP ${response.status}: ${(json.error || json.message)}` : `HTTP error! status: ${response.status}`;
+            throw new Error(msg);
         }
-        return response.json();
+        return json;
     })
     .then(result => {
         if (result.success) {

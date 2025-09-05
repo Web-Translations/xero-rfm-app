@@ -98,6 +98,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Backwards-compatible helpers used by insights controller
+     */
+    public function canAccessDeeperInsights(): bool
+    {
+        return $this->canAccessPremium();
+    }
+
+    public function canAccessAIInsights(): bool
+    {
+        return $this->canAccessAI();
+    }
+
+    /**
      * Relation: all XeroConnections for this user
      */
     public function xeroConnections()

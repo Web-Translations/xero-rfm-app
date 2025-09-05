@@ -2,11 +2,26 @@
 
 namespace App\Services\Narrative;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class AiInsightService
 {
-    public function generateInsight(string $section, array $data): string
+    private string $lastProvider = 'deterministic';
+    private ?string $lastError = null;
+
+    public function getLastProvider(): string
+    {
+        return $this->lastProvider;
+    }
+
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
+    }
+
+    public function generateInsight(string $section, array $data, ?User $user = null): string
     {
         $prompt = $this->buildPrompt($section, $data);
         
@@ -17,14 +32,19 @@ class AiInsightService
         if ($apiKey && $enabled) {
             // Try OpenAI first, fallback to deterministic if it fails
             try {
-                return $this->callOpenAI($prompt);
+                $text = $this->callOpenAI($prompt);
+                $this->lastProvider = 'openai';
+                return $text;
             } catch (\Exception $e) {
-                // Log the error for debugging
-                Log::warning('OpenAI API call failed, falling back to deterministic text: ' . $e->getMessage());
+                Log::warning('OpenAI API call failed: ' . $e->getMessage());
+                $this->lastError = $e->getMessage();
+                $this->lastProvider = 'deterministic';
                 return $this->getDeterministicInsight($section, $data);
             }
         } else {
             // Use deterministic insights if OpenAI not configured
+            $this->lastProvider = 'deterministic';
+            $this->lastError = $apiKey ? 'AI insights disabled' : 'OpenAI API key not configured';
             return $this->getDeterministicInsight($section, $data);
         }
     }
@@ -725,28 +745,38 @@ class AiInsightService
             throw new \Exception('OpenAI API key not configured');
         }
         
-        $client = new \GuzzleHttp\Client();
-        
-        $response = $client->post('https://api.openai.com/v1/chat/completions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type' => 'application/json',
-            ],
-            'json' => [
+        $headers = [];
+        if (config('ai.openai.org')) {
+            $headers['OpenAI-Organization'] = config('ai.openai.org');
+        }
+        if (config('ai.openai.project')) {
+            $headers['OpenAI-Project'] = config('ai.openai.project');
+        }
+
+        $response = Http::withToken($apiKey)
+            ->withHeaders($headers)
+            ->timeout(30)
+            ->acceptJson()
+            ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $model,
                 'messages' => [
                     [
                         'role' => 'user',
-                        'content' => $prompt
-                    ]
+                        'content' => $prompt,
+                    ],
                 ],
                 'max_tokens' => $maxTokens,
                 'temperature' => $temperature,
-            ],
-            'timeout' => 30,
-        ]);
-        
-        $result = json_decode($response->getBody()->getContents(), true);
+            ]);
+
+        if ($response->failed()) {
+            $status = $response->status();
+            $body = $response->json();
+            $message = $body['error']['message'] ?? $response->body();
+            throw new \Exception("OpenAI request failed ({$status}): {$message}");
+        }
+
+        $result = $response->json();
         
         if (!isset($result['choices'][0]['message']['content'])) {
             throw new \Exception('Invalid response from OpenAI API');

@@ -48,17 +48,56 @@ function generateAIInsight(section, data) {
             data: data
         })
     })
-    .then(response => {
-        console.log('Response status:', response.status);
+    .then(async response => {
+        let json;
+        try { json = await response.json(); } catch (_) { json = null; }
+        console.log('Response status:', response.status, 'json:', json);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const msg = (json && (json.error || json.message)) ? `HTTP ${response.status}: ${(json.error || json.message)}` : `HTTP error! status: ${response.status}`;
+            throw new Error(msg);
         }
-        return response.json();
+        return json;
     })
     .then(result => {
         console.log('API result:', result);
         if (result.success) {
-            contentDiv.innerHTML = `<p class="text-blue-800 dark:text-blue-200">${result.insight}</p>`;
+            const provider = result.provider || '';
+
+            // If deterministic fallback, format into readable bullet list and add error toggle
+            if (provider === 'deterministic') {
+                const raw = String(result.insight || '').trim();
+                const lines = raw
+                    .replace(/\s+\./g, '.')
+                    .split(/\.(?:\s+|$)/)
+                    .map(s => s.trim())
+                    .filter(Boolean);
+                const bullets = lines.map(l => `<li class=\"mb-1\">${l}${l.endsWith('.') ? '' : '.'}</li>`).join('');
+
+                const errorDetail = result.fallback_error ? `
+                    <button id=\"ai-toggle-error-${section}\" class=\"mt-3 text-xs text-blue-600 dark:text-blue-300 underline\">Show OpenAI error</button>
+                    <pre id=\"ai-error-${section}\" class=\"mt-2 hidden whitespace-pre-wrap text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 p-2 rounded\">${result.fallback_error}</pre>
+                ` : '';
+
+                contentDiv.innerHTML = `
+                    <ul class=\"list-disc pl-5 text-blue-800 dark:text-blue-200\">${bullets}</ul>
+                    <div class=\"text-xs text-gray-500 mt-2\">Provider: deterministic</div>
+                    ${errorDetail}
+                `;
+
+                // Wire up toggle if present
+                const toggle = document.getElementById(`ai-toggle-error-${section}`);
+                const pre = document.getElementById(`ai-error-${section}`);
+                if (toggle && pre) {
+                    toggle.addEventListener('click', () => {
+                        const isHidden = pre.classList.contains('hidden');
+                        pre.classList.toggle('hidden');
+                        toggle.textContent = isHidden ? 'Hide OpenAI error' : 'Show OpenAI error';
+                    });
+                }
+            } else {
+                const providerHtml = provider ? `<div class=\"text-xs text-gray-500 mt-2\">Provider: ${provider}</div>` : '';
+                contentDiv.innerHTML = `<p class=\"text-blue-800 dark:text-blue-200\">${result.insight}</p>${providerHtml}`;
+            }
         } else {
             throw new Error(result.error || 'Unknown error occurred');
         }
