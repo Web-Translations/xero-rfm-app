@@ -11,10 +11,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
           onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});">
   </script>
-  <style>
-    /* Ensure KaTeX text is readable in light mode; keep default in dark mode */
-    html:not(.dark) .katex, html:not(.dark) .katex * { color: #111 !important; }
-  </style>
+  
 
   @vite(['resources/js/rfm-config.js'])
 

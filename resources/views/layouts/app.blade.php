@@ -20,21 +20,16 @@
         <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
 
         <style>
-            /* KaTeX styling - make all LaTeX text white for visibility */
+            /* KaTeX color follows theme: black in light mode, white in dark mode */
             .katex,
-            .katex *,
-            .katex .mord,
-            .katex .mbin,
-            .katex .mrel,
-            .katex .mopen,
-            .katex .mclose,
-            .katex .mpunct,
-            .katex .mord.text,
-            .katex .text,
-            .katex .mord.text .text,
-            .katex-display,
-            .katex-display * {
-                color: white !important;
+            .katex-display {
+                color: #111111;
+            }
+            @media (prefers-color-scheme: dark) {
+                .katex,
+                .katex-display {
+                    color: #ffffff;
+                }
             }
         </style>
 
