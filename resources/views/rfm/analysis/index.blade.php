@@ -784,16 +784,16 @@
                             <h4 class="text-md font-semibold text-blue-900 dark:text-blue-100 mb-3">Time-Based Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="timeInsight1">Analyzing RFM score trends over time...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="timeInsight1">Analyzing RFM score trends over time...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="timeInsight2">Identifying seasonal patterns and trends...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="timeInsight2">Identifying seasonal patterns and trends...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="timeInsight3">Calculating performance consistency metrics...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="timeInsight3">Calculating performance consistency metrics...</span>
                                 </div>
                             </div>
                         </div>
@@ -937,16 +937,16 @@
                             <h4 class="text-md font-semibold text-emerald-900 dark:text-emerald-100 mb-3">Retention Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="retentionInsight1">Analyzing customer retention patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="retentionInsight1">Analyzing customer retention patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="retentionInsight2">Identifying high-risk customer segments...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="retentionInsight2">Identifying high-risk customer segments...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="retentionInsight3">Calculating retention improvement opportunities...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="retentionInsight3">Calculating retention improvement opportunities...</span>
                                 </div>
                             </div>
                         </div>
@@ -1105,16 +1105,16 @@
                             <h4 class="text-md font-semibold text-purple-900 dark:text-purple-100 mb-3">CLV Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="clvInsight2">Identifying high-value customer opportunities...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="clvInsight2">Identifying high-value customer opportunities...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="clvInsight3">Calculating investment prioritization strategies...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="clvInsight3">Calculating investment prioritization strategies...</span>
                                 </div>
                             </div>
                         </div>
@@ -1271,16 +1271,16 @@
                             <h4 class="text-md font-semibold text-amber-900 dark:text-amber-100 mb-3">Segmentation Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
                                 </div>
                             </div>
                         </div>
@@ -1456,16 +1456,16 @@
                             <h4 class="text-md font-semibold text-amber-800 dark:text-amber-200 mb-3">Key Insights</h4>
                             <div class="space-y-2">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="valueInsight1">Analyzing customer value distribution patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="valueInsight1">Analyzing customer value distribution patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="valueInsight2">Identifying value concentration and inequality measures...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="valueInsight2">Identifying value concentration and inequality measures...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
                                 </div>
                             </div>
                         </div>
@@ -1686,20 +1686,20 @@
                             title: {
                                 display: true,
                                 text: 'RFM Score',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Date',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             }
                         }
                     }
@@ -1747,7 +1747,7 @@
                  item.className = 'flex items-center space-x-2';
                  item.innerHTML = `
                      <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
-                     <span class="text-sm text-white dark:text-white">${client.name}</span>
+                     <span class="text-sm text-gray-800 dark:text-white">${client.name}</span>
                  `;
                  legend.appendChild(item);
              });
@@ -1772,7 +1772,7 @@
                             data-client="${client.name}"
                             onchange="toggleClientSelection('${client.name}')">
                      <label for="client-${client.name.replace(/\s+/g, '-')}" 
-                            class="text-sm text-white dark:text-white cursor-pointer flex-1">
+                            class="text-sm text-gray-800 dark:text-white cursor-pointer flex-1">
                          ${client.name}
                      </label>
                      <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
@@ -2253,7 +2253,8 @@
                              position: 'top',
                              labels: {
                                  usePointStyle: true,
-                                 padding: 20
+                                 padding: 20,
+                                 color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                              }
                          },
                          tooltip: {
@@ -2268,20 +2269,20 @@
                             title: {
                                 display: true,
                                 text: 'RFM Score',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Date',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             }
                         }
                      },
@@ -2441,16 +2442,16 @@
                                  labels: {
                                      usePointStyle: true,
                                      padding: 20,
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151'
                                  }
                              },
                              tooltip: {
                                  mode: 'index',
                                  intersect: false,
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                  borderWidth: 1
                              }
                          },
@@ -2462,13 +2463,13 @@
                                 title: {
                                     display: true,
                                     text: 'RFM Score',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              },
                                                          y1: {
@@ -2478,10 +2479,10 @@
                                 title: {
                                     display: true,
                                     text: 'Customer Count',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                  grid: {
                                      drawOnChartArea: false
@@ -2491,13 +2492,13 @@
                                 title: {
                                     display: true,
                                     text: 'Month',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              }
                          },
@@ -2774,10 +2775,10 @@
                                  display: false
                              },
                              tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                  borderWidth: 1,
                                  callbacks: {
                                      label: function(context) {
@@ -2795,26 +2796,26 @@
                                  title: {
                                      display: true,
                                      text: 'Average RFM Score',
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  ticks: {
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              },
                              x: {
                                  title: {
                                      display: true,
                                      text: 'Time Period',
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  ticks: {
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              }
                          }
@@ -3071,10 +3072,10 @@
                                  display: false
                              },
                              tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                  borderWidth: 1,
                                  callbacks: {
                                      label: function(context) {
@@ -3090,26 +3091,26 @@
                                 title: {
                                     display: true,
                                     text: 'Retention Rate (%)',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                 }
                             },
                             x: {
                                 title: {
                                     display: true,
                                     text: 'Customer Segments',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                 }
                             }
                         }
@@ -3368,10 +3369,10 @@
                                  display: false
                              },
                              tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                  borderWidth: 1,
                                  callbacks: {
                                      label: function(context) {
@@ -3386,29 +3387,29 @@
                                 title: {
                                     display: true,
                                     text: 'Average CLV (£)',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF',
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
                                     callback: function(value) {
                                         return '£' + value.toLocaleString();
                                     }
                                 },
                                 grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                 }
                             },
                             x: {
                                 title: {
                                     display: true,
                                     text: 'Customer Segments',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                 }
                             }
                         }
@@ -3894,16 +3895,16 @@
                             legend: {
                                 position: 'right',
                                 labels: {
-                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                     padding: 20,
                                     usePointStyle: true
                                 }
                             },
                             tooltip: {
-                                backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                 borderWidth: 1,
                                 callbacks: {
                                     label: function(context) {
@@ -4168,7 +4169,7 @@
                         title: {
                             display: true,
                             text: getChartTitle(),
-                            color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                            color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                             font: {
                                 size: 16,
                                 weight: 'bold'
@@ -4182,7 +4183,7 @@
                             display: chartType === 'bar' && valueDistributionType === 'boxplot',
                             position: 'top',
                             labels: {
-                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                 padding: 15,
                                 usePointStyle: true,
                                 font: {
@@ -4191,10 +4192,10 @@
                             }
                         },
                         tooltip: {
-                            backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                            titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                            bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                            borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                            backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                            titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                            bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                            borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                             borderWidth: 1,
                             cornerRadius: 8,
                             padding: 12,
@@ -4231,7 +4232,7 @@
                             title: {
                                 display: true,
                                 text: getYAxisLabel(),
-                                color: '#FFFFFF',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
                                 font: {
                                     size: 14,
                                     weight: 'bold'
@@ -4242,12 +4243,12 @@
                                 }
                             },
                             grid: {
-                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB',
                                 drawBorder: false,
                                 lineWidth: 0.5
                             },
                             ticks: {
-                                color: '#FFFFFF',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
                                 font: {
                                     size: 12
                                 },
@@ -4260,7 +4261,7 @@
                                 }
                             },
                             border: {
-                                color: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                 width: 1
                             }
                         },
@@ -4268,7 +4269,7 @@
                             title: {
                                 display: true,
                                 text: getXAxisLabel(),
-                                color: '#FFFFFF',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
                                 font: {
                                     size: 14,
                                     weight: 'bold'
@@ -4279,12 +4280,12 @@
                                 }
                             },
                             grid: {
-                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB',
                                 drawBorder: false,
                                 lineWidth: 0.5
                             },
                             ticks: {
-                                color: '#FFFFFF',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
                                 font: {
                                     size: 11
                                 },
@@ -4304,7 +4305,7 @@
                                 }
                             },
                             border: {
-                                color: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                 width: 1
                             }
                         }
