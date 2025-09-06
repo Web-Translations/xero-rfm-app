@@ -46,9 +46,9 @@ class RfmController extends Controller
             $activeSnapshotDate = $viewMode;
         }
 
-        // Apply search filter
+        // Apply search filter (use real column, not alias)
         if ($search !== '') {
-            $query->where('client_name', 'like', '%' . $search . '%');
+            $query->where('clients.name', 'like', '%' . $search . '%');
         }
 
         // Filter out clients with RFM score of 0 (no point showing inactive clients)
