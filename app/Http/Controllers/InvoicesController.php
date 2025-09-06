@@ -134,6 +134,12 @@ class InvoicesController extends Controller
             $base->where('clients.id', $clientId);
         }
 
+        // Apply invoice exclusions for consistency across the app
+        $excludedInvoiceIds = ExcludedInvoice::getExcludedInvoiceIds($user->id, $activeConnection->tenant_id);
+        if (!empty($excludedInvoiceIds)) {
+            $base->whereNotIn('xero_invoices.invoice_id', $excludedInvoiceIds);
+        }
+
         // Aggregate in SQL so the payload is chart-ready
         $rows = $base->selectRaw("
                 {$periodExpr} as {$periodAlias},
