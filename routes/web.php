@@ -81,6 +81,10 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
 
     Route::post('/invoices/{invoice}/exclude', [InvoicesController::class, 'exclude'])->name('invoices.exclude');
     Route::delete('/invoices/{invoice}/exclude', [InvoicesController::class, 'unexclude'])->name('invoices.unexclude');
+
+    // Bulk exclude/include based on current filters
+    Route::post('/invoices/bulk-exclude', [InvoicesController::class, 'bulkExclude'])->name('invoices.bulk-exclude');
+    Route::post('/invoices/bulk-unexclude', [InvoicesController::class, 'bulkUnexclude'])->name('invoices.bulk-unexclude');
     
     // RFM Scores (renamed from RFM Analysis)
     Route::get('/rfm', [RfmController::class, 'index'])->name('rfm.index');

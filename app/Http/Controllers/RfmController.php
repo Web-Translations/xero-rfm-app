@@ -107,13 +107,14 @@ class RfmController extends Controller
                 ->where('rfm_reports.snapshot_date', $latestSnapshot)
                 ->value('rfm_reports.rfm_configuration_id');
         }
-        $exclusionsUpdatedAt = \App\Models\ExcludedInvoice::where('user_id', $user->id)
-            ->where('tenant_id', $activeConnection->tenant_id)
-            ->max('updated_at');
+        $exclusionsUpdatedAt = $activeConnection->exclusions_changed_at
+            ?: \App\Models\ExcludedInvoice::where('user_id', $user->id)
+                ->where('tenant_id', $activeConnection->tenant_id)
+                ->max('updated_at');
         $needsRecalc = false;
         if (!$lastComputedAt) {
-            // No compute exists yet for this tenant
-            $needsRecalc = true;
+            // No compute exists yet for this tenant — don't show the recalc banner
+            $needsRecalc = false;
         } else {
             // Config changed after compute or different config was used
             if ($config->updated_at && \Illuminate\Support\Carbon::parse($config->updated_at)->gt($lastComputedAt)) {

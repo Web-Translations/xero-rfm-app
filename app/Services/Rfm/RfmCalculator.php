@@ -99,6 +99,7 @@ class RfmCalculator
 
         // Compute and store RFM scores
         $computedCount = 0;
+        $processedClientIds = [];
 
         DB::transaction(function () use (
             $clients,
@@ -107,6 +108,7 @@ class RfmCalculator
             $effectiveSnapshotDate,
             $userId,
             &$computedCount,
+            &$processedClientIds,
             $activeConnection,
             $config,
             $monetaryBenchmark,
@@ -190,10 +192,33 @@ class RfmCalculator
                     ]));
                 }
                 $computedCount++;
+                $processedClientIds[] = $client->id;
 
 
             }
         });
+
+        // Zero out clients that are present in current snapshot but had no invoices after exclusions.
+        // Safety guard: only run if we actually processed at least one client this run.
+        if (!empty($processedClientIds)) {
+            $snapshotDateStr = $effectiveSnapshotDate->toDateString();
+            $tenantId = $activeConnection->tenant_id;
+            DB::table('rfm_reports')
+                ->where('user_id', $userId)
+                ->where('snapshot_date', $snapshotDateStr)
+                ->whereIn('client_id', function ($q) use ($tenantId) {
+                    $q->select('id')->from('clients')->where('tenant_id', $tenantId);
+                })
+                ->whereNotIn('client_id', $processedClientIds)
+                ->update([
+                    'r_score' => 0,
+                    'f_score' => 0,
+                    'm_score' => 0,
+                    'rfm_score' => 0,
+                    'rfm_configuration_id' => $config->id,
+                    'updated_at' => Carbon::now(),
+                ]);
+        }
 
         return [
             'snapshot_date' => $effectiveSnapshotDate->toDateString(),

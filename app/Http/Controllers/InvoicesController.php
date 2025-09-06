@@ -694,6 +694,8 @@ class InvoicesController extends Controller
                 'invoice_id'=> $invoiceId,
             ]
         );
+        // Mark exclusions changed for this organisation
+        $activeConnection->update(['exclusions_changed_at' => now()]);
 
         return response()->json(['success' => true]);
     }
@@ -714,8 +716,134 @@ class InvoicesController extends Controller
             ->where('tenant_id', $activeConnection->tenant_id)
             ->where('invoice_id', $invoiceId)
             ->delete();
+        // Mark exclusions changed for this organisation
+        $activeConnection->update(['exclusions_changed_at' => now()]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Bulk exclude invoices matching current filters
+     */
+    public function bulkExclude(Request $request)
+    {
+        $user = $request->user();
+        $activeConnection = $user->getActiveXeroConnection();
+        if (! $activeConnection) {
+            return response()->json(['error' => 'No active organisation'], 400);
+        }
+
+        $days     = (int) $request->get('days', 0);
+        $statuses = (array) $request->get('statuses', []);
+        $q        = trim((string) $request->get('q', ''));
+
+        $query = XeroInvoice::query()
+            ->where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id);
+
+        if ($days > 0) {
+            $fromDate = Carbon::now()->subDays($days)->toDateString();
+            $query->where('date', '>=', $fromDate);
+        }
+        if (! empty($statuses)) {
+            $query->whereIn('status', $statuses);
+        }
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('invoice_number', 'like', '%' . $q . '%')
+                    ->orWhereIn('contact_id', function ($sub) use ($q) {
+                        $sub->select('contact_id')
+                            ->from('clients')
+                            ->where('name', 'like', '%' . $q . '%');
+                    });
+            });
+        }
+
+        $invoiceIds = $query->pluck('invoice_id')->unique()->values();
+        if ($invoiceIds->isEmpty()) {
+            return response()->json(['success' => true, 'affected' => 0]);
+        }
+
+        // Insert ignore duplicates using upsert-like behavior
+        $now = now();
+        $rows = $invoiceIds->map(function ($id) use ($user, $activeConnection, $now) {
+            return [
+                'user_id' => $user->id,
+                'tenant_id' => $activeConnection->tenant_id,
+                'invoice_id' => $id,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        })->all();
+
+        // Use DB::table for bulk insert with ignore on duplicates
+        $affected = 0;
+        try {
+            $affected = DB::table('excluded_invoices')->upsert(
+                $rows,
+                ['user_id', 'tenant_id', 'invoice_id'], // unique key
+                ['updated_at']
+            );
+        } catch (\Throwable $e) {
+            Log::error('Bulk exclude failed: ' . $e->getMessage());
+        }
+
+        // Mark exclusions changed for this organisation
+        $activeConnection->update(['exclusions_changed_at' => now()]);
+
+        return response()->json(['success' => true, 'affected' => $affected]);
+    }
+
+    /**
+     * Bulk un-exclude invoices matching current filters
+     */
+    public function bulkUnexclude(Request $request)
+    {
+        $user = $request->user();
+        $activeConnection = $user->getActiveXeroConnection();
+        if (! $activeConnection) {
+            return response()->json(['error' => 'No active organisation'], 400);
+        }
+
+        $days     = (int) $request->get('days', 0);
+        $statuses = (array) $request->get('statuses', []);
+        $q        = trim((string) $request->get('q', ''));
+
+        $query = XeroInvoice::query()
+            ->where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id);
+
+        if ($days > 0) {
+            $fromDate = Carbon::now()->subDays($days)->toDateString();
+            $query->where('date', '>=', $fromDate);
+        }
+        if (! empty($statuses)) {
+            $query->whereIn('status', $statuses);
+        }
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('invoice_number', 'like', '%' . $q . '%')
+                    ->orWhereIn('contact_id', function ($sub) use ($q) {
+                        $sub->select('contact_id')
+                            ->from('clients')
+                            ->where('name', 'like', '%' . $q . '%');
+                    });
+            });
+        }
+
+        $invoiceIds = $query->pluck('invoice_id')->unique()->values();
+        if ($invoiceIds->isEmpty()) {
+            return response()->json(['success' => true, 'affected' => 0]);
+        }
+
+        $affected = ExcludedInvoice::where('user_id', $user->id)
+            ->where('tenant_id', $activeConnection->tenant_id)
+            ->whereIn('invoice_id', $invoiceIds)
+            ->delete();
+        // Mark exclusions changed for this organisation
+        $activeConnection->update(['exclusions_changed_at' => now()]);
+
+        return response()->json(['success' => true, 'affected' => $affected]);
     }
 
     /**
