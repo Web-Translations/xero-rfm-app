@@ -31,11 +31,15 @@ Route::get('/xero/callback', function (Request $request) {
     return redirect()->route('xero.auth.callback', $request->query());
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'impersonate'])->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
+        ->name('dashboard');
 
     // Admin (restricted to admin users)
     Route::get('/admin', [AdminController::class, 'index'])->middleware('admin')->name('admin.index');
+    Route::post('/admin/impersonate/{user}', [AdminController::class, 'startImpersonation'])
+        ->middleware('admin')
+        ->name('admin.impersonate.start');
 
     // Xero OAuth flow (package handles authorize + callback)
     Route::get('/xero/connect',  [XeroController::class, 'connect'])->name('xero.connect');
@@ -60,16 +64,21 @@ Route::middleware('auth')->group(function () {
 
 });
 
+// Exit impersonation must be reachable while impersonating (no admin gate)
+Route::match(['GET','POST'],'/admin/impersonate/stop', [AdminController::class, 'stopImpersonation'])
+    ->middleware('auth')
+    ->name('admin.impersonate.stop');
+
 // GoCardless success callback (no auth middleware - handled in controller)
 Route::get('/memberships/success', [MembershipsController::class, 'success'])->name('memberships.success');
 
 // Token management (simplified for debugging)
-Route::post('/token/refresh', [TokenController::class, 'refresh'])->name('token.refresh')->middleware('auth');
-Route::get('/token/status', [TokenController::class, 'status'])->name('token.status')->middleware('auth');
-Route::post('/token/reconnect', [TokenController::class, 'reconnect'])->name('token.reconnect')->middleware('auth');
+Route::post('/token/refresh', [TokenController::class, 'refresh'])->name('token.refresh')->middleware(['auth','impersonate']);
+Route::get('/token/status', [TokenController::class, 'status'])->name('token.status')->middleware(['auth','impersonate']);
+Route::post('/token/reconnect', [TokenController::class, 'reconnect'])->name('token.reconnect')->middleware(['auth','impersonate']);
 
 // Require Xero link before accessing app features that need it
-Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group(function () {
+Route::middleware(['auth', 'impersonate', 'auto.refresh.xero', EnsureXeroLinked::class])->group(function () {
     
     // Invoices from DB
     Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');

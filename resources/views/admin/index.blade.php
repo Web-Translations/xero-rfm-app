@@ -83,6 +83,18 @@
                             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Customers</h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Users, plans, payment status, and recent activity.</p>
                         </div>
+                        <form method="GET" action="{{ route('admin.index') }}" class="flex items-center space-x-2">
+                            <input
+                                type="text"
+                                name="q"
+                                value="{{ $search ?? '' }}"
+                                placeholder="Search name, email, or ID..."
+                                class="block w-64 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                            />
+                            <button class="inline-flex items-center px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm">
+                                Search
+                            </button>
+                        </form>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -148,12 +160,25 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 text-sm text-right">
-                                            <button class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 text-gray-700 dark:text-gray-200 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-200 shadow-sm hover:shadow-md opacity-60 cursor-not-allowed" title="Will open user dashboard (coming soon)" disabled>
-                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                                </svg>
-                                                Open Dashboard
-                                            </button>
+                                            @php $isSelf = auth()->id() === $customer->id; @endphp
+                                            @if($isSelf)
+                                                <button class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 text-gray-500 dark:text-gray-400 opacity-60 cursor-not-allowed" title="You cannot view as yourself" disabled>
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A2 2 0 0122 9.618V18a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2h6"/>
+                                                    </svg>
+                                                    View as user
+                                                </button>
+                                            @else
+                                                <form method="POST" action="{{ route('admin.impersonate.start', $customer->id) }}" class="inline">
+                                                    @csrf
+                                                    <button class="inline-flex items-center px-4 py-2 rounded-lg border border-blue-300 dark:border-blue-600 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-800 dark:to-blue-700 text-blue-700 dark:text-blue-200 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-700 dark:hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md" title="View as user (read-only)">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A2 2 0 0122 9.618V18a2 2 0 01-2 2H8a2 2 0 01-2-2V6a2 2 0 012-2h6"/>
+                                                        </svg>
+                                                        View as user
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
@@ -166,7 +191,7 @@
                     </div>
 
                     <div class="mt-6">
-                        {{ $customers->links() }}
+                        {{ $customers->appends(['q' => $search ?? null])->links() }}
                     </div>
                 </div>
             </div>

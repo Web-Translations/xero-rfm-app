@@ -306,10 +306,14 @@
                         }
                     });
 
-                    alert((exclude ? 'Excluded' : 'Included') + ' ' + (data.affected ?? 'the selected') + ' invoices.');
+                    if (window.showToast) {
+                        window.showToast((exclude ? 'Excluded' : 'Included') + ' ' + (data.affected ?? 'the selected') + ' invoices.', 'success');
+                    } else {
+                        alert((exclude ? 'Excluded' : 'Included') + ' ' + (data.affected ?? 'the selected') + ' invoices.');
+                    }
                 } catch (e) {
                     console.error(e);
-                    alert('Failed to perform bulk action: ' + e.message);
+                    if (window.showToast) { window.showToast('Failed to perform bulk action: ' + e.message, 'error'); } else { alert('Failed to perform bulk action: ' + e.message); }
                 } finally {
                     btn.disabled = false; btn.classList.remove('opacity-50');
                     otherBtn.disabled = false; otherBtn.classList.remove('opacity-50');
@@ -359,14 +363,14 @@
                         } else {
                             // Revert checkbox if failed
                             this.checked = !isChecked;
-                            alert('Failed to update exclusion status');
+                            if (window.showToast) { window.showToast('Failed to update exclusion status', 'error'); } else { alert('Failed to update exclusion status'); }
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         // Revert checkbox if failed
                         this.checked = !isChecked;
-                        alert('Failed to update exclusion status');
+                        if (window.showToast) { window.showToast('Failed to update exclusion status', 'error'); } else { alert('Failed to update exclusion status'); }
                     })
                     .finally(() => {
                         // Re-enable checkbox
@@ -406,7 +410,7 @@
                 syncTimeout = setTimeout(() => {
                     if (syncInProgress) {
                         resetSyncUI();
-                        alert('Sync timed out after 30 minutes. Please try again.');
+                        if (window.showToast) { window.showToast('Sync timed out after 30 minutes. Please try again.', 'warning', 6000); } else { alert('Sync timed out after 30 minutes. Please try again.'); }
                     }
                 }, 30 * 60 * 1000);
                 
@@ -434,7 +438,7 @@
                 .catch(error => {
                     console.error('Sync error:', error);
                     resetSyncUI();
-                    alert('Failed to start sync: ' + error.message);
+                    if (window.showToast) { window.showToast('Failed to start sync: ' + error.message, 'error'); } else { alert('Failed to start sync: ' + error.message); }
                 });
             }
             // Empty-state sync button hooks same flow
@@ -467,7 +471,7 @@
                         this.disabled = false;
                         document.getElementById('sync-icon-empty').classList.remove('animate-spin');
                         document.getElementById('sync-button-text-empty').textContent = 'Start full sync';
-                        alert('Failed to start sync: ' + err.message);
+                        if (window.showToast) { window.showToast('Failed to start sync: ' + err.message, 'error'); } else { alert('Failed to start sync: ' + err.message); }
                         syncInProgress = false;
                     });
                 });
@@ -524,7 +528,7 @@
                 .catch(error => {
                     console.error('Batch fetch error:', error);
                     resetSyncUI();
-                    alert('Sync failed: ' + error.message);
+                    if (window.showToast) { window.showToast('Sync failed: ' + error.message, 'error'); } else { alert('Sync failed: ' + error.message); }
                 });
             }
 
@@ -557,7 +561,7 @@
                 .catch(error => {
                     console.error('Complete sync error:', error);
                     resetSyncUI();
-                    alert('Failed to complete sync: ' + error.message);
+                    if (window.showToast) { window.showToast('Failed to complete sync: ' + error.message, 'error'); } else { alert('Failed to complete sync: ' + error.message); }
                 });
             }
 

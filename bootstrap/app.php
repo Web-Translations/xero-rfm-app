@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auto.refresh.xero' => \App\Http\Middleware\AutoRefreshXeroToken::class,
             'subscription.access' => \App\Http\Middleware\CheckSubscriptionAccess::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'impersonate' => \App\Http\Middleware\ImpersonateUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

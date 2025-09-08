@@ -6,6 +6,74 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
+// Simple global toast utility
+window.showToast = function(message, type = 'info', durationMs = 3500) {
+    try {
+        const rootId = 'toast-root';
+        let root = document.getElementById(rootId);
+        if (!root) {
+            root = document.createElement('div');
+            root.id = rootId;
+            root.className = 'fixed bottom-6 right-6 z-50 space-y-2';
+            document.body.appendChild(root);
+        }
+
+        const color = {
+            success: { base: 'bg-emerald-100 border-emerald-300 text-emerald-900', icon: 'text-emerald-700' },
+            error: { base: 'bg-red-100 border-red-300 text-red-900', icon: 'text-red-700' },
+            warning: { base: 'bg-amber-100 border-amber-300 text-amber-900', icon: 'text-amber-700' },
+            info: { base: 'bg-blue-100 border-blue-300 text-blue-900', icon: 'text-blue-700' },
+        }[type] || { base: 'bg-blue-100 border-blue-300 text-blue-900', icon: 'text-blue-700' };
+
+        const el = document.createElement('div');
+        el.className = `max-w-sm ${color.base} border rounded-lg shadow-lg overflow-hidden animate-fade-in`;
+        el.innerHTML = `
+            <div class="px-4 py-3 flex items-start space-x-3">
+                <svg class="w-5 h-5 mt-0.5 ${color.icon}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 18.5a6.5 6.5 0 110-13 6.5 6.5 0 010 13z" />
+                </svg>
+                <div class="text-sm">${message}</div>
+                <button aria-label="Close" class="ml-2 opacity-70 hover:opacity-100">✕</button>
+            </div>
+        `;
+
+        const closeBtn = el.querySelector('button');
+        const remove = () => {
+            if (!el.parentNode) return;
+            el.classList.add('animate-fade-out');
+            setTimeout(() => el.remove(), 200);
+        };
+        closeBtn.addEventListener('click', remove);
+
+        root.appendChild(el);
+        setTimeout(remove, durationMs);
+    } catch (e) {
+        console.warn('Toast failed, falling back to alert:', e);
+        alert(message);
+    }
+}
+
+// Intercept fetch to show toast on impersonation blocks
+const originalFetch = window.fetch;
+window.fetch = async function(input, init = {}) {
+    const response = await originalFetch(input, init);
+    try {
+        const blocked = response.headers.get('X-Impersonation-Blocked') === '1' || response.status === 403;
+        if (blocked) {
+            let message = response.headers.get('X-Impersonation-Message');
+            if (!message) {
+                try {
+                    const clone = response.clone();
+                    const data = await clone.json().catch(() => null);
+                    message = data?.message || 'Viewing as user (read-only). Changes are disabled.';
+                } catch (_) {}
+            }
+            if (window.showToast) window.showToast(message, 'warning');
+        }
+    } catch (_) { /* no-op */ }
+    return response;
+}
+
 // AI Insights functionality
 function generateAIInsight(section, data) {
     console.log('generateAIInsight called with:', { section, data });
