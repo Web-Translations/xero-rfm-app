@@ -38,6 +38,17 @@
             </div>
           @endif
 
+          @if(session('rfm_auto_window'))
+            <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div class="text-blue-800 dark:text-blue-200">
+                Last calculation auto‑adjusted window to {{ session('rfm_auto_window') }} months.
+                @if(session('rfm_auto_fallback'))
+                  <span class="ml-2 text-amber-700 dark:text-amber-300">Could not reach threshold at 24/36m; reverted to default 12m.</span>
+                @endif
+              </div>
+            </div>
+          @endif
+
           @if ($errors->any())
             <div class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <div class="text-red-800 dark:text-red-200">
@@ -89,7 +100,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="block text-sm font-medium mb-2">Recency window (months)</label>
                   <select id="recencyWindow" name="recency_window_months"
@@ -135,7 +146,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="block text-sm font-medium mb-2">Analysis period (months)</label>
                   <select id="freqPeriod" name="frequency_period_months"
@@ -156,6 +167,23 @@
                   <input id="freqPeriodCustom" type="number" min="1" max="60" step="1" 
                          value="{{ !in_array($config->frequency_period_months, [3,6,9,12,24,36]) ? $config->frequency_period_months : 12 }}"
                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                </div>
+              </div>
+
+              <!-- Auto-adjust controls moved here -->
+              <div class="mt-6 p-4 border border-dashed border-amber-300 dark:border-amber-700 rounded-md bg-amber-50/50 dark:bg-amber-900/10">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" name="auto_adjust_window" {{ ($config->auto_adjust_window ?? true) ? 'checked' : '' }} class="mr-2">
+                  <span>Auto‑adjust analysis window (12 → 24 → 36 months) when Frequency is structurally low</span>
+                </label>
+                <div class="grid grid-cols-1 gap-4 mt-3">
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Frequency threshold</label>
+                    <input type="number" name="frequency_autoadjust_threshold" min="1" max="10" step="1"
+                           value="{{ $config->frequency_autoadjust_threshold ?? 5 }}"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">If max F < threshold at 12m, expand to 24m, then 36m. If still below, revert to 12m. Applies to R, F, and M for this calculation.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -181,7 +209,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="grid grid-cols-1 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium mb-2">Analysis window (months)</label>
                   <select id="monetaryWindow" name="monetary_window_months"
@@ -270,6 +298,8 @@
               </div>
             </div>
 
+            <!-- (Auto-adjust controls moved into Frequency card) -->
+
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button id="save-btn" type="submit"
@@ -299,6 +329,9 @@
               <input type="hidden" name="monetary_benchmark_mode" id="sr_mode" value="{{ $config->monetary_benchmark_mode }}">
               <input type="hidden" name="monetary_benchmark_percentile" id="sr_percent" value="{{ $config->monetary_benchmark_percentile }}">
               <input type="hidden" name="monetary_benchmark_value" id="sr_value" value="{{ $config->monetary_benchmark_value }}">
+              <!-- Mirror auto-adjust controls -->
+              <input type="hidden" name="auto_adjust_window" id="sr_auto" value="{{ ($config->auto_adjust_window ?? true) ? 1 : 0 }}">
+              <input type="hidden" name="frequency_autoadjust_threshold" id="sr_freq_thresh" value="{{ $config->frequency_autoadjust_threshold ?? 5 }}">
 
               <button type="submit" id="save-recalc-btn" class="relative w-full inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-500 disabled:cursor-not-allowed overflow-hidden" {{ (isset($hasInvoices) && !$hasInvoices) ? 'disabled' : '' }}>
                 <div id="save-recalc-overlay" class="hidden absolute inset-0 bg-indigo-500/70 animate-pulse"></div>

@@ -191,6 +191,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const srMode = document.getElementById('sr_mode');
         const srPercent = document.getElementById('sr_percent');
         const srValue = document.getElementById('sr_value');
+        const srAuto = document.getElementById('sr_auto');
+        const srFreqThresh = document.getElementById('sr_freq_thresh');
+        const autoCheckbox = document.querySelector('input[name="auto_adjust_window"]');
+        const freqThreshInput = document.querySelector('input[name="frequency_autoadjust_threshold"]');
         if (srRec && recencyWindow) srRec.value = (recencyWindow.value === 'custom' ? recencyWindowCustom?.value : recencyWindow.value) || srRec.value;
         if (srFreq && freqPeriod) srFreq.value = (freqPeriod.value === 'custom' ? freqPeriodCustom?.value : freqPeriod.value) || srFreq.value;
         if (srMon && monetaryWindow) srMon.value = (monetaryWindow.value === 'custom' ? monetaryWindowCustom?.value : monetaryWindow.value) || srMon.value;
@@ -200,6 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const directVal = document.getElementById('bmValue');
             if (directVal) srValue.value = directVal.value || srValue.value;
         }
+        if (srAuto && autoCheckbox) srAuto.value = autoCheckbox.checked ? 1 : 0;
+        if (srFreqThresh && freqThreshInput) srFreqThresh.value = freqThreshInput.value || srFreqThresh.value;
     }
 
     const saveRecalcForm = document.getElementById('save-recalc-form');

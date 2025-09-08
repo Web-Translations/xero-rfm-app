@@ -159,17 +159,63 @@ class RfmController extends Controller
         $config = RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
 
         if ($action === 'sync_all') {
-            // Calculate current RFM scores with configuration
+            // Auto-adjust window if enabled and no explicit override in request
+            $explicitWindow = $request->get('window'); // '12','24','36' or 'auto'
+            $finalWindow = null;
+            $observations = [];
+            if ($config->auto_adjust_window && (!$explicitWindow || $explicitWindow === 'auto')) {
+                $chooser = app(\App\Services\Rfm\RfmWindowChooser::class);
+                $choice = $chooser->chooseFinalWindow($user->id, $activeConnection->tenant_id, (int) ($config->frequency_autoadjust_threshold ?? 5));
+                $finalWindow = $choice['final_window'];
+                $observations = $choice['observations'];
+                $fallback = (bool) ($choice['fallback'] ?? false);
+            } elseif (in_array((int) $explicitWindow, [12,24,36], true)) {
+                $finalWindow = (int) $explicitWindow;
+            }
+
+            // Build a runtime config clone with unified windows if finalWindow is chosen
+            if ($finalWindow) {
+                // Persist windows to configuration BEFORE computing so UI reflects actual settings
+                \App\Models\RfmConfiguration::where('user_id', $user->id)
+                    ->where('tenant_id', $activeConnection->tenant_id)
+                    ->where('is_active', true)
+                    ->update([
+                        'recency_window_months' => $finalWindow,
+                        'frequency_period_months' => $finalWindow,
+                        'monetary_window_months' => $finalWindow,
+                        'updated_at' => now(),
+                    ]);
+                // Reload config for computation
+                $config = \App\Models\RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
+            }
+
+            // Calculate current RFM scores with configuration (possibly runtime-adjusted)
             $currentResult = $calculator->computeSnapshot($user->id, null, $config);
-            
+
             // Calculate historical snapshots for all available data (36 months should cover most cases)
             $historicalResults = $calculator->computeHistoricalSnapshots($user->id, 36, $config);
             $totalHistorical = array_sum(array_column($historicalResults, 'computed'));
-            
+
             // Clean up old snapshots that aren't on 1st of month
             $cleanedUp = $calculator->cleanupOldSnapshots($user->id);
-            
+
             $status = "Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created. Cleaned up {$cleanedUp} old snapshots.";
+            if ($finalWindow) {
+                $status .= " Using window {$finalWindow} months.";
+                // make available once after redirect for banner
+                session()->flash('rfm_auto_window', (string) $finalWindow);
+                if (!empty($observations)) {
+                    session()->flash('rfm_auto_obs', $observations);
+                }
+                if (!empty($fallback)) {
+                    session()->flash('rfm_auto_fallback', true);
+                }
+            }
+            if (!empty($observations)) {
+                // Lightweight note for debugging/transparency
+                $seq = collect($observations)->map(fn($o) => $o['window'] . ':' . $o['maxF'])->implode(', ');
+                \Log::info('RFM auto-adjust', ['user_id'=>$user->id,'tenant_id'=>$activeConnection->tenant_id,'observations'=>$seq,'final_window'=>$finalWindow]);
+            }
         } else {
             // Fallback for old actions (if needed)
             if ($action === 'current') {

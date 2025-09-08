@@ -49,7 +49,13 @@ class RfmConfigController extends Controller
         }
 
         try {
-            $data = $request->validate([
+            // Normalize checkbox booleans before validating
+            $payload = $request->all();
+            $payload['monetary_benchmark_mode'] = $request->input('monetary_benchmark_mode');
+            $payload['monetary_use_largest_invoice'] = $request->has('monetary_use_largest_invoice');
+            $payload['auto_adjust_window'] = $request->has('auto_adjust_window');
+
+            $data = \Validator::make($payload, [
                 'recency_window_months' => 'required|integer|min:1|max:60',
                 'frequency_period_months' => 'required|integer|min:1|max:60',
                 'monetary_window_months' => 'required|integer|min:1|max:60',
@@ -57,10 +63,11 @@ class RfmConfigController extends Controller
                 'monetary_benchmark_percentile' => 'required_if:monetary_benchmark_mode,percentile|numeric|min:0.1|max:50',
                 'monetary_benchmark_value' => 'nullable|numeric|min:0.01',
                 'monetary_use_largest_invoice' => 'boolean',
-            ]);
+                'auto_adjust_window' => 'boolean',
+                'frequency_autoadjust_threshold' => 'sometimes|integer|min:1|max:10',
+            ])->validate();
 
-            // Convert checkbox to boolean
-            $data['monetary_use_largest_invoice'] = $request->has('monetary_use_largest_invoice');
+            // Booleans have been normalized above
 
             // Handle monetary benchmark value based on mode
             if ($data['monetary_benchmark_mode'] === 'percentile') {
@@ -113,6 +120,8 @@ class RfmConfigController extends Controller
             'monetary_benchmark_percentile' => 'required_if:monetary_benchmark_mode,percentile|numeric|min:0.1|max:50',
             'monetary_benchmark_value' => 'nullable|numeric|min:0.01',
             'monetary_use_largest_invoice' => 'sometimes|boolean',
+            'auto_adjust_window' => 'sometimes|boolean',
+            'frequency_autoadjust_threshold' => 'sometimes|integer|min:1|max:10',
         ]);
 
         // Normalize checkbox (even though not shown in UI now)
@@ -122,8 +131,36 @@ class RfmConfigController extends Controller
         } elseif (empty($data['monetary_benchmark_value'])) {
             return redirect()->back()->withErrors(['monetary_benchmark_value' => 'A benchmark value is required in direct value mode.'])->withInput();
         }
+        $data['auto_adjust_window'] = $request->has('auto_adjust_window');
+        if (!isset($data['frequency_autoadjust_threshold'])) {
+            $data['frequency_autoadjust_threshold'] = 5;
+        }
 
         $config = $this->configManager->updateConfiguration($user->id, $activeConnection->tenant_id, $data);
+
+        // Auto-adjust flow mirrors RFM Scores page
+        $finalWindow = null; $observations = []; $fallback = false;
+        if ($config->auto_adjust_window) {
+            $chooser = app(\App\Services\Rfm\RfmWindowChooser::class);
+            $choice = $chooser->chooseFinalWindow($user->id, $activeConnection->tenant_id, (int) ($config->frequency_autoadjust_threshold ?? 5));
+            $finalWindow = $choice['final_window'] ?? null;
+            $observations = $choice['observations'] ?? [];
+            $fallback = (bool) ($choice['fallback'] ?? false);
+        }
+
+        if ($finalWindow) {
+            // Persist windows so the config and downstream UI reflect actual settings
+            \App\Models\RfmConfiguration::where('user_id', $user->id)
+                ->where('tenant_id', $activeConnection->tenant_id)
+                ->where('is_active', true)
+                ->update([
+                    'recency_window_months' => $finalWindow,
+                    'frequency_period_months' => $finalWindow,
+                    'monetary_window_months' => $finalWindow,
+                    'updated_at' => now(),
+                ]);
+            $config = \App\Models\RfmConfiguration::getOrCreateDefault($user->id, $activeConnection->tenant_id);
+        }
 
         // Perform the same computation as the RFM Scores sync
         $currentResult = $calculator->computeSnapshot($user->id, null, $config);
@@ -132,6 +169,12 @@ class RfmConfigController extends Controller
         $cleanedUp = $calculator->cleanupOldSnapshots($user->id);
 
         $status = "Saved configuration. Synced RFM data: {$currentResult['computed']} current scores and {$totalHistorical} historical snapshots created. Cleaned up {$cleanedUp} old snapshots.";
+        if ($finalWindow) {
+            $status .= " Using window {$finalWindow} months.";
+            session()->flash('rfm_auto_window', (string) $finalWindow);
+            if (!empty($observations)) session()->flash('rfm_auto_obs', $observations);
+            if ($fallback) session()->flash('rfm_auto_fallback', true);
+        }
 
         return redirect()->route('rfm.index')->with('status', $status);
     }

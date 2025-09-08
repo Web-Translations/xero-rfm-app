@@ -35,6 +35,17 @@
             </div>
         @endif
 
+        @if(session('rfm_auto_window'))
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="text-blue-800 dark:text-blue-200">
+                    Analysis window auto‑adjusted to {{ session('rfm_auto_window') }} months.
+                    @if(session('rfm_auto_fallback'))
+                        <span class="ml-2 text-amber-700 dark:text-amber-300">Could not reach threshold at 24/36m; reverted to default 12m.</span>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         @if(isset($needsRecalc) && $needsRecalc)
             <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                 <div class="text-yellow-800 dark:text-yellow-200">
@@ -110,15 +121,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm mb-6">
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Recency Window:</span>
-                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->recency_window_months }} months</span>
+                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->recency_window_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Frequency Period:</span>
-                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->frequency_period_months }} months</span>
+                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->frequency_period_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Monetary Window:</span>
-                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->monetary_window_months }} months</span>
+                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->monetary_window_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Benchmark:</span>
@@ -267,6 +278,15 @@
                         @endif
                     </span>
                 </span>
+                @if(request()->has('window') && in_array(request('window'), ['12','24','36']))
+                    <span class="px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                        Window: <span class="font-medium">{{ request('window') }} months</span>
+                    </span>
+                @elseif(session('rfm_auto_window'))
+                    <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800">
+                        Auto‑expanded to <span class="font-medium">{{ session('rfm_auto_window') }} months</span>
+                    </span>
+                @endif
                 <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                     Order: <span class="font-medium uppercase">{{ ($sortBy ?? 'rfm') }}</span> • <span class="font-medium">{{ strtoupper($sortDir ?? 'desc') }}</span>
                 </span>

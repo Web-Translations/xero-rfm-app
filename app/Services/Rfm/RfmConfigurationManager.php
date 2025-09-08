@@ -45,6 +45,8 @@ class RfmConfigurationManager
             'monetary_benchmark_percentile' => 5.00,
             'monetary_benchmark_value' => null,
             'monetary_use_largest_invoice' => true,
+            'auto_adjust_window' => true,
+            'frequency_autoadjust_threshold' => 5,
             'methodology_name' => 'default_v1',
         ]);
         
@@ -64,6 +66,8 @@ class RfmConfigurationManager
             'monetary_benchmark_percentile' => 'required_if:monetary_benchmark_mode,percentile|numeric|min:0.1|max:50',
             'monetary_benchmark_value' => 'nullable|numeric|min:0.01',
             'monetary_use_largest_invoice' => 'boolean',
+            'auto_adjust_window' => 'boolean',
+            'frequency_autoadjust_threshold' => 'nullable|integer|min:1|max:10',
         ]);
 
         if ($validator->fails()) {
@@ -93,6 +97,8 @@ class RfmConfigurationManager
             'monetary_benchmark_percentile' => 5.00,
             'monetary_benchmark_value' => null,
             'monetary_use_largest_invoice' => true,
+            'auto_adjust_window' => true,
+            'frequency_autoadjust_threshold' => 5,
         ];
     }
 }
