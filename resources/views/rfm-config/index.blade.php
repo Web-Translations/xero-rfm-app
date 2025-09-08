@@ -11,6 +11,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
           onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});">
   </script>
+  
 
   @vite(['resources/js/rfm-config.js'])
 
@@ -37,6 +38,17 @@
             </div>
           @endif
 
+          @if(session('rfm_auto_window'))
+            <div class="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div class="text-blue-800 dark:text-blue-200">
+                Last calculation auto‑adjusted window to {{ session('rfm_auto_window') }} months.
+                @if(session('rfm_auto_fallback'))
+                  <span class="ml-2 text-amber-700 dark:text-amber-300">Could not reach threshold at 24/36m; reverted to default 12m.</span>
+                @endif
+              </div>
+            </div>
+          @endif
+
           @if ($errors->any())
             <div class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
               <div class="text-red-800 dark:text-red-200">
@@ -49,6 +61,14 @@
             </div>
           @endif
 
+          @if(isset($hasInvoices) && !$hasInvoices)
+            <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+              <div class="text-yellow-800 dark:text-yellow-200">
+                You need invoice data before you can calculate RFM scores. Please sync invoices first.
+              </div>
+            </div>
+          @endif
+
           <div class="mb-6">
             <h3 class="text-lg font-semibold mb-2">RFM Scoring Configuration</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -56,7 +76,7 @@
             </p>
           </div>
 
-          <form method="POST" action="{{ route('rfm.config.store') }}" class="space-y-8">
+          <form id="rfm-config-form" method="POST" action="{{ route('rfm.config.store') }}" class="space-y-8">
             @csrf
 
             <!-- Recency (R) -->
@@ -80,7 +100,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="block text-sm font-medium mb-2">Recency window (months)</label>
                   <select id="recencyWindow" name="recency_window_months"
@@ -126,7 +146,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="block text-sm font-medium mb-2">Analysis period (months)</label>
                   <select id="freqPeriod" name="frequency_period_months"
@@ -147,6 +167,23 @@
                   <input id="freqPeriodCustom" type="number" min="1" max="60" step="1" 
                          value="{{ !in_array($config->frequency_period_months, [3,6,9,12,24,36]) ? $config->frequency_period_months : 12 }}"
                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                </div>
+              </div>
+
+              <!-- Auto-adjust controls moved here -->
+              <div class="mt-6 p-4 border border-dashed border-amber-300 dark:border-amber-700 rounded-md bg-amber-50/50 dark:bg-amber-900/10">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" name="auto_adjust_window" {{ ($config->auto_adjust_window ?? true) ? 'checked' : '' }} class="mr-2">
+                  <span>Auto‑adjust analysis window (12 → 24 → 36 months) when Frequency is structurally low</span>
+                </label>
+                <div class="grid grid-cols-1 gap-4 mt-3">
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Frequency threshold</label>
+                    <input type="number" name="frequency_autoadjust_threshold" min="1" max="10" step="1"
+                           value="{{ $config->frequency_autoadjust_threshold ?? 5 }}"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">If max F < threshold at 12m, expand to 24m, then 36m. If still below, revert to 12m. Applies to R, F, and M for this calculation.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -172,7 +209,7 @@
                 </p>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="grid grid-cols-1 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium mb-2">Analysis window (months)</label>
                   <select id="monetaryWindow" name="monetary_window_months"
@@ -219,6 +256,14 @@
                        value="{{ $config->monetary_benchmark_percentile }}"
                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                 <p class="text-xs text-gray-500 mt-1">Top X% of all invoices (by amount). The benchmark will be the smallest amount in this top percentile.</p>
+
+                <!-- Live preview of benchmark value -->
+                <div id="bmPreview" class="mt-3 p-3 rounded-md border border-gray-200 dark:border-gray-600 bg-white/70 dark:bg-gray-800/70">
+                  <div id="bmPreviewLoading" class="text-sm text-gray-500 dark:text-gray-400 hidden">Loading benchmark…</div>
+                  <div id="bmPreviewContent" class="text-sm text-gray-800 dark:text-gray-200 hidden"></div>
+                  <div id="bmPreviewEmpty" class="text-sm text-amber-700 dark:text-amber-300 hidden">No invoices found in this window. Add invoices or try a wider window.</div>
+                  <div id="bmPreviewError" class="text-sm text-red-700 dark:text-red-300 hidden">Could not compute benchmark. Please try again.</div>
+                </div>
               </div>
 
               <!-- Direct value path -->
@@ -253,22 +298,59 @@
               </div>
             </div>
 
+            <!-- (Auto-adjust controls moved into Frequency card) -->
+
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <button type="submit"
+              <button id="save-btn" type="submit"
                       class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 Save Configuration
               </button>
-              <a href="{{ route('rfm.index') }}"
+              <a id="goto-btn" href="{{ route('rfm.index') }}"
                  class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
                 Go to RFM Scores
               </a>
-              <button type="button" onclick="document.getElementById('reset-form').submit()"
+              <button id="reset-btn" type="button" onclick="document.getElementById('reset-form').submit()"
                       class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                 Reset to Defaults
               </button>
             </div>
+
           </form>
+
+          <!-- Save & Recalculate - full width under the three buttons (separate form; avoid nested forms) -->
+          <div class="mt-4">
+            <form id="save-recalc-form" method="POST" action="{{ route('rfm.config.save-recalculate') }}">
+              @csrf
+              <!-- Mirror the key inputs so save+recalc receives the same payload -->
+              <input type="hidden" name="recency_window_months" id="sr_recency" value="{{ $config->recency_window_months }}">
+              <input type="hidden" name="frequency_period_months" id="sr_frequency" value="{{ $config->frequency_period_months }}">
+              <input type="hidden" name="monetary_window_months" id="sr_monetary" value="{{ $config->monetary_window_months ?? 12 }}">
+              <input type="hidden" name="monetary_benchmark_mode" id="sr_mode" value="{{ $config->monetary_benchmark_mode }}">
+              <input type="hidden" name="monetary_benchmark_percentile" id="sr_percent" value="{{ $config->monetary_benchmark_percentile }}">
+              <input type="hidden" name="monetary_benchmark_value" id="sr_value" value="{{ $config->monetary_benchmark_value }}">
+              <!-- Mirror auto-adjust controls -->
+              <input type="hidden" name="auto_adjust_window" id="sr_auto" value="{{ ($config->auto_adjust_window ?? true) ? 1 : 0 }}">
+              <input type="hidden" name="frequency_autoadjust_threshold" id="sr_freq_thresh" value="{{ $config->frequency_autoadjust_threshold ?? 5 }}">
+
+              <button type="submit" id="save-recalc-btn" class="relative w-full inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-500 disabled:cursor-not-allowed overflow-hidden" {{ (isset($hasInvoices) && !$hasInvoices) ? 'disabled' : '' }}>
+                <div id="save-recalc-overlay" class="hidden absolute inset-0 bg-indigo-500/70 animate-pulse"></div>
+                <span id="save-recalc-text" class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                  </svg>
+                  Save & Recalculate
+                </span>
+                <div id="save-recalc-loading" class="hidden flex items-center gap-2">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Processing…</span>
+                </div>
+              </button>
+            </form>
+          </div>
 
           <!-- Hidden reset form -->
           <form id="reset-form" method="POST" action="{{ route('rfm.config.reset') }}" class="hidden">

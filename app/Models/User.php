@@ -50,6 +50,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'subscription_ends_at' => 'datetime',
+            'admin' => 'boolean',
         ];
     }
 
@@ -94,6 +95,19 @@ class User extends Authenticatable
     public function canAccessAI(): bool
     {
         return $this->subscription_plan === 'pro_plus' && $this->hasPremiumEligibleSubscription();
+    }
+
+    /**
+     * Backwards-compatible helpers used by insights controller
+     */
+    public function canAccessDeeperInsights(): bool
+    {
+        return $this->canAccessPremium();
+    }
+
+    public function canAccessAIInsights(): bool
+    {
+        return $this->canAccessAI();
     }
 
     /**

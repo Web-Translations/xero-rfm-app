@@ -9,6 +9,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
             onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});">
     </script>
+    
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         @php
@@ -31,6 +32,17 @@
         @if (session('status'))
             <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                 <div class="text-green-800 dark:text-green-200">{{ session('status') }}</div>
+            </div>
+        @endif
+
+        @if(session('rfm_auto_window'))
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="text-blue-800 dark:text-blue-200">
+                    Analysis window auto‑adjusted to {{ session('rfm_auto_window') }} months.
+                    @if(session('rfm_auto_fallback'))
+                        <span class="ml-2 text-amber-700 dark:text-amber-300">Could not reach threshold at 24/36m; reverted to default 12m.</span>
+                    @endif
+                </div>
             </div>
         @endif
 
@@ -68,10 +80,7 @@
                             <span id="rfm-initial-text">Calculate RFM scores</span>
                         </button>
                     </form>
-                    <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                        Want to change how scores are calculated? <a href="{{ route('rfm.config.index') }}" class="underline">Configure RFM settings</a>
-                    </div>
-                    <div class="mt-3 text-sm text-gray-700 dark:text-gray-300 hidden" id="rfm-initial-counter">Calculating…</div>
+                    <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 hidden" id="rfm-initial-counter">Calculating…</div>
                 </div>
             </div>
         @endif
@@ -112,15 +121,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm mb-6">
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Recency Window:</span>
-                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->recency_window_months }} months</span>
+                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->recency_window_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Frequency Period:</span>
-                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->frequency_period_months }} months</span>
+                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->frequency_period_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Monetary Window:</span>
-                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->monetary_window_months }} months</span>
+                        <span class="ml-2 font-medium text-gray-900 dark:text-gray-100">{{ $config->monetary_window_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                     </div>
                     <div>
                         <span class="text-gray-500 dark:text-gray-400">Benchmark:</span>
@@ -203,6 +212,8 @@
                                 </option>
                             @endforeach
                         </select>
+                        <input type="hidden" name="sort_by" value="{{ $sortBy ?? 'rfm' }}" />
+                        <input type="hidden" name="sort_dir" value="{{ $sortDir ?? 'desc' }}" />
                     </div>
 
                     <!-- Search -->
@@ -230,17 +241,54 @@
         <!-- Results Card -->
         <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasRfmData ? '' : 'opacity-50 pointer-events-none' }}">
             <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">RFM Leaderboard</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">RFM Leaderboard</h3>
+                    <form method="GET" class="flex items-center gap-3 text-xs">
+                        <input type="hidden" name="view" value="{{ $viewMode }}" />
+                        <input type="hidden" name="q" value="{{ $search }}" />
+                        <label class="text-gray-600 dark:text-gray-400">Order by</label>
+                        <select name="sort_by" class="h-9 min-w-[110px] px-3 pr-8 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="rfm" {{ ($sortBy ?? 'rfm') === 'rfm' ? 'selected' : '' }}>RFM</option>
+                            <option value="r" {{ ($sortBy ?? 'rfm') === 'r' ? 'selected' : '' }}>R</option>
+                            <option value="f" {{ ($sortBy ?? 'rfm') === 'f' ? 'selected' : '' }}>F</option>
+                            <option value="m" {{ ($sortBy ?? 'rfm') === 'm' ? 'selected' : '' }}>M</option>
+                            <option value="client" {{ ($sortBy ?? 'rfm') === 'client' ? 'selected' : '' }}>Client</option>
+                        </select>
+                        <select name="sort_dir" class="h-9 min-w-[140px] px-3 pr-8 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="desc" {{ ($sortDir ?? 'desc') === 'desc' ? 'selected' : '' }}>Descending</option>
+                            <option value="asc" {{ ($sortDir ?? 'desc') === 'asc' ? 'selected' : '' }}>Ascending</option>
+                        </select>
+                        <button class="h-9 px-4 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">Apply</button>
+                    </form>
+                </div>
             </div>
 
             <!-- Active Filters -->
-            <div class="px-4 py-2 flex gap-2 text-xs">
+            <div class="px-4 py-2 flex flex-wrap gap-2 text-xs">
                 <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                     View: <span class="font-medium">
-                        @if($viewMode === 'date')
+                        @if($viewMode !== 'current')
                             {{ \Carbon\Carbon::parse($viewMode)->format('M j, Y') }} Snapshot
+                        @else
+                            @if(!empty($activeSnapshotDate))
+                                {{ \Carbon\Carbon::parse($activeSnapshotDate)->format('M j, Y') }} Snapshot
+                            @else
+                                Default
+                            @endif
                         @endif
                     </span>
+                </span>
+                @if(request()->has('window') && in_array(request('window'), ['12','24','36']))
+                    <span class="px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                        Window: <span class="font-medium">{{ request('window') }} months</span>
+                    </span>
+                @elseif(session('rfm_auto_window'))
+                    <span class="px-2 py-1 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800">
+                        Auto‑expanded to <span class="font-medium">{{ session('rfm_auto_window') }} months</span>
+                    </span>
+                @endif
+                <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                    Order: <span class="font-medium uppercase">{{ ($sortBy ?? 'rfm') }}</span> • <span class="font-medium">{{ strtoupper($sortDir ?? 'desc') }}</span>
                 </span>
                 @if($search !== '')
                     <span class="px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
@@ -255,11 +303,62 @@
                     <thead class="bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 sticky top-0 z-10">
                         <tr class="text-left">
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold w-12">#</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Client</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">R</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">F</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">M</th>
-                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">RFM</th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'client', 'sort_dir' => ($sortBy==='client' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">
+                                    Client
+                                    @if(($sortBy ?? 'rfm') === 'client')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'r', 'sort_dir' => ($sortBy==='r' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">R
+                                    @if(($sortBy ?? 'rfm') === 'r')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'f', 'sort_dir' => ($sortBy==='f' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">F
+                                    @if(($sortBy ?? 'rfm') === 'f')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'm', 'sort_dir' => ($sortBy==='m' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">M
+                                    @if(($sortBy ?? 'rfm') === 'm')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="p-3 border-b border-gray-200 dark:border-gray-700 text-center font-semibold">
+                                <a href="?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'rfm', 'sort_dir' => ($sortBy==='rfm' && ($sortDir??'desc')==='desc') ? 'asc':'desc'])) }}" class="inline-flex items-center gap-1 hover:underline">RFM
+                                    @if(($sortBy ?? 'rfm') === 'rfm')
+                                        @if(($sortDir ?? 'desc') === 'desc')
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8l5 5 5-5H5z"/></svg>
+                                        @else
+                                            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path d="M5 12l5-5 5 5H5z"/></svg>
+                                        @endif
+                                    @endif
+                                </a>
+                            </th>
                             <th class="p-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Snapshot Date</th>
                         </tr>
                     </thead>

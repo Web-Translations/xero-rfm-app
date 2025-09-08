@@ -59,6 +59,11 @@
                         <x-dropdown-link :href="route('memberships.index')">
                             {{ __('Memberships') }}
                         </x-dropdown-link>
+                        @if(Auth::user()?->admin)
+                            <x-dropdown-link :href="route('admin.index')">
+                                {{ __('Admin Dashboard') }}
+                            </x-dropdown-link>
+                        @endif
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -127,6 +132,11 @@
                 <x-responsive-nav-link :href="route('memberships.index')">
                     {{ __('Memberships') }}
                 </x-responsive-nav-link>
+                @if(Auth::user()?->admin)
+                    <x-responsive-nav-link :href="route('admin.index')">
+                        {{ __('Admin Dashboard') }}
+                    </x-responsive-nav-link>
+                @endif
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">

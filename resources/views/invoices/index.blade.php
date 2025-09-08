@@ -161,8 +161,18 @@
 
         <!-- Results Card (disabled/greyed when no invoices yet) -->
         <div class="bg-white dark:bg-gray-900 shadow rounded-lg border border-gray-200 dark:border-gray-700 {{ $hasInvoices ? '' : 'opacity-50 pointer-events-none' }}">
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+            <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Results</h3>
+                <div class="flex items-center gap-2">
+                    <button id="bulk-exclude-btn"
+                            class="inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 shadow-sm border border-red-600 text-xs">
+                        Exclude all
+                    </button>
+                    <button id="bulk-unexclude-btn"
+                            class="inline-flex items-center justify-center px-3 py-1.5 rounded-md bg-gray-200 text-gray-800 hover:bg-gray-300 shadow-sm border border-gray-300 text-xs dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700">
+                        Include all
+                    </button>
+                </div>
             </div>
 
             <div class="px-4 py-2 flex flex-wrap gap-2 text-xs">
@@ -244,6 +254,79 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Helpers to get current filters as JSON
+            function getCurrentFiltersPayload() {
+                const form = document.getElementById('filters-form');
+                const fd = new FormData(form);
+                const payload = {
+                    days: fd.get('days') || 0,
+                    q: fd.get('q') || '',
+                    statuses: []
+                };
+                // Collect all checked statuses
+                form.querySelectorAll('input[name="statuses[]"]:checked').forEach(cb => {
+                    payload.statuses.push(cb.value);
+                });
+                return payload;
+            }
+
+            // Bulk action handler
+            async function handleBulk(action) {
+                const exclude = action === 'exclude';
+                const url = exclude ? '{{ route("invoices.bulk-exclude") }}' : '{{ route("invoices.bulk-unexclude") }}';
+                const btn = exclude ? document.getElementById('bulk-exclude-btn') : document.getElementById('bulk-unexclude-btn');
+                const otherBtn = exclude ? document.getElementById('bulk-unexclude-btn') : document.getElementById('bulk-exclude-btn');
+
+                // Optional confirmation
+                const confirmed = confirm((exclude ? 'Exclude' : 'Include') + ' all invoices matching the current filters?');
+                if (!confirmed) return;
+
+                btn.disabled = true; btn.classList.add('opacity-50');
+                otherBtn.disabled = true; otherBtn.classList.add('opacity-50');
+                try {
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(getCurrentFiltersPayload())
+                    });
+                    const data = await resp.json();
+                    if (!data.success) throw new Error(data.error || 'Bulk action failed');
+
+                    // Update current page table UI to reflect change
+                    document.querySelectorAll('tbody .exclude-checkbox').forEach(cb => {
+                        const row = cb.closest('tr');
+                        cb.checked = exclude;
+                        if (exclude) {
+                            row.classList.add('line-through', 'opacity-60');
+                        } else {
+                            row.classList.remove('line-through', 'opacity-60');
+                        }
+                    });
+
+                    if (window.showToast) {
+                        window.showToast((exclude ? 'Excluded' : 'Included') + ' ' + (data.affected ?? 'the selected') + ' invoices.', 'success');
+                    } else {
+                        alert((exclude ? 'Excluded' : 'Included') + ' ' + (data.affected ?? 'the selected') + ' invoices.');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    if (window.showToast) { window.showToast('Failed to perform bulk action: ' + e.message, 'error'); } else { alert('Failed to perform bulk action: ' + e.message); }
+                } finally {
+                    btn.disabled = false; btn.classList.remove('opacity-50');
+                    otherBtn.disabled = false; otherBtn.classList.remove('opacity-50');
+                }
+            }
+
+            const bulkExcludeBtn = document.getElementById('bulk-exclude-btn');
+            const bulkUnexcludeBtn = document.getElementById('bulk-unexclude-btn');
+            if (bulkExcludeBtn && bulkUnexcludeBtn) {
+                bulkExcludeBtn.addEventListener('click', () => handleBulk('exclude'));
+                bulkUnexcludeBtn.addEventListener('click', () => handleBulk('unexclude'));
+            }
+
             // Handle exclude checkbox changes
             document.querySelectorAll('.exclude-checkbox').forEach(function(checkbox) {
                 checkbox.addEventListener('change', function() {
@@ -280,14 +363,14 @@
                         } else {
                             // Revert checkbox if failed
                             this.checked = !isChecked;
-                            alert('Failed to update exclusion status');
+                            if (window.showToast) { window.showToast('Failed to update exclusion status', 'error'); } else { alert('Failed to update exclusion status'); }
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         // Revert checkbox if failed
                         this.checked = !isChecked;
-                        alert('Failed to update exclusion status');
+                        if (window.showToast) { window.showToast('Failed to update exclusion status', 'error'); } else { alert('Failed to update exclusion status'); }
                     })
                     .finally(() => {
                         // Re-enable checkbox
@@ -327,7 +410,7 @@
                 syncTimeout = setTimeout(() => {
                     if (syncInProgress) {
                         resetSyncUI();
-                        alert('Sync timed out after 30 minutes. Please try again.');
+                        if (window.showToast) { window.showToast('Sync timed out after 30 minutes. Please try again.', 'warning', 6000); } else { alert('Sync timed out after 30 minutes. Please try again.'); }
                     }
                 }, 30 * 60 * 1000);
                 
@@ -355,7 +438,7 @@
                 .catch(error => {
                     console.error('Sync error:', error);
                     resetSyncUI();
-                    alert('Failed to start sync: ' + error.message);
+                    if (window.showToast) { window.showToast('Failed to start sync: ' + error.message, 'error'); } else { alert('Failed to start sync: ' + error.message); }
                 });
             }
             // Empty-state sync button hooks same flow
@@ -388,7 +471,7 @@
                         this.disabled = false;
                         document.getElementById('sync-icon-empty').classList.remove('animate-spin');
                         document.getElementById('sync-button-text-empty').textContent = 'Start full sync';
-                        alert('Failed to start sync: ' + err.message);
+                        if (window.showToast) { window.showToast('Failed to start sync: ' + err.message, 'error'); } else { alert('Failed to start sync: ' + err.message); }
                         syncInProgress = false;
                     });
                 });
@@ -445,7 +528,7 @@
                 .catch(error => {
                     console.error('Batch fetch error:', error);
                     resetSyncUI();
-                    alert('Sync failed: ' + error.message);
+                    if (window.showToast) { window.showToast('Sync failed: ' + error.message, 'error'); } else { alert('Sync failed: ' + error.message); }
                 });
             }
 
@@ -478,7 +561,7 @@
                 .catch(error => {
                     console.error('Complete sync error:', error);
                     resetSyncUI();
-                    alert('Failed to complete sync: ' + error.message);
+                    if (window.showToast) { window.showToast('Failed to complete sync: ' + error.message, 'error'); } else { alert('Failed to complete sync: ' + error.message); }
                 });
             }
 

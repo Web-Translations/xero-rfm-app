@@ -159,15 +159,15 @@
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                                 <span class="text-blue-700 dark:text-blue-300">Recency:</span>
-                                <span class="ml-2 font-medium text-blue-900 dark:text-blue-100">{{ $config->recency_window_months }} months</span>
+                                <span class="ml-2 font-medium text-blue-900 dark:text-blue-100">{{ $config->recency_window_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                             </div>
                             <div>
                                 <span class="text-blue-700 dark:text-blue-300">Frequency:</span>
-                                <span class="ml-2 font-medium text-blue-900 dark:text-blue-100">{{ $config->frequency_period_months }} months</span>
+                                <span class="ml-2 font-medium text-blue-900 dark:text-blue-100">{{ $config->frequency_period_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                             </div>
                             <div>
                                 <span class="text-blue-700 dark:text-blue-300">Monetary:</span>
-                                <span class="ml-2 font-medium text-blue-900 dark:text-blue-100">{{ $config->monetary_window_months }} months</span>
+                                <span class="ml-2 font-medium text-blue-900 dark:text-blue-100">{{ $config->monetary_window_months }} months @if($config->auto_adjust_window) <span class="text-xs text-blue-600 dark:text-blue-400 ml-1">(Auto)</span>@endif</span>
                             </div>
                             <div>
                                 <span class="text-blue-700 dark:text-blue-300">Benchmark:</span>

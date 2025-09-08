@@ -25,42 +25,42 @@
 
                 <!-- Navigation Tabs -->
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg mb-6">
-                <div class="border-b border-gray-200 dark:border-gray-700">
-                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <div class="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                    <nav class="flex flex-nowrap gap-2 px-4 min-w-max" aria-label="Tabs">
                         <button onclick="showTab('overview')" id="tab-overview" 
-                                class="tab-button active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-white dark:text-white">
+                                class="tab-button active py-2 px-2 border rounded-md font-medium text-sm text-blue-600 dark:text-white border-blue-500 bg-blue-50 dark:bg-blue-900/30 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Overview
                         </button>
                         <button onclick="showTab('client-trends')" id="tab-client-trends" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Client RFM Trends
                         </button>
                         <button onclick="showTab('rfm-breakdown')" id="tab-rfm-breakdown" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Overall RFM Breakdown
                         </button>
                         <button onclick="showTab('rfm-monthly-distribution')" id="tab-rfm-monthly-distribution" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             RFM Monthly Distribution
                         </button>
                         <button onclick="showTab('rfm-score-over-time')" id="tab-rfm-score-over-time" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             RFM Score Over Time
                         </button>
                         <button onclick="showTab('customer-retention')" id="tab-customer-retention" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[8rem]">
                             Customer Retention
                         </button>
                         <button onclick="showTab('customer-lifetime-value')" id="tab-customer-lifetime-value" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[10rem]">
                             Customer Lifetime Value
                         </button>
                         <button onclick="showTab('customer-segmentation')" id="tab-customer-segmentation" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[10rem]">
                             Customer Segmentation
                         </button>
                         <button onclick="showTab('customer-value-distribution')" id="tab-customer-value-distribution" 
-                                class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+                                class="tab-button py-2 px-2 border rounded-md font-medium text-sm text-gray-600 dark:text-gray-300 border-transparent bg-transparent hover:border-gray-300 whitespace-normal leading-tight tracking-tight flex-none text-center md:max-w-[10rem]">
                             Customer Value Distribution
                         </button>
 
@@ -784,16 +784,16 @@
                             <h4 class="text-md font-semibold text-blue-900 dark:text-blue-100 mb-3">Time-Based Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="timeInsight1">Analyzing RFM score trends over time...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="timeInsight1">Analyzing RFM score trends over time...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="timeInsight2">Identifying seasonal patterns and trends...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="timeInsight2">Identifying seasonal patterns and trends...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-blue-600 dark:text-blue-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="timeInsight3">Calculating performance consistency metrics...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="timeInsight3">Calculating performance consistency metrics...</span>
                                 </div>
                             </div>
                         </div>
@@ -937,16 +937,16 @@
                             <h4 class="text-md font-semibold text-emerald-900 dark:text-emerald-100 mb-3">Retention Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="retentionInsight1">Analyzing customer retention patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="retentionInsight1">Analyzing customer retention patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="retentionInsight2">Identifying high-risk customer segments...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="retentionInsight2">Identifying high-risk customer segments...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="retentionInsight3">Calculating retention improvement opportunities...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="retentionInsight3">Calculating retention improvement opportunities...</span>
                                 </div>
                             </div>
                         </div>
@@ -1105,16 +1105,16 @@
                             <h4 class="text-md font-semibold text-purple-900 dark:text-purple-100 mb-3">CLV Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="clvInsight1">Analyzing customer lifetime value patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="clvInsight2">Identifying high-value customer opportunities...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="clvInsight2">Identifying high-value customer opportunities...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-purple-600 dark:text-purple-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="clvInsight3">Calculating investment prioritization strategies...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="clvInsight3">Calculating investment prioritization strategies...</span>
                                 </div>
                             </div>
                         </div>
@@ -1271,16 +1271,16 @@
                             <h4 class="text-md font-semibold text-amber-900 dark:text-amber-100 mb-3">Segmentation Insights</h4>
                             <div class="space-y-2 text-sm">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="segmentationInsight1">Analyzing customer segmentation patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="segmentationInsight2">Identifying key customer segments and behaviors...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="segmentationInsight3">Calculating segment-specific strategies and recommendations...</span>
                                 </div>
                             </div>
                         </div>
@@ -1456,16 +1456,16 @@
                             <h4 class="text-md font-semibold text-amber-800 dark:text-amber-200 mb-3">Key Insights</h4>
                             <div class="space-y-2">
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="valueInsight1">Analyzing customer value distribution patterns...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="valueInsight1">Analyzing customer value distribution patterns...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="valueInsight2">Identifying value concentration and inequality measures...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="valueInsight2">Identifying value concentration and inequality measures...</span>
                                 </div>
                                 <div class="flex items-start space-x-2">
-                                    <span class="text-amber-600 dark:text-amber-400 font-semibold">•</span>
-                                    <span class="text-white dark:text-white" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
+                                    <span class="text-gray-800 dark:text-white font-semibold">•</span>
+                                    <span class="text-gray-800 dark:text-white" id="valueInsight3">Calculating statistical measures and outlier detection...</span>
                                 </div>
                             </div>
                         </div>
@@ -1530,7 +1530,75 @@
          let valueDistributionType = 'histogram';
          let valueDistributionPeriod = '6m';
          
-
+         // --- Theme helpers for Chart.js ---
+         const allCharts = new Set();
+         function isDarkTheme() {
+             if (document.documentElement && document.documentElement.classList.contains('dark')) return true;
+             if (window.matchMedia) {
+                 try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (_) {}
+             }
+             return false;
+         }
+         function getChartTheme() {
+             const dark = isDarkTheme();
+             return {
+                 text: dark ? '#D1D5DB' : '#374151',
+                 textStrong: dark ? '#FFFFFF' : '#111111',
+                 grid: dark ? '#374151' : '#E5E7EB',
+                 tooltipBg: dark ? '#1F2937' : '#FFFFFF',
+                 tooltipTitle: dark ? '#D1D5DB' : '#374151',
+                 tooltipBody: dark ? '#D1D5DB' : '#374151',
+                 tooltipBorder: dark ? '#4B5563' : '#E5E7EB'
+             };
+         }
+         function styleChart(chart) {
+             if (!chart || !chart.options) return;
+             const c = getChartTheme();
+             if (Chart && Chart.defaults) {
+                 Chart.defaults.color = c.textStrong;
+                 Chart.defaults.borderColor = c.grid;
+             }
+             if (chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+                 chart.options.plugins.legend.labels.color = c.text;
+             }
+             if (chart.options.plugins && chart.options.plugins.tooltip) {
+                 chart.options.plugins.tooltip.backgroundColor = c.tooltipBg;
+                 chart.options.plugins.tooltip.titleColor = c.tooltipTitle;
+                 chart.options.plugins.tooltip.bodyColor = c.tooltipBody;
+                 chart.options.plugins.tooltip.borderColor = c.tooltipBorder;
+             }
+             if (chart.options.scales) {
+                 Object.values(chart.options.scales).forEach(scale => {
+                     if (!scale) return;
+                     if (scale.ticks) scale.ticks.color = c.textStrong;
+                     if (scale.title) scale.title.color = c.textStrong;
+                     if (scale.grid) scale.grid.color = c.grid;
+                 });
+             }
+             chart.update('none');
+         }
+         function registerChart(chart) {
+             if (!chart) return;
+             allCharts.add(chart);
+             styleChart(chart);
+         }
+         function refreshAllChartsTheme() {
+             allCharts.forEach(ch => styleChart(ch));
+         }
+         const __themeObserver = new MutationObserver(mutations => {
+             for (const m of mutations) {
+                 if (m.type === 'attributes' && m.attributeName === 'class') {
+                     refreshAllChartsTheme();
+                     break;
+                 }
+             }
+         });
+         __themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+         try {
+             const mq = window.matchMedia('(prefers-color-scheme: dark)');
+             if (mq && mq.addEventListener) mq.addEventListener('change', refreshAllChartsTheme);
+             else if (mq && mq.addListener) mq.addListener(refreshAllChartsTheme);
+         } catch (_) {}
          
 
          
@@ -1547,8 +1615,8 @@
             
             // Remove active class from all tabs
             document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400', 'text-white', 'dark:text-white');
-                button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+                button.classList.remove('active', 'border-blue-500', 'text-blue-600', 'dark:text-blue-400', 'text-white', 'dark:text-white', 'bg-blue-50', 'dark:bg-blue-900/30');
+                button.classList.add('border-transparent', 'text-gray-600', 'dark:text-gray-300', 'bg-transparent');
             });
             
             // Show selected tab content
@@ -1557,8 +1625,10 @@
             // Add active class to selected tab
             const activeTab = document.getElementById('tab-' + tabName);
             if (activeTab) {
-                activeTab.classList.add('active', 'border-blue-500', 'text-white', 'dark:text-white');
-                activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400', 'text-blue-600', 'dark:text-blue-400');
+                // Active tab colors and subtle background
+                activeTab.classList.add('active', 'border-blue-500', 'text-blue-600', 'bg-blue-50');
+                activeTab.classList.add('dark:text-white', 'dark:bg-blue-900/30');
+                activeTab.classList.remove('border-transparent', 'text-gray-600', 'dark:text-gray-300');
             }
             
             // Initialize chart for the selected tab
@@ -1684,25 +1754,26 @@
                             title: {
                                 display: true,
                                 text: 'RFM Score',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Date',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             }
                         }
                     }
                 }
             });
+            registerChart(clientTrendsChart);
 
             updateClientLegend(filteredClients);
         }
@@ -1745,7 +1816,7 @@
                  item.className = 'flex items-center space-x-2';
                  item.innerHTML = `
                      <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
-                     <span class="text-sm text-white dark:text-white">${client.name}</span>
+                     <span class="text-sm text-gray-800 dark:text-white">${client.name}</span>
                  `;
                  legend.appendChild(item);
              });
@@ -1770,7 +1841,7 @@
                             data-client="${client.name}"
                             onchange="toggleClientSelection('${client.name}')">
                      <label for="client-${client.name.replace(/\s+/g, '-')}" 
-                            class="text-sm text-white dark:text-white cursor-pointer flex-1">
+                            class="text-sm text-gray-800 dark:text-white cursor-pointer flex-1">
                          ${client.name}
                      </label>
                      <div class="w-3 h-3 rounded-full" style="background-color: ${client.color}"></div>
@@ -2251,7 +2322,8 @@
                              position: 'top',
                              labels: {
                                  usePointStyle: true,
-                                 padding: 20
+                                 padding: 20,
+                                 color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                              }
                          },
                          tooltip: {
@@ -2266,20 +2338,26 @@
                             title: {
                                 display: true,
                                 text: 'RFM Score',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Date',
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                             },
                             ticks: {
-                                color: '#FFFFFF'
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                            },
+                            grid: {
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                             }
                         }
                      },
@@ -2290,6 +2368,7 @@
                      }
                  }
              });
+             registerChart(rfmBreakdownChart);
          }
          // Update RFM Monthly Distribution Chart with filtered data
          function updateRfmMonthlyDistributionChart() {
@@ -2439,16 +2518,16 @@
                                  labels: {
                                      usePointStyle: true,
                                      padding: 20,
-                                     color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151'
                                  }
                              },
                              tooltip: {
                                  mode: 'index',
                                  intersect: false,
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                  borderWidth: 1
                              }
                          },
@@ -2460,13 +2539,13 @@
                                 title: {
                                     display: true,
                                     text: 'RFM Score',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              },
                                                          y1: {
@@ -2476,10 +2555,10 @@
                                 title: {
                                     display: true,
                                     text: 'Customer Count',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                  grid: {
                                      drawOnChartArea: false
@@ -2489,13 +2568,13 @@
                                 title: {
                                     display: true,
                                     text: 'Month',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              }
                          },
@@ -2506,6 +2585,7 @@
                          }
                      }
                  });
+                 registerChart(rfmMonthlyDistChart);
              }
              
              // Update monthly breakdown table
@@ -2772,18 +2852,11 @@
                                  display: false
                              },
                              tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                 borderWidth: 1,
-                                 callbacks: {
-                                     label: function(context) {
-                                         const value = context.parsed.y;
-                                         const period = periodStats[context.dataIndex];
-                                         return `Avg Score: ${value} | Records: ${period.count}`;
-                                     }
-                                 }
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 borderWidth: 1
                              }
                          },
                          scales: {
@@ -2793,31 +2866,27 @@
                                  title: {
                                      display: true,
                                      text: 'Average RFM Score',
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  ticks: {
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              },
                              x: {
-                                 title: {
-                                     display: true,
-                                     text: 'Time Period',
-                                     color: '#FFFFFF'
-                                 },
                                  ticks: {
-                                     color: '#FFFFFF'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                  },
                                  grid: {
-                                     color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                  }
                              }
                          }
                      }
                  });
+                 registerChart(rfmScoreOverTimeChart);
              }
              
              // Update period breakdown table
@@ -3066,53 +3135,54 @@
                          maintainAspectRatio: false,
                          plugins: {
                              legend: {
-                                 display: false
+                                 position: 'top',
+                                 labels: {
+                                     usePointStyle: true,
+                                     padding: 20,
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 }
                              },
                              tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                 borderWidth: 1,
-                                 callbacks: {
-                                     label: function(context) {
-                                         return `Retention Rate: ${context.parsed.y}%`;
-                                     }
-                                 }
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 borderWidth: 1
                              }
                          },
-                                                 scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                title: {
-                                    display: true,
-                                    text: 'Retention Rate (%)',
-                                    color: '#FFFFFF'
-                                },
-                                ticks: {
-                                    color: '#FFFFFF'
-                                },
-                                grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Customer Segments',
-                                    color: '#FFFFFF'
-                                },
-                                ticks: {
-                                    color: '#FFFFFF'
-                                },
-                                grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
-                                }
-                            }
-                        }
+                         scales: {
+                             y: {
+                                 beginAtZero: true,
+                                 max: 100,
+                                 title: {
+                                     display: true,
+                                     text: 'Retention Rate (%)',
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 ticks: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 grid: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             },
+                             x: {
+                                 title: {
+                                     display: true,
+                                     text: 'Customer Segments',
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 ticks: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
+                                 },
+                                 grid: {
+                                     color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
+                                 }
+                             }
+                         }
                      }
                  });
+                 registerChart(customerRetentionChart);
              }
              
              // Update insights
@@ -3366,10 +3436,10 @@
                                  display: false
                              },
                              tooltip: {
-                                 backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                 titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                 borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                 backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                 titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                 borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                                  borderWidth: 1,
                                  callbacks: {
                                      label: function(context) {
@@ -3384,34 +3454,35 @@
                                 title: {
                                     display: true,
                                     text: 'Average CLV (£)',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF',
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111',
                                     callback: function(value) {
                                         return '£' + value.toLocaleString();
                                     }
                                 },
                                 grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                 }
                             },
                             x: {
                                 title: {
                                     display: true,
                                     text: 'Customer Segments',
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 ticks: {
-                                    color: '#FFFFFF'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111'
                                 },
                                 grid: {
-                                    color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB'
                                 }
                             }
                         }
                      }
                  });
+                 registerChart(customerLifetimeValueChart);
              }
              
              // Update statistics
@@ -3890,32 +3961,22 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'right',
+                                position: 'top',
                                 labels: {
-                                    color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                    padding: 20,
-                                    usePointStyle: true
+                                    color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151'
                                 }
                             },
                             tooltip: {
-                                backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                                titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                                borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        const segment = context.label;
-                                        const count = context.parsed;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((count / total) * 100).toFixed(1);
-                                        return `${segment}: ${count} customers (${percentage}%)`;
-                                    }
-                                }
+                                backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                                titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                                borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
+                                borderWidth: 1
                             }
                         }
                     }
                 });
+                registerChart(customerSegmentationChart);
             }
             
             // Update statistics
@@ -4166,7 +4227,7 @@
                         title: {
                             display: true,
                             text: getChartTitle(),
-                            color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                            color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                             font: {
                                 size: 16,
                                 weight: 'bold'
@@ -4177,10 +4238,10 @@
                             }
                         },
                         legend: {
-                            display: chartType === 'bar' && valueDistributionType === 'boxplot',
+                            display: chartType !== 'histogram',
                             position: 'top',
                             labels: {
-                                color: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
+                                color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
                                 padding: 15,
                                 usePointStyle: true,
                                 font: {
@@ -4189,10 +4250,10 @@
                             }
                         },
                         tooltip: {
-                            backgroundColor: document.documentElement.classList.contains('dark') ? '#374151' : '#FFFFFF',
-                            titleColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                            bodyColor: document.documentElement.classList.contains('dark') ? '#D1D5DB' : '#374151',
-                            borderColor: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
+                            backgroundColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#FFFFFF',
+                            titleColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                            bodyColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#D1D5DB' : '#374151',
+                            borderColor: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#6B7280' : '#E5E7EB',
                             borderWidth: 1,
                             cornerRadius: 8,
                             padding: 12,
@@ -4223,114 +4284,22 @@
                             }
                         }
                     },
-                    scales: {
+                    scales: chartType === 'histogram' ? {
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: getYAxisLabel(),
-                                color: '#FFFFFF',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                padding: {
-                                    top: 10,
-                                    bottom: 10
-                                }
-                            },
-                            grid: {
-                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB',
-                                drawBorder: false,
-                                lineWidth: 0.5
-                            },
-                            ticks: {
-                                color: '#FFFFFF',
-                                font: {
-                                    size: 12
-                                },
-                                padding: 8,
-                                callback: function(value, index, values) {
-                                    if (valueDistributionType === 'histogram') {
-                                        return value + ' customers';
-                                    }
-                                    return value;
-                                }
-                            },
-                            border: {
-                                color: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                width: 1
-                            }
+                            title: { display: true, text: 'Clients', color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            ticks: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            grid: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB' }
                         },
                         x: {
-                            title: {
-                                display: true,
-                                text: getXAxisLabel(),
-                                color: '#FFFFFF',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                },
-                                padding: {
-                                    top: 10,
-                                    bottom: 10
-                                }
-                            },
-                            grid: {
-                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB',
-                                drawBorder: false,
-                                lineWidth: 0.5
-                            },
-                            ticks: {
-                                color: '#FFFFFF',
-                                font: {
-                                    size: 11
-                                },
-                                padding: 8,
-                                maxRotation: 45,
-                                minRotation: 0,
-                                callback: function(value, index, values) {
-                                    if (valueDistributionType === 'histogram') {
-                                        // Shorten long labels
-                                        const label = this.getLabelForValue(value);
-                                        if (label.length > 8) {
-                                            return label.split('-')[0] + '-';
-                                        }
-                                        return label;
-                                    }
-                                    return value;
-                                }
-                            },
-                            border: {
-                                color: document.documentElement.classList.contains('dark') ? '#6B7280' : '#E5E7EB',
-                                width: 1
-                            }
+                            title: { display: true, text: 'RFM Score', color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            ticks: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#FFFFFF' : '#111111' },
+                            grid: { color: getComputedStyle(document.documentElement).classList?.contains('dark') ? '#374151' : '#E5E7EB' }
                         }
-                    },
-                    elements: {
-                        bar: {
-                            borderRadius: 4,
-                            borderSkipped: false
-                        },
-                        point: {
-                            radius: 4,
-                            hoverRadius: 6,
-                            borderWidth: 2
-                        },
-                        line: {
-                            tension: 0.2
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    animation: {
-                        duration: 750,
-                        easing: 'easeInOutQuart'
-                    }
+                    } : undefined
                 }
             });
+            registerChart(customerValueDistributionChart);
             
             // Update statistics
             document.getElementById('meanValue').textContent = mean.toFixed(2);

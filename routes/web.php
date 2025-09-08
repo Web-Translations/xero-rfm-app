@@ -13,6 +13,7 @@ use App\Http\Controllers\OrganisationController;
 use App\Http\Controllers\MembershipsController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\AdminController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\EnsureXeroLinked;
@@ -30,8 +31,15 @@ Route::get('/xero/callback', function (Request $request) {
     return redirect()->route('xero.auth.callback', $request->query());
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'impersonate'])->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // Admin (restricted to admin users)
+    Route::get('/admin', [AdminController::class, 'index'])->middleware('admin')->name('admin.index');
+    Route::post('/admin/impersonate/{user}', [AdminController::class, 'startImpersonation'])
+        ->middleware('admin')
+        ->name('admin.impersonate.start');
 
     // Xero OAuth flow (package handles authorize + callback)
     Route::get('/xero/connect',  [XeroController::class, 'connect'])->name('xero.connect');
@@ -56,16 +64,21 @@ Route::middleware('auth')->group(function () {
 
 });
 
+// Exit impersonation must be reachable while impersonating (no admin gate)
+Route::match(['GET','POST'],'/admin/impersonate/stop', [AdminController::class, 'stopImpersonation'])
+    ->middleware('auth')
+    ->name('admin.impersonate.stop');
+
 // GoCardless success callback (no auth middleware - handled in controller)
 Route::get('/memberships/success', [MembershipsController::class, 'success'])->name('memberships.success');
 
 // Token management (simplified for debugging)
-Route::post('/token/refresh', [TokenController::class, 'refresh'])->name('token.refresh')->middleware('auth');
-Route::get('/token/status', [TokenController::class, 'status'])->name('token.status')->middleware('auth');
-Route::post('/token/reconnect', [TokenController::class, 'reconnect'])->name('token.reconnect')->middleware('auth');
+Route::post('/token/refresh', [TokenController::class, 'refresh'])->name('token.refresh')->middleware(['auth','impersonate']);
+Route::get('/token/status', [TokenController::class, 'status'])->name('token.status')->middleware(['auth','impersonate']);
+Route::post('/token/reconnect', [TokenController::class, 'reconnect'])->name('token.reconnect')->middleware(['auth','impersonate']);
 
 // Require Xero link before accessing app features that need it
-Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group(function () {
+Route::middleware(['auth', 'impersonate', 'auto.refresh.xero', EnsureXeroLinked::class])->group(function () {
     
     // Invoices from DB
     Route::get('/invoices', [InvoicesController::class, 'index'])->name('invoices.index');
@@ -77,6 +90,10 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
 
     Route::post('/invoices/{invoice}/exclude', [InvoicesController::class, 'exclude'])->name('invoices.exclude');
     Route::delete('/invoices/{invoice}/exclude', [InvoicesController::class, 'unexclude'])->name('invoices.unexclude');
+
+    // Bulk exclude/include based on current filters
+    Route::post('/invoices/bulk-exclude', [InvoicesController::class, 'bulkExclude'])->name('invoices.bulk-exclude');
+    Route::post('/invoices/bulk-unexclude', [InvoicesController::class, 'bulkUnexclude'])->name('invoices.bulk-unexclude');
     
     // RFM Scores (renamed from RFM Analysis)
     Route::get('/rfm', [RfmController::class, 'index'])->name('rfm.index');
@@ -95,8 +112,10 @@ Route::middleware(['auth', 'auto.refresh.xero', EnsureXeroLinked::class])->group
     Route::prefix('rfm/config')->name('rfm.config.')->group(function () {
         Route::get('/', [RfmConfigController::class, 'index'])->name('index');
         Route::post('/', [RfmConfigController::class, 'store'])->name('store');
+        Route::post('/save-recalculate', [RfmConfigController::class, 'saveAndRecalculate'])->name('save-recalculate');
         Route::post('/reset', [RfmConfigController::class, 'reset'])->name('reset');
         Route::post('/recalculate', [RfmConfigController::class, 'recalculate'])->name('recalculate');
+        Route::get('/benchmark-preview', [RfmConfigController::class, 'benchmarkPreview'])->name('benchmark-preview');
     });
     
     // RFM Analysis

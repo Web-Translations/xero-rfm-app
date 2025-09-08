@@ -99,6 +99,7 @@ class RfmCalculator
 
         // Compute and store RFM scores
         $computedCount = 0;
+        $processedClientIds = [];
 
         DB::transaction(function () use (
             $clients,
@@ -107,6 +108,7 @@ class RfmCalculator
             $effectiveSnapshotDate,
             $userId,
             &$computedCount,
+            &$processedClientIds,
             $activeConnection,
             $config,
             $monetaryBenchmark,
@@ -153,11 +155,14 @@ class RfmCalculator
                 // Overall RFM score: simple average of R, F, M
                 $rfmScore = round(($rScore + $fScore + $mScore) / 3, 2);
 
+                $nowTs = Carbon::now();
                 $insertData = [
                     'user_id' => $userId,
                     'client_id' => $client->id,
                     'snapshot_date' => $effectiveSnapshotDate->toDateString(),
                     'rfm_configuration_id' => $config->id,
+                    'created_at' => $nowTs,
+                    'updated_at' => $nowTs,
                 ];
                 
                 $updateData = [
@@ -165,14 +170,55 @@ class RfmCalculator
                     'f_score' => $fScore,
                     'm_score' => $mScore,
                     'rfm_score' => $rfmScore,
+                    // Ensure latest config id is stamped on updates as well
+                    'rfm_configuration_id' => $config->id,
+                    'updated_at' => $nowTs,
                 ];
 
-                DB::table('rfm_reports')->updateOrInsert($insertData, $updateData);
+                // Perform update-first to preserve created_at; insert if missing
+                $attributes = [
+                    'user_id' => $userId,
+                    'client_id' => $client->id,
+                    'snapshot_date' => $effectiveSnapshotDate->toDateString(),
+                ];
+
+                $affected = DB::table('rfm_reports')
+                    ->where($attributes)
+                    ->update($updateData);
+
+                if ($affected === 0) {
+                    DB::table('rfm_reports')->insert(array_merge($attributes, $updateData, [
+                        'created_at' => $nowTs,
+                    ]));
+                }
                 $computedCount++;
+                $processedClientIds[] = $client->id;
 
 
             }
         });
+
+        // Zero out clients that are present in current snapshot but had no invoices after exclusions.
+        // Safety guard: only run if we actually processed at least one client this run.
+        if (!empty($processedClientIds)) {
+            $snapshotDateStr = $effectiveSnapshotDate->toDateString();
+            $tenantId = $activeConnection->tenant_id;
+            DB::table('rfm_reports')
+                ->where('user_id', $userId)
+                ->where('snapshot_date', $snapshotDateStr)
+                ->whereIn('client_id', function ($q) use ($tenantId) {
+                    $q->select('id')->from('clients')->where('tenant_id', $tenantId);
+                })
+                ->whereNotIn('client_id', $processedClientIds)
+                ->update([
+                    'r_score' => 0,
+                    'f_score' => 0,
+                    'm_score' => 0,
+                    'rfm_score' => 0,
+                    'rfm_configuration_id' => $config->id,
+                    'updated_at' => Carbon::now(),
+                ]);
+        }
 
         return [
             'snapshot_date' => $effectiveSnapshotDate->toDateString(),

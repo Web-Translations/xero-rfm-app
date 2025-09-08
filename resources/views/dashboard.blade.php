@@ -21,9 +21,12 @@
                     <div class="hidden md:flex items-center space-x-4">
                         <div class="text-right">
                             <p class="text-sm text-gray-500 dark:text-gray-400">Current Plan</p>
+                            @php $currentPlan = Auth::user()->subscription_plan; @endphp
                             <p class="font-semibold text-gray-900 dark:text-white inline-flex items-center gap-3">
-                                Free
-                                <a href="{{ route('memberships.index') }}" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Upgrade →</a>
+                                {{ ucfirst(str_replace('_', ' ', $currentPlan)) }}
+                                <a href="{{ route('memberships.index') }}" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+                                    {{ $currentPlan === 'free' ? 'Upgrade →' : 'Manage →' }}
+                                </a>
                             </p>
                         </div>
                         <div class="w-px h-8 bg-gray-300 dark:bg-gray-600"></div>

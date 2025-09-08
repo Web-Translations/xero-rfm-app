@@ -18,6 +18,8 @@ class RfmConfiguration extends Model
         'monetary_benchmark_percentile',
         'monetary_benchmark_value',
         'monetary_use_largest_invoice',
+        'auto_adjust_window',
+        'frequency_autoadjust_threshold',
         'methodology_name',
         'is_active',
     ];
@@ -26,6 +28,8 @@ class RfmConfiguration extends Model
         'monetary_benchmark_percentile' => 'decimal:2',
         'monetary_benchmark_value' => 'decimal:2',
         'monetary_use_largest_invoice' => 'boolean',
+        'auto_adjust_window' => 'boolean',
+        'frequency_autoadjust_threshold' => 'integer',
         'is_active' => 'boolean',
     ];
 

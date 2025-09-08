@@ -53,19 +53,25 @@
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Analysis reports</span>
+                                <span class="text-gray-700 dark:text-gray-300">Basic RFM Analysis and Charts Package</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Insights</span>
+                                <span class="text-gray-700 dark:text-gray-300">Basic RFM Reports Generation</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Recommendations for improvements</span>
+                                <span class="text-gray-700 dark:text-gray-300">Basic RFM Recommendations and Insights</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="text-gray-700 dark:text-gray-300">Multiple Xero Organisation Functionality</span>
                             </li>
                         </ul>
 
@@ -119,13 +125,19 @@
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Deeper Insights</span>
+                                <span class="text-gray-700 dark:text-gray-300">Enhanced Analysis and Charts Package</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Enhanced Recommendations</span>
+                                <span class="text-gray-700 dark:text-gray-300">Enhanced RFM Reports Report Generation</span>
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="text-gray-700 dark:text-gray-300">Basic AI Insights and Recommendations Package</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,38 +186,39 @@
                             <span class="text-gray-600 dark:text-gray-400">/month</span>
                         </div>
 
-                        <ul class="space-y-4 mb-8">
+                        <ul class="space-y-4 mb-4">
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Everything in Pro</span>
+                                <span class="text-gray-700 dark:text-gray-300 line-through opacity-60">Everything in Pro</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">AI insights</span>
+                                <span class="text-gray-700 dark:text-gray-300 line-through opacity-60">Enhanced AI insights</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">AI recommendations</span>
+                                <span class="text-gray-700 dark:text-gray-300 line-through opacity-60">Enhanced AI recommendations</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">AI Chat feature for interactive analysis</span>
+                                <span class="text-gray-700 dark:text-gray-300 line-through opacity-60">AI Chat feature for interactive analysis</span>
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                <span class="text-gray-700 dark:text-gray-300">Unlimited additional users</span>
+                                <span class="text-gray-700 dark:text-gray-300 line-through opacity-60">Unlimited additional users</span>
                             </li>
                         </ul>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 text-center mb-8">Coming soon</p>
 
                                                     @if($currentPlan === 'pro_plus')
                                 <button class="w-full py-3 px-4 rounded-lg bg-purple-500 text-white font-medium cursor-default">

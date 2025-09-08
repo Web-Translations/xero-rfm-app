@@ -53,7 +53,8 @@ class DashboardController extends Controller
         $config = $hasConnection ? RfmConfiguration::getOrCreateDefault($user->id, $tenantId) : null;
         $configUpdatedAt = $config?->updated_at;
         $exclusionsUpdatedAt = $hasConnection
-            ? ExcludedInvoice::where('user_id', $user->id)->where('tenant_id', $tenantId)->max('updated_at')
+            ? ($activeConnection->exclusions_changed_at
+                ?: ExcludedInvoice::where('user_id', $user->id)->where('tenant_id', $tenantId)->max('updated_at'))
             : null;
 
         $needsRecalc = false;
