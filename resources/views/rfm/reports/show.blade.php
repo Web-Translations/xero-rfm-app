@@ -5,7 +5,7 @@
         </div>
     </x-slot>
 
-    <div class="p-6 space-y-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         <!-- Navigation -->
         <div class="flex justify-between items-center">
             <a href="{{ route('rfm.reports.index') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium flex items-center gap-2 transition-colors">
